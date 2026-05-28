@@ -8,5 +8,5 @@ run = ["sh", "-c", "cd client && npm install && npm run build && cd ../server &&
 deploymentTarget = "cloudrun"
 
 [[ports]]
-localPort = 3000
+localPort = 3003
 externalPort = 80
