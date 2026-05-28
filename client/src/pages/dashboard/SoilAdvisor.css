@@ -1,0 +1,83 @@
+.soil-advisor {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.advisor-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.advisor-form {
+  padding: 2rem;
+}
+
+.advisor-form h3 {
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.advisor-empty {
+  padding: 3rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.advisor-empty span { font-size: 3rem; }
+.advisor-empty h3 { font-size: 1.1rem; }
+.advisor-empty p { color: var(--gray-mid); font-size: 0.87rem; line-height: 1.65; }
+
+.advisor-capabilities {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  text-align: left;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.advisor-capabilities span {
+  font-size: 0.85rem;
+  color: var(--green-mid);
+}
+
+.diagnosis-result {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.diagnosis-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+}
+
+.diagnosis-header h3 {
+  font-size: 1.1rem;
+}
+
+.diagnosis-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-top: 1px solid var(--gray-light);
+  padding-top: 1.25rem;
+}
+
+.diagnosis-footer p {
+  font-size: 0.82rem;
+  color: var(--gray-mid);
+}
+
+@media (max-width: 900px) {
+  .advisor-layout { grid-template-columns: 1fr; }
+}

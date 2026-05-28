@@ -1,0 +1,210 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "services": "Services",
+    "about": "À Propos",
+    "blog": "Blog",
+    "gallery": "Galerie",
+    "contact": "Contact",
+    "login": "Se connecter",
+    "register": "S'inscrire",
+    "dashboard": "Tableau de bord",
+    "market": "Marché",
+    "network": "Réseau",
+    "profile": "Mon Profil",
+    "logout": "Déconnexion"
+  },
+  "hero": {
+    "slogan": "Cultiver un avenir durable, ensemble.",
+    "subtitle": "Plateforme agro-environnementale pour l'Afrique francophone — outils intelligents, expertise locale, impact réel.",
+    "cta_primary": "Découvrir nos services",
+    "cta_secondary": "Accéder à la plateforme"
+  },
+  "stats": {
+    "founded": "Fondé en 2021",
+    "fellows": "2 Fellows Internationaux",
+    "services": "7 Lignes de Services",
+    "presence": "Présence Afrique & Europe"
+  },
+  "services": {
+    "title": "Nos Services",
+    "subtitle": "7 lignes de services intégrés pour accompagner votre projet agricole et agri-alimentaire.",
+    "conseil": {
+      "title": "Assistance-Conseil",
+      "desc": "Accompagnement à la création et à la gestion d'entreprises agricoles et agri-alimentaires.",
+      "cta": "En savoir plus"
+    },
+    "negoce": {
+      "title": "Négoce Agricole",
+      "desc": "Commerce de produits agricoles et agri-alimentaires : oignons, pommes de terre et autres.",
+      "cta": "En savoir plus"
+    },
+    "formations": {
+      "title": "Formations",
+      "desc": "Agriculture Durable, Agriculture Intelligente, Agriculture Hors-sol — formations certifiantes.",
+      "cta": "En savoir plus"
+    },
+    "etudes": {
+      "title": "Études",
+      "desc": "Études environnementales et études de marché pour vos projets agricoles.",
+      "cta": "En savoir plus"
+    },
+    "hydro": {
+      "title": "Aménagements Hydro-Agricoles",
+      "desc": "Conception et réalisation d'aménagements hydro-agricoles durables.",
+      "cta": "En savoir plus"
+    },
+    "intrants": {
+      "title": "Intrants Agricoles",
+      "desc": "Vente d'intrants agricoles de qualité, dont BioGrowth — notre bio-fertilisant liquide.",
+      "cta": "En savoir plus"
+    },
+    "projets": {
+      "title": "Développement de Projets",
+      "desc": "Développement de projets et études de marché pour agripreneurs et institutions.",
+      "cta": "En savoir plus"
+    }
+  },
+  "about": {
+    "title": "Qui Nous Sommes",
+    "subtitle": "GreenFCO est une entreprise agro-environnementale fondée au Burkina Faso par deux frères passionnés d'agriculture durable et d'impact.",
+    "mission": "Notre Mission",
+    "vision": "Notre Vision",
+    "values": "Nos Valeurs",
+    "mission_text": "Accompagner les acteurs agricoles de l'Afrique francophone dans la transition vers des pratiques durables, innovantes et rentables.",
+    "vision_text": "Un secteur agricole africain résilient, inclusif et compétitif, ancré dans les pratiques agroécologiques.",
+    "values_durability": "Durabilité",
+    "values_innovation": "Innovation",
+    "values_impact": "Impact",
+    "founders": "Nos Co-fondateurs",
+    "timeline_title": "Notre Parcours"
+  },
+  "blog": {
+    "title": "Blog & Actualités",
+    "subtitle": "Articles, recherches et nouvelles du monde agro-environnemental.",
+    "read_more": "Lire la suite",
+    "categories": {
+      "all": "Tous",
+      "news": "Actualités",
+      "research": "Recherche & Innovation",
+      "agriculture": "Agriculture Durable",
+      "environment": "Environnement"
+    },
+    "newsletter_cta": "Restez informé",
+    "newsletter_text": "Abonnez-vous à notre newsletter pour recevoir les dernières nouvelles et conseils agricoles."
+  },
+  "contact": {
+    "title": "Contactez-Nous",
+    "subtitle": "Notre équipe est disponible pour répondre à vos questions et vous accompagner dans vos projets.",
+    "form_name": "Nom complet",
+    "form_email": "Adresse e-mail",
+    "form_subject": "Sujet",
+    "form_message": "Message",
+    "form_country": "Pays",
+    "form_submit": "Envoyer le message",
+    "whatsapp": "Contactez-nous sur WhatsApp",
+    "email": "Écrire un e-mail",
+    "success": "Votre message a été envoyé avec succès !",
+    "error": "Une erreur est survenue. Veuillez réessayer."
+  },
+  "auth": {
+    "login_title": "Se connecter",
+    "register_title": "Créer un compte",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "confirm_password": "Confirmer le mot de passe",
+    "name": "Nom complet",
+    "country": "Pays",
+    "user_type": "Type de compte",
+    "farmer": "Agriculteur / Agripreneur",
+    "expert": "Expert / Consultant",
+    "investor": "Investisseur",
+    "organization": "Organisation / Institution",
+    "login_btn": "Se connecter",
+    "register_btn": "Créer mon compte",
+    "forgot_password": "Mot de passe oublié ?",
+    "no_account": "Pas encore de compte ?",
+    "have_account": "Déjà un compte ?",
+    "language_pref": "Langue préférée"
+  },
+  "dashboard": {
+    "welcome": "Bienvenue",
+    "crops": "Mes Cultures",
+    "irrigation": "Irrigation",
+    "finance": "Finances",
+    "map": "Cartographie",
+    "weather": "Météo",
+    "species": "Espèces",
+    "market": "Marché",
+    "business_plan": "Business Plan",
+    "ai_advisor": "Conseiller IA",
+    "greenbot": "GreenBot",
+    "my_farms": "Mes Fermes",
+    "add_farm": "Ajouter une ferme"
+  },
+  "weather": {
+    "title": "Météo Agricole",
+    "subtitle": "Prévisions et alertes adaptées à votre exploitation",
+    "detect_location": "Détecter ma position",
+    "manual_city": "Entrer une ville",
+    "forecast_7days": "Prévisions 7 jours",
+    "rainfall_30days": "Pluies — 30 derniers jours",
+    "alerts": "Alertes Météo",
+    "recommendation": "Conseils du jour",
+    "temp_max": "Max",
+    "temp_min": "Min",
+    "rain": "Pluies",
+    "wind": "Vent",
+    "humidity": "Humidité"
+  },
+  "market": {
+    "title": "Marché Numérique",
+    "subtitle": "Achetez, vendez et échangez des produits agricoles",
+    "post_listing": "Publier une annonce",
+    "browse": "Parcourir les annonces",
+    "filters": "Filtres",
+    "crop": "Culture",
+    "quantity": "Quantité (kg)",
+    "price": "Prix",
+    "location": "Localisation",
+    "contact_whatsapp": "Contacter sur WhatsApp",
+    "my_listings": "Mes annonces"
+  },
+  "network": {
+    "title": "Réseau Agro-Environnemental",
+    "subtitle": "Connectez-vous avec des experts, agriculteurs et organisations",
+    "forums": "Forums",
+    "experts": "Experts",
+    "events": "Événements",
+    "knowledge": "Ressources",
+    "sponsorship": "Parrainage Plantes",
+    "investors": "Hub Investisseurs",
+    "impact": "Impact"
+  },
+  "footer": {
+    "slogan": "Cultiver un avenir durable, ensemble.",
+    "rights": "Tous droits réservés",
+    "founded": "Fondé en 2021 au Burkina Faso"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "download": "Télécharger",
+    "view_all": "Voir tout",
+    "learn_more": "En savoir plus",
+    "coming_soon": "Bientôt disponible",
+    "in_development": "En développement"
+  }
+}

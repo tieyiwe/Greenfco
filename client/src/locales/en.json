@@ -1,0 +1,210 @@
+{
+  "nav": {
+    "home": "Home",
+    "services": "Services",
+    "about": "About",
+    "blog": "Blog",
+    "gallery": "Gallery",
+    "contact": "Contact",
+    "login": "Sign In",
+    "register": "Register",
+    "dashboard": "Dashboard",
+    "market": "Market",
+    "network": "Network",
+    "profile": "My Profile",
+    "logout": "Sign Out"
+  },
+  "hero": {
+    "slogan": "Cultivating a sustainable future, together.",
+    "subtitle": "Agro-environmental platform for Francophone Africa — smart tools, local expertise, real impact.",
+    "cta_primary": "Explore our services",
+    "cta_secondary": "Access the platform"
+  },
+  "stats": {
+    "founded": "Founded in 2021",
+    "fellows": "2 International Fellows",
+    "services": "7 Service Lines",
+    "presence": "Africa & Europe Presence"
+  },
+  "services": {
+    "title": "Our Services",
+    "subtitle": "7 integrated service lines to support your agricultural and agri-food project.",
+    "conseil": {
+      "title": "Advisory Services",
+      "desc": "Business creation and management consulting for agricultural and agri-food enterprises.",
+      "cta": "Learn more"
+    },
+    "negoce": {
+      "title": "Agricultural Trading",
+      "desc": "Trading of agricultural and agri-food products: onions, potatoes, and more.",
+      "cta": "Learn more"
+    },
+    "formations": {
+      "title": "Training Programs",
+      "desc": "Sustainable Agriculture, Smart Agriculture, Soilless Agriculture — certified training.",
+      "cta": "Learn more"
+    },
+    "etudes": {
+      "title": "Studies & Research",
+      "desc": "Environmental studies and market research for your agricultural projects.",
+      "cta": "Learn more"
+    },
+    "hydro": {
+      "title": "Hydro-Agricultural Development",
+      "desc": "Design and implementation of sustainable hydro-agricultural projects.",
+      "cta": "Learn more"
+    },
+    "intrants": {
+      "title": "Agricultural Inputs",
+      "desc": "Quality agricultural inputs, including BioGrowth — our liquid bio-fertilizer.",
+      "cta": "Learn more"
+    },
+    "projets": {
+      "title": "Project Development",
+      "desc": "Project development and market studies for agripreneurs and institutions.",
+      "cta": "Learn more"
+    }
+  },
+  "about": {
+    "title": "Who We Are",
+    "subtitle": "GreenFCO is an agro-environmental enterprise founded in Burkina Faso by two brothers passionate about sustainable agriculture and impact.",
+    "mission": "Our Mission",
+    "vision": "Our Vision",
+    "values": "Our Values",
+    "mission_text": "Accompany agricultural actors in Francophone Africa in their transition to sustainable, innovative, and profitable practices.",
+    "vision_text": "A resilient, inclusive, and competitive African agricultural sector, grounded in agroecological practices.",
+    "values_durability": "Sustainability",
+    "values_innovation": "Innovation",
+    "values_impact": "Impact",
+    "founders": "Our Co-founders",
+    "timeline_title": "Our Journey"
+  },
+  "blog": {
+    "title": "Blog & News",
+    "subtitle": "Articles, research, and news from the agro-environmental world.",
+    "read_more": "Read more",
+    "categories": {
+      "all": "All",
+      "news": "News",
+      "research": "Research & Innovation",
+      "agriculture": "Sustainable Agriculture",
+      "environment": "Environment"
+    },
+    "newsletter_cta": "Stay Informed",
+    "newsletter_text": "Subscribe to our newsletter to receive the latest agricultural news and tips."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Our team is available to answer your questions and support your projects.",
+    "form_name": "Full name",
+    "form_email": "Email address",
+    "form_subject": "Subject",
+    "form_message": "Message",
+    "form_country": "Country",
+    "form_submit": "Send message",
+    "whatsapp": "Contact us on WhatsApp",
+    "email": "Send an email",
+    "success": "Your message was sent successfully!",
+    "error": "An error occurred. Please try again."
+  },
+  "auth": {
+    "login_title": "Sign In",
+    "register_title": "Create Account",
+    "email": "Email address",
+    "password": "Password",
+    "confirm_password": "Confirm password",
+    "name": "Full name",
+    "country": "Country",
+    "user_type": "Account type",
+    "farmer": "Farmer / Agripreneur",
+    "expert": "Expert / Consultant",
+    "investor": "Investor",
+    "organization": "Organization / Institution",
+    "login_btn": "Sign In",
+    "register_btn": "Create my account",
+    "forgot_password": "Forgot password?",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "language_pref": "Preferred language"
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "crops": "My Crops",
+    "irrigation": "Irrigation",
+    "finance": "Finance",
+    "map": "Farm Map",
+    "weather": "Weather",
+    "species": "Species",
+    "market": "Market",
+    "business_plan": "Business Plan",
+    "ai_advisor": "AI Advisor",
+    "greenbot": "GreenBot",
+    "my_farms": "My Farms",
+    "add_farm": "Add Farm"
+  },
+  "weather": {
+    "title": "Agricultural Weather",
+    "subtitle": "Forecasts and alerts adapted to your farm",
+    "detect_location": "Detect my location",
+    "manual_city": "Enter a city",
+    "forecast_7days": "7-day forecast",
+    "rainfall_30days": "Rainfall — last 30 days",
+    "alerts": "Weather Alerts",
+    "recommendation": "Today's Advice",
+    "temp_max": "Max",
+    "temp_min": "Min",
+    "rain": "Rain",
+    "wind": "Wind",
+    "humidity": "Humidity"
+  },
+  "market": {
+    "title": "Digital Market",
+    "subtitle": "Buy, sell, and trade agricultural products",
+    "post_listing": "Post a listing",
+    "browse": "Browse listings",
+    "filters": "Filters",
+    "crop": "Crop",
+    "quantity": "Quantity (kg)",
+    "price": "Price",
+    "location": "Location",
+    "contact_whatsapp": "Contact on WhatsApp",
+    "my_listings": "My listings"
+  },
+  "network": {
+    "title": "Agro-Environmental Network",
+    "subtitle": "Connect with experts, farmers, and organizations",
+    "forums": "Forums",
+    "experts": "Experts",
+    "events": "Events",
+    "knowledge": "Resources",
+    "sponsorship": "Plant Sponsorship",
+    "investors": "Investor Hub",
+    "impact": "Impact"
+  },
+  "footer": {
+    "slogan": "Cultivating a sustainable future, together.",
+    "rights": "All rights reserved",
+    "founded": "Founded in 2021 in Burkina Faso"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "download": "Download",
+    "view_all": "View all",
+    "learn_more": "Learn more",
+    "coming_soon": "Coming soon",
+    "in_development": "In development"
+  }
+}

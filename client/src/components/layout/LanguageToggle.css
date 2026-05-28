@@ -1,0 +1,27 @@
+.lang-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border: 1.5px solid var(--gray-light);
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  background: transparent;
+  color: var(--gray-mid);
+  transition: all var(--transition);
+}
+
+.lang-toggle:hover {
+  border-color: var(--green-light);
+}
+
+.lang-toggle span.active {
+  color: var(--green-deep);
+}
+
+.lang-toggle .separator {
+  color: var(--gray-light);
+}
