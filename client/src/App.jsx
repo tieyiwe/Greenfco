@@ -111,14 +111,26 @@ export default function App() {
             <Route path="business-plan" element={<ComingSoon title="Business Plan" icon="📋" />} />
           </Route>
 
-          {/* Market (Protected) */}
-          <Route path="/market" element={
+          {/* Marketplace (buy/sell listings) */}
+          <Route path="/marketplace" element={
             <ProtectedRoute>
               <DashboardLayout />
             </ProtectedRoute>
           }>
-            <Route index element={<MarketPage />} />
+            <Route index element={<MarketPage mode="marketplace" />} />
           </Route>
+
+          {/* AgroPro (prices & analytics) */}
+          <Route path="/agropro" element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<MarketPage mode="agropro" />} />
+          </Route>
+
+          {/* Legacy redirect */}
+          <Route path="/market" element={<Navigate to="/marketplace" replace />} />
 
           {/* Network (Protected) */}
           <Route path="/network" element={

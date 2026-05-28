@@ -164,13 +164,14 @@ const DEFAULT_SELLER = { farmName: '', bio: '', phone: '', location: '', lat: nu
 const DEFAULT_BUYER  = { name: '', location: '', lat: null, lng: null, preferredCategories: [], memberSince: new Date().getFullYear().toString() };
 
 /* ─── Main component ──────────────────────────────────────── */
-export default function MarketPage() {
+// mode: 'marketplace' = browse/sell/saved tabs | 'agropro' = prices/analytics tabs
+export default function MarketPage({ mode = 'marketplace' }) {
   const { i18n } = useTranslation();
   const lang = i18n.language?.startsWith('fr') ? 'fr' : 'en';
   const { user } = useAuthStore();
 
-  // Tab state
-  const [activeTab, setActiveTab] = useState('browse');
+  // Tab state — default tab depends on mode
+  const [activeTab, setActiveTab] = useState(mode === 'agropro' ? 'prices' : 'browse');
 
   // Listings
   const [listings, setListings]   = useState(DEMO_LISTINGS);
@@ -337,28 +338,42 @@ export default function MarketPage() {
   const savedListings = listings.filter(l => savedIds.includes(l.id));
 
   /* ── Tabs config ─────────────────────────────────────────*/
-  const TABS = [
-    { key:'browse',      fr:'🛒 Annonces',      en:'🛒 Browse' },
-    { key:'sell',        fr:'📦 Vendre',        en:'📦 Sell' },
-    { key:'saved',       fr:`❤️ Sauvegardés (${savedIds.length})`, en:`❤️ Saved (${savedIds.length})` },
-    { key:'prices',      fr:'📊 Prix du marché', en:'📊 Prices' },
-    { key:'analytics',   fr:'📈 Analytics',     en:'📈 Analytics' },
+  const MARKETPLACE_TABS = [
+    { key:'browse',    fr:'🛒 Annonces',                                  en:'🛒 Browse' },
+    { key:'sell',      fr:'📦 Vendre',                                    en:'📦 Sell' },
+    { key:'saved',     fr:`❤️ Sauvegardés (${savedIds.length})`,          en:`❤️ Saved (${savedIds.length})` },
   ];
+  const AGROPRO_TABS = [
+    { key:'prices',    fr:'📊 Prix du marché', en:'📊 Market Prices' },
+    { key:'analytics', fr:'📈 Analytics',      en:'📈 Analytics' },
+  ];
+  const TABS = mode === 'agropro' ? AGROPRO_TABS : MARKETPLACE_TABS;
 
   return (
     <div className="market-page">
       {/* Header */}
       <div className="module-header">
         <div>
-          <h1>{lang === 'fr' ? '🛒 Marché Numérique' : '🛒 Digital Market'}</h1>
-          <p>{lang === 'fr' ? 'Achetez, vendez et suivez les prix des marchés agricoles' : 'Buy, sell, and track agricultural market prices'}</p>
+          {mode === 'agropro' ? (
+            <>
+              <h1>{lang === 'fr' ? '📊 AgroPro — Prix & Marchés' : '📊 AgroPro — Prices & Markets'}</h1>
+              <p>{lang === 'fr' ? 'Cours en temps réel, tendances et analytics des marchés agricoles ouest-africains' : 'Live prices, trends and analytics for West African agricultural markets'}</p>
+            </>
+          ) : (
+            <>
+              <h1>{lang === 'fr' ? '🛒 Marketplace' : '🛒 Marketplace'}</h1>
+              <p>{lang === 'fr' ? 'Achetez et vendez directement entre producteurs et acheteurs' : 'Buy and sell directly between producers and buyers'}</p>
+            </>
+          )}
         </div>
-        <div style={{ display:'flex', gap:'0.5rem' }}>
-          <button className="btn btn-secondary btn-sm" onClick={() => setShowBuyerSetup(true)}>👤 {lang === 'fr' ? 'Profil acheteur' : 'Buyer profile'}</button>
-          <button className="btn btn-primary" onClick={() => { setActiveTab('sell'); setShowForm(true); }}>
-            + {lang === 'fr' ? 'Publier' : 'Post listing'}
-          </button>
-        </div>
+        {mode !== 'agropro' && (
+          <div style={{ display:'flex', gap:'0.5rem' }}>
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowBuyerSetup(true)}>👤 {lang === 'fr' ? 'Profil acheteur' : 'Buyer profile'}</button>
+            <button className="btn btn-primary" onClick={() => { setActiveTab('sell'); setShowForm(true); }}>
+              + {lang === 'fr' ? 'Publier' : 'Post listing'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}

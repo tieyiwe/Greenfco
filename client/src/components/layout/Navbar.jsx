@@ -24,12 +24,14 @@ export default function Navbar() {
     { to: '/blog', icon: '📰', label: t('nav.blog') },
     { to: '/gallery', icon: '📷', label: t('nav.gallery') },
     { to: '/contact', icon: '✉️', label: t('nav.contact') },
-    { to: '/market', icon: '🛒', label: t('nav.market') },
+    { to: '/marketplace', icon: '🛒', label: t('nav.marketplace'), highlight: true },
+    { to: '/agropro', icon: '📊', label: t('nav.agropro'), highlight: true },
   ];
 
   const authLinks = [
     { to: '/dashboard', icon: '📊', label: t('nav.dashboard'), exact: true },
-    { to: '/market', icon: '🛒', label: t('nav.market') },
+    { to: '/marketplace', icon: '🛒', label: t('nav.marketplace'), highlight: true },
+    { to: '/agropro', icon: '📊', label: t('nav.agropro'), highlight: true },
     { to: '/network', icon: '🌍', label: t('nav.network') },
     { to: '/blog', icon: '📰', label: t('nav.blog') },
   ];
@@ -56,7 +58,7 @@ export default function Navbar() {
           {/* Desktop nav links */}
           <nav className="navbar-links">
             {links.map((link) => (
-              link.to === '/market' ? (
+              link.highlight ? (
                 <NavLink
                   key={link.to}
                   to={link.to}

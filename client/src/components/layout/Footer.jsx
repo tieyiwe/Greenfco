@@ -47,7 +47,8 @@ export default function Footer() {
             <div className="footer-col">
               <h4>Plateforme</h4>
               <Link to="/dashboard">{t('nav.dashboard')}</Link>
-              <Link to="/market">{t('nav.market')}</Link>
+              <Link to="/marketplace">{t('nav.marketplace')}</Link>
+              <Link to="/agropro">{t('nav.agropro')}</Link>
               <Link to="/network">{t('nav.network')}</Link>
               <Link to="/register">{t('nav.register')}</Link>
             </div>
