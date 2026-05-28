@@ -73,6 +73,52 @@ router.post('/greenbot', async (req, res) => {
   }
 });
 
+const KOOB_ASSIST_SYSTEM = `You are Koob Assist, a business coach and strategic advisor for agricultural entrepreneurs (agripreneurs) in Burkina Faso and West Africa, working with Green Field Consortium (GreenFCO).
+
+When given a farmer's situation, generate a structured action plan with these exact sections:
+
+## 🎯 Actions Immédiates (0-2 semaines)
+List 3-5 concrete, achievable quick wins the farmer can start this week.
+
+## 📅 Plan 30 jours
+List 5-7 specific actions to accomplish in the next month.
+
+## 📈 Plan 90 jours
+List 3-5 strategic medium-term actions for the next 3 months.
+
+## 💡 Ressources GreenFCO Recommandées
+Mention the most relevant GreenFCO services: Assistance-Conseil, Négoce Agricole, Formations, Études, Aménagements Hydro-Agricoles, Intrants (BioGrowth), Développement de Projets. Be specific.
+
+## ⚠️ Points de vigilance
+List 2-3 key risks or things to watch out for.
+
+Keep advice practical, measurable, and adapted to smallholder farmers in the Sahel.
+Reference local crops (oignons, tomates, maïs, mil, sorgho, niébé, sésame), local markets, and climate-smart agriculture.
+Use motivating, encouraging tone.
+Respond in the user's language (French or English).`;
+
+router.post('/koob-assist', async (req, res) => {
+  const { prompt, language = 'fr' } = req.body;
+  if (!prompt) return res.status(400).json({ message: 'Prompt required' });
+
+  try {
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 2000,
+      system: KOOB_ASSIST_SYSTEM,
+      messages: [{ role: 'user', content: prompt }],
+    });
+    res.json({ plan: response.content[0].text });
+  } catch (err) {
+    console.error('Koob Assist error:', err.message);
+    res.status(500).json({
+      plan: language === 'fr'
+        ? 'Erreur lors de la génération du plan. Veuillez réessayer.'
+        : 'Error generating plan. Please try again.',
+    });
+  }
+});
+
 router.post('/soil-advisor', async (req, res) => {
   const { crop, symptoms, description, language = 'fr' } = req.body;
   if (!crop || !symptoms) return res.status(400).json({ message: 'Crop and symptoms required' });

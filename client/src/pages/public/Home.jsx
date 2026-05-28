@@ -51,10 +51,8 @@ export default function Home() {
       {/* Hero */}
       <section className="hero">
         <div className="hero-bg">
-          <div className="hero-grain" />
-          <div className="hero-geo geo-1" />
-          <div className="hero-geo geo-2" />
-          <div className="hero-geo geo-3" />
+          <div className="hero-photo" aria-hidden="true" />
+          <div className="hero-overlay" aria-hidden="true" />
         </div>
         <div className="hero-content container">
           <div className="hero-eyebrow">

@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import 'dotenv/config';
 
 import authRoutes from './routes/auth.js';
@@ -10,18 +12,19 @@ import aiRoutes from './routes/ai.js';
 import contactRoutes from './routes/contact.js';
 import newsletterRoutes from './routes/newsletter.js';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: process.env.CLIENT_URL || '*',
   credentials: true,
 }));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/crops', cropsRoutes);
 app.use('/api/finance', financeRoutes);
@@ -32,6 +35,11 @@ app.use('/api/newsletter', newsletterRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'GreenFCO API is running 🌿' }));
 
-app.listen(PORT, () => {
+// Serve built React frontend
+const publicDir = path.join(__dirname, 'public');
+app.use(express.static(publicDir));
+app.get('*', (_, res) => res.sendFile(path.join(publicDir, 'index.html')));
+
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🌿 GreenFCO Server running on port ${PORT}`);
 });

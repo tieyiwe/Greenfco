@@ -14,6 +14,7 @@ const MODULES = [
   { to: '/dashboard/business-plan', icon: '📋', fr: 'Business Plan', en: 'Business Plan', desc_fr: 'Planifier votre activité', desc_en: 'Plan your business' },
   { to: '/dashboard/soil-advisor', icon: '🔍', fr: 'Conseiller IA', en: 'AI Advisor', desc_fr: 'Diagnostic maladies/sols', desc_en: 'Disease & soil diagnosis' },
   { to: '/dashboard/greenbot', icon: '🤖', fr: 'GreenBot', en: 'GreenBot', desc_fr: 'Votre assistant agricole IA', desc_en: 'Your AI farm assistant' },
+  { to: '/dashboard/koob-assist', icon: '📱', fr: 'Koob Assist', en: 'Koob Assist', desc_fr: "Plan d'action IA pour votre exploitation", desc_en: 'AI action plan for your farm business' },
 ];
 
 export default function DashboardHome() {

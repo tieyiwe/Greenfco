@@ -1,6 +1,15 @@
-/* GreenFCO Design System — Organic Luxury */
+/* GreenFCO Design System — Organic Luxury + Native Mobile */
 
 :root {
+  /* Safe area insets (iOS notch / Android edge-to-edge) */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
+  /* Bottom nav height (mobile) */
+  --bottom-nav-height: 64px;
+  --bottom-nav-total: calc(var(--bottom-nav-height) + var(--safe-bottom));
   /* Primary Palette */
   --green-deep: #1B4332;
   --green-mid: #2D6A4F;
@@ -475,4 +484,925 @@ textarea.form-input {
   color: var(--green-deep);
   font-family: var(--font-display);
   font-size: 1.1rem;
+}
+
+/* ============================================================
+   NATIVE MOBILE EXPERIENCE
+   ============================================================ */
+
+/* Prevent iOS text zoom on inputs */
+@media (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+/* Momentum scrolling on iOS */
+.scroll-ios {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Tap highlight — remove default, use our own */
+* {
+  -webkit-tap-highlight-color: rgba(82, 183, 136, 0.15);
+  -webkit-touch-callout: none;
+}
+
+a, button { -webkit-tap-highlight-color: rgba(82, 183, 136, 0.15); }
+
+/* Prevent text selection on UI chrome */
+.navbar, .dashboard-sidebar, .bottom-nav, .sidebar-link {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Touch-friendly minimum target */
+@media (max-width: 768px) {
+  .btn {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-sm {
+    min-height: 40px;
+  }
+
+  .form-input, .form-select {
+    min-height: 48px;
+    padding: 0.85rem 1rem;
+  }
+
+  .nav-link {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* ============================================================
+   BOTTOM NAVIGATION BAR (Mobile Dashboard)
+   ============================================================ */
+
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--bottom-nav-total);
+  background: white;
+  border-top: 1px solid var(--gray-light);
+  z-index: 200;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.08);
+  padding-bottom: var(--safe-bottom);
+}
+
+.bottom-nav-inner {
+  display: flex;
+  align-items: stretch;
+  height: var(--bottom-nav-height);
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--gray-mid);
+  transition: color 0.15s ease;
+  text-decoration: none;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 0;
+}
+
+.bottom-nav-item.active {
+  color: var(--green-deep);
+}
+
+.bottom-nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 3px;
+  background: var(--green-deep);
+  border-radius: 0 0 3px 3px;
+}
+
+.bottom-nav-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+
+.bottom-nav-item.active .bottom-nav-icon {
+  transform: scale(1.1);
+}
+
+.bottom-nav-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  padding: 0 4px;
+}
+
+/* More button for overflow items */
+.bottom-nav-more {
+  position: relative;
+}
+
+.bottom-nav-overflow {
+  position: fixed;
+  bottom: var(--bottom-nav-total);
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid var(--gray-light);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.15);
+  padding: 1.25rem 1rem calc(0.5rem + var(--safe-bottom));
+  z-index: 199;
+  animation: slideUpSheet 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.overflow-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.overflow-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.85rem 0.5rem;
+  border-radius: var(--radius-md);
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--gray-dark);
+  text-decoration: none;
+  transition: background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.overflow-item:active {
+  background: var(--green-pale);
+}
+
+.overflow-item span:first-child { font-size: 1.5rem; }
+.overflow-item span:last-child { font-size: 0.72rem; font-weight: 500; }
+
+.overflow-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 198;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .bottom-nav {
+    display: block;
+  }
+
+  /* Push content above bottom nav */
+  .dashboard-main {
+    padding-bottom: var(--bottom-nav-total) !important;
+  }
+
+  /* Hide sidebar on mobile — using bottom nav instead */
+  .dashboard-sidebar {
+    display: none !important;
+  }
+
+  .dashboard-main {
+    margin-left: 0 !important;
+  }
+
+  .dashboard-topbar {
+    padding-top: var(--safe-top);
+    height: calc(56px + var(--safe-top));
+  }
+
+  .sidebar-toggle {
+    display: none; /* no hamburger — using bottom nav */
+  }
+}
+
+/* ============================================================
+   MOBILE NAVBAR (Public pages)
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .navbar {
+    padding-top: var(--safe-top);
+  }
+
+  .navbar-container {
+    height: 56px;
+  }
+
+  /* Mobile menu slides up from bottom as a sheet */
+  .navbar-links.open {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    flex-direction: column;
+    padding: 0.5rem 0 var(--safe-bottom);
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    animation: slideUpSheet 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+    gap: 0;
+    z-index: 1000;
+  }
+
+  .navbar-links.open .nav-link {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 0;
+    border-bottom: 1px solid var(--gray-light);
+    width: 100%;
+  }
+
+  .navbar-links.open .nav-link:last-child {
+    border-bottom: none;
+  }
+
+  /* Sheet handle */
+  .navbar-links.open::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: var(--gray-light);
+    border-radius: 2px;
+    margin: 0.75rem auto 0.5rem;
+  }
+
+  .mobile-overlay {
+    z-index: 999;
+  }
+
+  /* Auth buttons in mobile navbar */
+  .auth-buttons {
+    gap: 0.5rem;
+  }
+
+  .auth-buttons .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    min-height: 40px;
+  }
+}
+
+/* ============================================================
+   MOBILE PAGE LAYOUTS
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  .section {
+    padding: 2.5rem 0;
+  }
+
+  /* Cards go full bleed on mobile */
+  .card {
+    border-radius: var(--radius-md);
+  }
+
+  /* Dashboard content padding */
+  .dashboard-content {
+    padding: 1rem;
+  }
+
+  /* Module headers stack on mobile */
+  .module-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .module-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Grid overrides for mobile */
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ============================================================
+   FLOATING ACTION BUTTON (Mobile primary action)
+   ============================================================ */
+
+.fab {
+  display: none;
+  position: fixed;
+  bottom: calc(var(--bottom-nav-total) + 1rem);
+  right: 1rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--green-deep);
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 16px rgba(27, 67, 50, 0.4);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  z-index: 150;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fab:active {
+  transform: scale(0.94);
+  box-shadow: 0 2px 8px rgba(27, 67, 50, 0.3);
+}
+
+@media (max-width: 768px) {
+  .fab {
+    display: flex;
+  }
+}
+
+/* ============================================================
+   MOBILE HERO (Public home)
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: 100svh; /* small viewport height — avoids browser chrome issues */
+  }
+
+  .hero-content {
+    padding: 7rem 1rem 5rem;
+  }
+
+  .hero-slogan {
+    font-size: 2rem;
+  }
+
+  .hero-cta {
+    flex-direction: column;
+  }
+
+  .hero-cta .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ============================================================
+   MOBILE CARDS — full bleed list style
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .crops-grid,
+  .listings-grid,
+  .services-grid,
+  .articles-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem;
+  }
+
+  /* Swipeable list items */
+  .crop-card,
+  .listing-card,
+  .finance-entry {
+    border-radius: var(--radius-md);
+    transition: transform 0.15s ease;
+  }
+
+  .crop-card:active,
+  .listing-card:active {
+    transform: scale(0.98);
+  }
+
+  /* Finance entries — full width rows */
+  .finance-summary {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem;
+  }
+
+  .finance-summary-card {
+    padding: 1rem;
+  }
+
+  .finance-summary-card strong {
+    font-size: 0.95rem;
+  }
+}
+
+/* ============================================================
+   MOBILE FORMS — native feel
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  /* Full-width buttons in forms */
+  form .btn[type="submit"] {
+    width: 100%;
+    justify-content: center;
+    padding: 1rem;
+    font-size: 1rem;
+  }
+
+  /* Pill-style select on mobile */
+  .form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%239A9A8E' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+  }
+}
+
+/* ============================================================
+   MOBILE AUTH PAGES
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+    min-height: 100svh;
+  }
+
+  .auth-side-brand {
+    display: none;
+  }
+
+  .auth-side-form {
+    padding: calc(var(--safe-top) + 1.5rem) 1.25rem calc(var(--safe-bottom) + 2rem);
+    align-items: flex-start;
+  }
+
+  .auth-form-container {
+    width: 100%;
+    padding-top: 1rem;
+  }
+
+  .auth-form-container h1 {
+    font-size: 1.6rem;
+  }
+
+  .auth-submit {
+    font-size: 1rem;
+    padding: 1rem;
+  }
+}
+
+/* ============================================================
+   MOBILE WEATHER HUB
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .weather-hub {
+    gap: 1rem;
+  }
+
+  .weather-header {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .weather-controls {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .city-search {
+    width: 100%;
+  }
+
+  .city-search .form-input {
+    flex: 1;
+    width: auto;
+  }
+
+  .today-card {
+    padding: 1.5rem 1.25rem;
+    border-radius: var(--radius-xl);
+  }
+
+  .today-main {
+    gap: 1rem;
+  }
+
+  .today-icon { font-size: 2.5rem; }
+  .temp-max { font-size: 2.25rem; }
+
+  .today-recommendation {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .forecast-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.5rem;
+  }
+
+  .forecast-day {
+    padding: 0.65rem 0.25rem;
+  }
+
+  .forecast-date { font-size: 0.65rem; }
+  .forecast-icon { font-size: 1.1rem; }
+  .forecast-max { font-size: 0.82rem; }
+  .forecast-min { font-size: 0.72rem; }
+  .forecast-rain { font-size: 0.65rem; }
+}
+
+/* ============================================================
+   MOBILE GREENBOT — feels like a messaging app
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .greenbot {
+    border-radius: 0;
+    height: calc(100svh - 56px - var(--bottom-nav-total));
+    box-shadow: none;
+  }
+
+  .greenbot-header {
+    padding: 1rem;
+  }
+
+  .greenbot-badges {
+    display: none; /* save space */
+  }
+
+  .message-bubble {
+    max-width: 85%;
+    font-size: 0.92rem;
+  }
+
+  .greenbot-input {
+    padding: 0.75rem 1rem;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .suggestions-grid {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
+  }
+
+  .suggestions-grid::-webkit-scrollbar { display: none; }
+
+  .suggestion-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
+/* ============================================================
+   MOBILE SPECIES LIBRARY — stacked layout
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .species-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .species-list {
+    max-height: none;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .species-item {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.75rem;
+    gap: 0.35rem;
+  }
+
+  .species-days { margin-left: 0; }
+
+  .species-info-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem;
+  }
+}
+
+/* ============================================================
+   MOBILE BLOG
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .blog-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .blog-sidebar {
+    display: none; /* hide sidebar on mobile */
+  }
+
+  .blog-preview-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  .featured-article {
+    border-radius: var(--radius-md);
+  }
+
+  .articles-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Horizontal scroll categories */
+  .category-filter {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
+    margin: 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .category-filter::-webkit-scrollbar { display: none; }
+  .filter-btn { flex-shrink: 0; }
+}
+
+/* ============================================================
+   MOBILE ABOUT / SERVICES
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .who-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem;
+  }
+
+  .founders-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mvv-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .values-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .service-detail-card {
+    grid-template-columns: auto 1fr !important;
+    padding: 1.25rem;
+  }
+
+  .service-detail-number {
+    display: none;
+  }
+
+  .timeline::before { display: none; }
+
+  .timeline-item,
+  .timeline-item.left,
+  .timeline-item.right {
+    flex-direction: column;
+    padding: 0;
+    align-items: flex-start;
+  }
+
+  .timeline-year {
+    position: static;
+    transform: none;
+    margin-bottom: 0.5rem;
+    display: inline-flex;
+  }
+}
+
+/* ============================================================
+   MOBILE CONTACT
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .contact-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Sticky WhatsApp CTA */
+  .mobile-whatsapp-sticky {
+    display: flex;
+    position: fixed;
+    bottom: calc(var(--bottom-nav-total) + 1rem);
+    left: 1rem;
+    right: 1rem;
+    z-index: 150;
+  }
+
+  .mobile-whatsapp-sticky .btn {
+    width: 100%;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4);
+  }
+}
+
+/* ============================================================
+   MOBILE MARKET
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .market-filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+  .market-filters::-webkit-scrollbar { display: none; }
+
+  .listing-cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ============================================================
+   SCROLL SNAP (horizontal carousels)
+   ============================================================ */
+
+.snap-x {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  gap: 1rem;
+  padding: 0.25rem 0;
+}
+
+.snap-x::-webkit-scrollbar { display: none; }
+
+.snap-item {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   PAGE TRANSITIONS
+   ============================================================ */
+
+.page-enter {
+  animation: pageSlideIn 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes pageSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Apply to all route views */
+main, .dashboard-home, .crop-manager,
+.irrigation-manager, .finance-manager,
+.weather-hub, .species-library, .greenbot,
+.soil-advisor, .market-page, .network-page,
+.about-page, .blog-page, .services-page {
+  animation: pageSlideIn 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ============================================================
+   MOBILE DASHBOARD STATS — horizontal scroll
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .dashboard-stats {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.75rem;
+    scrollbar-width: none;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+    grid-template-columns: unset;
+  }
+
+  .dashboard-stats::-webkit-scrollbar { display: none; }
+
+  .stat-card {
+    flex-shrink: 0;
+    min-width: 140px;
+    border-radius: var(--radius-md);
+  }
+
+  .dashboard-modules-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem;
+  }
+
+  .module-card {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .module-icon { font-size: 1.5rem; }
+  .module-card h3 { font-size: 0.82rem; }
+  .module-card p { display: none; }
+
+  .quick-actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  .quick-actions-grid .btn {
+    justify-content: center;
+  }
+}
+
+/* ============================================================
+   PULL-DOWN REFRESH INDICATOR (visual only)
+   ============================================================ */
+
+.pull-indicator {
+  display: none;
+  text-align: center;
+  padding: 0.75rem;
+  color: var(--gray-mid);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 768px) {
+  .pull-indicator { display: block; }
+}
+
+/* ============================================================
+   BOTTOM SHEET MODAL (replaces centered modals on mobile)
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .modal-overlay {
+    align-items: flex-end;
+  }
+
+  .modal-content {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    width: 100%;
+    max-width: 100%;
+    padding-bottom: calc(1.5rem + var(--safe-bottom));
+    animation: slideUpSheet 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .modal-content::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: var(--gray-light);
+    border-radius: 2px;
+    margin: 0 auto 1.25rem;
+  }
+}
+
+/* ============================================================
+   iOS / ANDROID STATUS BAR AWARENESS
+   ============================================================ */
+
+.navbar {
+  padding-top: var(--safe-top);
+}
+
+.navbar-container {
+  height: calc(70px - var(--safe-top));
+}
+
+@media (max-width: 768px) {
+  .navbar-container {
+    height: 56px;
+  }
 }
