@@ -201,9 +201,13 @@ export default function MarketPage({ mode = 'marketplace' }) {
   // Seller profile sheet
   const [viewingSeller, setViewingSeller] = useState(null);
 
-  // Contact modal
-  const [contactListing, setContactListing] = useState(null);
-  const [msgText, setMsgText]               = useState('');
+  // Internal messaging
+  const [conversations, setConversations] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('greenfco_conversations')) || {}; } catch { return {}; }
+  });
+  const [activeConvId, setActiveConvId] = useState(null);
+  const [msgText, setMsgText]           = useState('');
+  const [showInbox, setShowInbox]       = useState(false);
 
   // Location
   const [buyerLoc, setBuyerLoc]     = useState(null);
@@ -294,14 +298,68 @@ export default function MarketPage({ mode = 'marketplace' }) {
     setLoading(false);
   }
 
-  /* ── Contact ─────────────────────────────────────────────*/
-  function openContact(listing) {
-    const dist = buyerLoc && listing.lat ? ` (${fmtDist(haversineKm(buyerLoc.lat, buyerLoc.lng, listing.lat, listing.lng))})` : '';
-    const msg = lang === 'fr'
-      ? `Bonjour ${listing.user_name}, je suis intéressé(e) par : ${listing.crop_name}${dist}, ${Number(listing.quantity_kg).toLocaleString()} kg à ${Number(listing.price).toLocaleString()} ${listing.currency}/kg. Êtes-vous disponible ?`
-      : `Hello ${listing.user_name}, I'm interested in: ${listing.crop_name}${dist}, ${Number(listing.quantity_kg).toLocaleString()} kg at ${Number(listing.price).toLocaleString()} ${listing.currency}/kg. Are you available?`;
-    setContactListing(listing); setMsgText(msg);
+  /* ── Messaging ───────────────────────────────────────────*/
+  function convId(listing) { return `${listing.user_id}_${listing.id}`; }
+
+  function openChat(listing) {
+    const cid = convId(listing);
+    if (!conversations[cid]) {
+      const dist = buyerLoc && listing.lat ? ` (${fmtDist(haversineKm(buyerLoc.lat, buyerLoc.lng, listing.lat, listing.lng))})` : '';
+      const initMsg = lang === 'fr'
+        ? `Bonjour ${listing.user_name}, je suis intéressé(e) par votre annonce : ${listing.crop_name}${dist}, ${Number(listing.quantity_kg).toLocaleString()} kg à ${Number(listing.price).toLocaleString()} ${listing.currency}/kg. Êtes-vous disponible ?`
+        : `Hello ${listing.user_name}, I'm interested in your listing: ${listing.crop_name}${dist}, ${Number(listing.quantity_kg).toLocaleString()} kg at ${Number(listing.price).toLocaleString()} ${listing.currency}/kg. Are you available?`;
+      setMsgText(initMsg);
+    } else {
+      setMsgText('');
+    }
+    setActiveConvId(cid);
+    setConversations(prev => {
+      if (prev[cid]) return prev;
+      return { ...prev, [cid]: { listing, seller_name: listing.user_name, messages: [] } };
+    });
   }
+
+  function sendMessage() {
+    if (!msgText.trim() || !activeConvId) return;
+    const now = new Date().toISOString();
+    const myName = buyerProfile?.name || user?.name || (lang === 'fr' ? 'Moi' : 'Me');
+    const newMsg = { from: 'buyer', name: myName, text: msgText.trim(), ts: now };
+    setConversations(prev => {
+      const conv = prev[activeConvId];
+      const updated = { ...prev, [activeConvId]: { ...conv, messages: [...conv.messages, newMsg] } };
+      localStorage.setItem('greenfco_conversations', JSON.stringify(updated));
+      return updated;
+    });
+    setMsgText('');
+    // Simulated seller auto-reply after 1.5s
+    const seller = conversations[activeConvId]?.listing || Object.values(conversations).find(c => convId(c.listing) === activeConvId)?.listing;
+    if (seller) {
+      const replies_fr = [
+        `Bonjour ! Merci pour votre intérêt. Le produit est disponible. Contactez-moi pour les détails.`,
+        `Oui, je suis disponible ! Quelle quantité vous intéresse ?`,
+        `Merci pour votre message. Je vous confirme la disponibilité.`,
+      ];
+      const replies_en = [
+        `Hello! Thanks for your interest. The product is available. Contact me for details.`,
+        `Yes, I'm available! What quantity are you interested in?`,
+        `Thank you for your message. I confirm availability.`,
+      ];
+      const replyPool = lang === 'fr' ? replies_fr : replies_en;
+      const replyText = replyPool[Math.floor(Math.random() * replyPool.length)];
+      setTimeout(() => {
+        setConversations(prev2 => {
+          const conv2 = prev2[activeConvId];
+          if (!conv2) return prev2;
+          const autoReply = { from: 'seller', name: conv2.seller_name, text: replyText, ts: new Date().toISOString() };
+          const updated2 = { ...prev2, [activeConvId]: { ...conv2, messages: [...conv2.messages, autoReply] } };
+          localStorage.setItem('greenfco_conversations', JSON.stringify(updated2));
+          return updated2;
+        });
+      }, 1500);
+    }
+  }
+
+  const totalUnread = Object.values(conversations).reduce((sum, c) => sum + (c.messages.filter(m => m.from === 'seller' && !m.read).length), 0);
 
   /* ── Seller profile save ─────────────────────────────────*/
   function saveSellerProfile(e) {
@@ -367,8 +425,12 @@ export default function MarketPage({ mode = 'marketplace' }) {
           )}
         </div>
         {mode !== 'agropro' && (
-          <div style={{ display:'flex', gap:'0.5rem' }}>
+          <div style={{ display:'flex', gap:'0.5rem', flexWrap:'wrap' }}>
             <button className="btn btn-secondary btn-sm" onClick={() => setShowBuyerSetup(true)}>👤 {lang === 'fr' ? 'Profil acheteur' : 'Buyer profile'}</button>
+            <button className="btn btn-secondary btn-sm inbox-btn" onClick={() => setShowInbox(true)}>
+              💬 {lang === 'fr' ? 'Messages' : 'Messages'}
+              {totalUnread > 0 && <span className="inbox-badge">{totalUnread}</span>}
+            </button>
             <button className="btn btn-primary" onClick={() => { setActiveTab('sell'); setShowForm(true); }}>
               + {lang === 'fr' ? 'Publier' : 'Post listing'}
             </button>
@@ -445,7 +507,7 @@ export default function MarketPage({ mode = 'marketplace' }) {
               {filtered.map(l => (
                 <ListingCard key={l.id} listing={l} lang={lang} categories={CATEGORIES} buyerLoc={buyerLoc}
                   isSaved={savedIds.includes(l.id)} onToggleSave={() => toggleSave(l.id)}
-                  onContact={() => openContact(l)}
+                  onContact={() => openChat(l)}
                   onViewSeller={() => setViewingSeller(l)} />
               ))}
             </div>
@@ -548,7 +610,7 @@ export default function MarketPage({ mode = 'marketplace' }) {
                     </div>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">{lang === 'fr' ? 'Contact WhatsApp *' : 'WhatsApp *'}</label>
+                    <label className="form-label">{lang === 'fr' ? 'Numéro de contact *' : 'Contact number *'}</label>
                     <input type="tel" className="form-input" required value={form.contact} onChange={e => setForm(p => ({ ...p, contact: e.target.value }))} placeholder="+226 XX XX XX XX" />
                   </div>
 
@@ -637,7 +699,7 @@ export default function MarketPage({ mode = 'marketplace' }) {
                   return (
                     <ListingCard key={l.id} listing={lWithDist} lang={lang} categories={CATEGORIES} buyerLoc={buyerLoc}
                       isSaved={true} onToggleSave={() => toggleSave(l.id)}
-                      onContact={() => openContact(l)}
+                      onContact={() => openChat(l)}
                       onViewSeller={() => setViewingSeller(l)} />
                   );
                 })}
@@ -806,7 +868,7 @@ export default function MarketPage({ mode = 'marketplace' }) {
                   <span className="ss-listing-name">{l.crop_name}</span>
                   <span className="ss-listing-price">{Number(l.price).toLocaleString()} {l.currency}/kg</span>
                   <span className="ss-listing-qty">{Number(l.quantity_kg).toLocaleString()} kg</span>
-                  <button className="btn btn-primary btn-sm" onClick={() => { openContact(l); setViewingSeller(null); }}>💬</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => { openChat(l); setViewingSeller(null); }}>💬</button>
                 </div>
               ))}
             </div>
@@ -830,45 +892,86 @@ export default function MarketPage({ mode = 'marketplace' }) {
               </>
             )}
 
-            <button className="btn btn-whatsapp" onClick={() => openContact(viewingSeller)} style={{ width:'100%', justifyContent:'center', marginTop:'1rem' }}>
-              💬 {lang === 'fr' ? 'Contacter ce vendeur' : 'Contact this seller'}
+            <button className="btn btn-primary" onClick={() => { openChat(viewingSeller); setViewingSeller(null); }} style={{ width:'100%', justifyContent:'center', marginTop:'1rem' }}>
+              💬 {lang === 'fr' ? 'Envoyer un message' : 'Send a message'}
             </button>
           </div>
         </>
       )}
 
-      {/* ══ CONTACT MODAL ════════════════════════════════════ */}
-      {contactListing && (
-        <>
-          <div className="market-overlay" onClick={() => setContactListing(null)} />
-          <div className="contact-modal card">
-            <div className="contact-modal-header">
-              <div>
-                <h3>{lang === 'fr' ? 'Contacter le producteur' : 'Contact producer'}</h3>
-                <p style={{ display:'flex', alignItems:'center', gap:'0.35rem', flexWrap:'wrap', color:'var(--gray-mid)', fontSize:'0.85rem' }}>
-                  {contactListing.user_name} · {contactListing.crop_name}
-                  {contactListing._dist != null && (
-                    <span className={`dist-badge inline-dist ${distColor(contactListing._dist)}`}>📍 {fmtDist(contactListing._dist)}</span>
-                  )}
-                </p>
+      {/* ══ CHAT MODAL ══════════════════════════════════════ */}
+      {activeConvId && conversations[activeConvId] && (() => {
+        const conv = conversations[activeConvId];
+        return (
+          <div className="chat-modal-wrap" onClick={e => { if (e.target === e.currentTarget) setActiveConvId(null); }}>
+            <div className="chat-modal card">
+              <div className="chat-modal-header">
+                <div className="chat-modal-title">
+                  <div className="chat-modal-avatar">{conv.seller_name?.charAt(0)}</div>
+                  <div>
+                    <h3>{conv.seller_name}</h3>
+                    <p className="chat-modal-subtitle">{conv.listing?.crop_name} · {Number(conv.listing?.price).toLocaleString()} {conv.listing?.currency}/kg</p>
+                  </div>
+                </div>
+                <button className="contact-modal-close" onClick={() => setActiveConvId(null)}>✕</button>
               </div>
-              <button className="contact-modal-close" onClick={() => setContactListing(null)}>✕</button>
+              <div className="chat-messages">
+                {conv.messages.length === 0 && (
+                  <p className="chat-empty">{lang === 'fr' ? 'Commencez la conversation ci-dessous.' : 'Start the conversation below.'}</p>
+                )}
+                {conv.messages.map((m, i) => (
+                  <div key={i} className={`chat-bubble ${m.from === 'buyer' ? 'chat-me' : 'chat-them'}`}>
+                    <span className="chat-bubble-text">{m.text}</span>
+                    <span className="chat-bubble-time">{new Date(m.ts).toLocaleTimeString(lang === 'fr' ? 'fr-FR' : 'en-US', { hour:'2-digit', minute:'2-digit' })}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="chat-input-row">
+                <textarea
+                  className="form-input chat-input"
+                  rows="2"
+                  placeholder={lang === 'fr' ? 'Écrivez votre message…' : 'Write your message…'}
+                  value={msgText}
+                  onChange={e => setMsgText(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                />
+                <button className="btn btn-primary chat-send-btn" onClick={sendMessage} disabled={!msgText.trim()}>
+                  {lang === 'fr' ? 'Envoyer' : 'Send'}
+                </button>
+              </div>
             </div>
-            <div className="contact-modal-body">
-              <label className="form-label">{lang === 'fr' ? 'Votre message' : 'Your message'}</label>
-              <textarea className="form-input" rows="4" value={msgText} onChange={e => setMsgText(e.target.value)} />
-            </div>
-            <div className="contact-modal-actions">
-              {contactListing.contact && (
-                <a href={`https://wa.me/${contactListing.contact.replace(/\D/g,'') }?text=${encodeURIComponent(msgText)}`} target="_blank" rel="noreferrer" className="btn btn-whatsapp">
-                  💬 {lang === 'fr' ? 'Envoyer via WhatsApp' : 'Send via WhatsApp'}
-                </a>
-              )}
-              <button className="btn btn-secondary" onClick={() => setContactListing(null)}>{lang === 'fr' ? 'Fermer' : 'Close'}</button>
-            </div>
-            <p className="contact-modal-note">💡 {lang === 'fr' ? "WhatsApp est le moyen le plus rapide de contacter les producteurs en Afrique de l'Ouest." : 'WhatsApp is the fastest way to reach producers in West Africa.'}</p>
           </div>
-        </>
+        );
+      })()}
+
+      {/* ══ INBOX DRAWER ════════════════════════════════════ */}
+      {showInbox && (
+        <div className="chat-modal-wrap" onClick={e => { if (e.target === e.currentTarget) setShowInbox(false); }}>
+          <div className="chat-modal card">
+            <div className="chat-modal-header">
+              <h3>💬 {lang === 'fr' ? 'Mes messages' : 'My messages'}</h3>
+              <button className="contact-modal-close" onClick={() => setShowInbox(false)}>✕</button>
+            </div>
+            <div className="inbox-list">
+              {Object.entries(conversations).length === 0 ? (
+                <p className="chat-empty">{lang === 'fr' ? 'Aucun message pour linstant.' : 'No messages yet.'}</p>
+              ) : Object.entries(conversations).map(([cid, conv]) => {
+                const last = conv.messages[conv.messages.length - 1];
+                const unread = conv.messages.filter(m => m.from === 'seller' && !m.read).length;
+                return (
+                  <button key={cid} className="inbox-row" onClick={() => { setActiveConvId(cid); setShowInbox(false); }}>
+                    <div className="inbox-avatar">{conv.seller_name?.charAt(0)}</div>
+                    <div className="inbox-info">
+                      <div className="inbox-name">{conv.seller_name} <span className="inbox-product">· {conv.listing?.crop_name}</span></div>
+                      <div className="inbox-preview">{last ? last.text : (lang === 'fr' ? 'Pas encore de message' : 'No messages yet')}</div>
+                    </div>
+                    {unread > 0 && <span className="inbox-badge">{unread}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ══ SELLER SETUP MODAL ══════════════════════════════ */}
@@ -895,7 +998,7 @@ export default function MarketPage({ mode = 'marketplace' }) {
                   <textarea className="form-input" rows="3" value={sellerForm.bio} onChange={e => setSellerForm(p => ({ ...p, bio: e.target.value }))} placeholder={lang === 'fr' ? 'Types de cultures, expérience, particularités…' : 'Crop types, experience, specialties…'} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">{lang === 'fr' ? 'Téléphone / WhatsApp' : 'Phone / WhatsApp'}</label>
+                  <label className="form-label">{lang === 'fr' ? 'Téléphone' : 'Phone'}</label>
                   <input type="tel" className="form-input" value={sellerForm.phone} onChange={e => setSellerForm(p => ({ ...p, phone: e.target.value }))} placeholder="+226 XX XX XX XX" />
                 </div>
                 <div className="form-group">
