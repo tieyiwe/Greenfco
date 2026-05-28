@@ -171,7 +171,7 @@ export default function MarketPage({ mode = 'marketplace' }) {
   const { user } = useAuthStore();
 
   // Tab state — default tab depends on mode
-  const [activeTab, setActiveTab] = useState(mode === 'agropro' ? 'prices' : 'browse');
+  const [activeTab, setActiveTab] = useState(mode === 'agropro' ? 'sell' : 'browse');
 
   // Listings
   const [listings, setListings]   = useState(DEMO_LISTINGS);
@@ -396,14 +396,16 @@ export default function MarketPage({ mode = 'marketplace' }) {
   const savedListings = listings.filter(l => savedIds.includes(l.id));
 
   /* ── Tabs config ─────────────────────────────────────────*/
+  // Marketplace = buyer-facing (browse & save)
+  // AgroPro     = seller/analyst tools (sell, prices, analytics)
   const MARKETPLACE_TABS = [
-    { key:'browse',    fr:'🛒 Annonces',                                  en:'🛒 Browse' },
-    { key:'sell',      fr:'📦 Vendre',                                    en:'📦 Sell' },
-    { key:'saved',     fr:`❤️ Sauvegardés (${savedIds.length})`,          en:`❤️ Saved (${savedIds.length})` },
+    { key:'browse', fr:'🛒 Annonces',                         en:'🛒 Listings' },
+    { key:'saved',  fr:`❤️ Sauvegardés (${savedIds.length})`, en:`❤️ Saved (${savedIds.length})` },
   ];
   const AGROPRO_TABS = [
-    { key:'prices',    fr:'📊 Prix du marché', en:'📊 Market Prices' },
-    { key:'analytics', fr:'📈 Analytics',      en:'📈 Analytics' },
+    { key:'sell',      fr:'📦 Vendre',         en:'📦 Sell' },
+    { key:'prices',    fr:'📊 Prix du marché',  en:'📊 Market Prices' },
+    { key:'analytics', fr:'📈 Analytics',       en:'📈 Analytics' },
   ];
   const TABS = mode === 'agropro' ? AGROPRO_TABS : MARKETPLACE_TABS;
 
@@ -414,28 +416,31 @@ export default function MarketPage({ mode = 'marketplace' }) {
         <div>
           {mode === 'agropro' ? (
             <>
-              <h1>{lang === 'fr' ? '📊 AgroPro — Prix & Marchés' : '📊 AgroPro — Prices & Markets'}</h1>
-              <p>{lang === 'fr' ? 'Cours en temps réel, tendances et analytics des marchés agricoles ouest-africains' : 'Live prices, trends and analytics for West African agricultural markets'}</p>
+              <h1>{lang === 'fr' ? '📊 AgroPro' : '📊 AgroPro'}</h1>
+              <p>{lang === 'fr' ? 'Publiez vos annonces, suivez les prix et analysez les tendances des marchés agricoles' : 'Post listings, track prices and analyse agricultural market trends'}</p>
             </>
           ) : (
             <>
               <h1>{lang === 'fr' ? '🛒 Marketplace' : '🛒 Marketplace'}</h1>
-              <p>{lang === 'fr' ? 'Achetez et vendez directement entre producteurs et acheteurs' : 'Buy and sell directly between producers and buyers'}</p>
+              <p>{lang === 'fr' ? 'Parcourez les annonces de producteurs locaux et trouvez ce dont vous avez besoin' : 'Browse listings from local producers and find what you need'}</p>
             </>
           )}
         </div>
-        {mode !== 'agropro' && (
-          <div style={{ display:'flex', gap:'0.5rem', flexWrap:'wrap' }}>
-            <button className="btn btn-secondary btn-sm" onClick={() => setShowBuyerSetup(true)}>👤 {lang === 'fr' ? 'Profil acheteur' : 'Buyer profile'}</button>
-            <button className="btn btn-secondary btn-sm inbox-btn" onClick={() => setShowInbox(true)}>
-              💬 {lang === 'fr' ? 'Messages' : 'Messages'}
-              {totalUnread > 0 && <span className="inbox-badge">{totalUnread}</span>}
-            </button>
+        <div style={{ display:'flex', gap:'0.5rem', flexWrap:'wrap' }}>
+          {mode !== 'agropro' ? (
+            <>
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowBuyerSetup(true)}>👤 {lang === 'fr' ? 'Mon profil' : 'My profile'}</button>
+              <button className="btn btn-secondary btn-sm inbox-btn" onClick={() => setShowInbox(true)}>
+                💬 {lang === 'fr' ? 'Messages' : 'Messages'}
+                {totalUnread > 0 && <span className="inbox-badge">{totalUnread}</span>}
+              </button>
+            </>
+          ) : (
             <button className="btn btn-primary" onClick={() => { setActiveTab('sell'); setShowForm(true); }}>
-              + {lang === 'fr' ? 'Publier' : 'Post listing'}
+              + {lang === 'fr' ? 'Publier une annonce' : 'Post a listing'}
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
