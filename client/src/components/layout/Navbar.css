@@ -88,6 +88,20 @@
   font-weight: 600;
 }
 
+/* Market CTA button in nav */
+.nav-market-btn {
+  background: var(--green-mid) !important;
+  color: white !important;
+  border-radius: 100px !important;
+  padding: 0.4rem 1rem !important;
+  font-weight: 600 !important;
+  transition: background var(--transition) !important;
+}
+.nav-market-btn:hover { background: var(--green-deep) !important; }
+.nav-market-btn.active { background: var(--green-deep) !important; color: white !important; }
+.navbar-dashboard .nav-market-btn { background: var(--green-mid) !important; color: white !important; }
+.navbar-dashboard .nav-market-btn:hover { background: var(--green-light) !important; }
+
 /* Actions */
 .navbar-actions {
   display: flex;

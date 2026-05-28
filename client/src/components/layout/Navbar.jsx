@@ -55,14 +55,24 @@ export default function Navbar() {
           {/* Desktop nav links */}
           <nav className="navbar-links">
             {links.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                end={link.exact}
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-              >
-                {link.label}
-              </NavLink>
+              link.to === '/market' ? (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  className={({ isActive }) => `nav-link nav-market-btn ${isActive ? 'active' : ''}`}
+                >
+                  {link.icon} {link.label}
+                </NavLink>
+              ) : (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.exact}
+                  className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                >
+                  {link.label}
+                </NavLink>
+              )
             ))}
           </nav>
 
