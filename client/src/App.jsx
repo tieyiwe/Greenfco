@@ -63,6 +63,16 @@ function LoadingFallback() {
   );
 }
 
+function ComingSoon({ title, icon }) {
+  return (
+    <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--gray-mid)' }}>
+      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{icon}</div>
+      <h2 style={{ color: 'var(--black)', marginBottom: '0.5rem' }}>{title}</h2>
+      <p>Cette fonctionnalité arrive bientôt. / This feature is coming soon.</p>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -97,6 +107,8 @@ export default function App() {
             <Route path="greenbot" element={<GreenBot />} />
             <Route path="soil-advisor" element={<SoilAdvisor />} />
             <Route path="koob-assist" element={<KoobAssist />} />
+            <Route path="map" element={<ComingSoon title="Farm Map" icon="🗺️" />} />
+            <Route path="business-plan" element={<ComingSoon title="Business Plan" icon="📋" />} />
           </Route>
 
           {/* Market (Protected) */}
