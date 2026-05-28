@@ -1,10 +1,7 @@
-run = "cd client && npm install && npm run build && cd ../server && npm install && node index.js"
+run = "npm install && npm run dev"
 
 [nix]
 channel = "stable-24_05"
-
-[env]
-PORT = "3000"
 
 [deployment]
 run = ["sh", "-c", "cd client && npm install && npm run build && cd ../server && npm install && node index.js"]
