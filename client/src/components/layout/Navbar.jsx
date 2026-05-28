@@ -24,6 +24,7 @@ export default function Navbar() {
     { to: '/blog', icon: '📰', label: t('nav.blog') },
     { to: '/gallery', icon: '📷', label: t('nav.gallery') },
     { to: '/contact', icon: '✉️', label: t('nav.contact') },
+    { to: '/market', icon: '🛒', label: t('nav.market') },
   ];
 
   const authLinks = [

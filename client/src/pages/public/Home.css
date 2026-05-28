@@ -14,13 +14,17 @@
   z-index: 0;
 }
 
-/* Tractor / farm photo — place file at client/public/hero-farm.jpg */
+/* Farm photo — drop hero-farm.jpg into client/public/ to replace the gradient */
 .hero-photo {
   position: absolute;
   inset: 0;
-  background-image: url('/hero-farm.jpg');
-  background-size: cover;
-  background-position: center 40%;
+  background-image:
+    url('/hero-farm.jpg'),
+    radial-gradient(ellipse 120% 80% at 60% 110%, #2D6A4F 0%, transparent 60%),
+    radial-gradient(ellipse 100% 60% at 80% 90%, #52B788 0%, transparent 55%),
+    linear-gradient(170deg, #060e09 0%, #0d2416 35%, #1a4030 60%, #2d6a4f 85%, #3d8b67 100%);
+  background-size: cover, auto, auto, auto;
+  background-position: center 40%, bottom, bottom right, center;
   background-repeat: no-repeat;
 }
 
