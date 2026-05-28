@@ -6,18 +6,30 @@ const router = Router();
 router.use(authMiddleware);
 
 router.get('/', (req, res) => {
-  const entries = getWhere('finance', 'user_id', req.user.id);
-  res.json(entries.reverse());
+  try {
+    const entries = getWhere('finance', 'user_id', req.user.id);
+    res.json(entries.reverse());
+  } catch {
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
 });
 
 router.post('/', (req, res) => {
-  const entry = insert('finance', { ...req.body, user_id: req.user.id });
-  res.status(201).json(entry);
+  try {
+    const entry = insert('finance', { ...req.body, user_id: req.user.id });
+    res.status(201).json(entry);
+  } catch {
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
 });
 
 router.delete('/:id', (req, res) => {
-  remove('finance', parseInt(req.params.id));
-  res.json({ success: true });
+  try {
+    remove('finance', parseInt(req.params.id));
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
 });
 
 export default router;

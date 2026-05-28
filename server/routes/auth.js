@@ -1,11 +1,22 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
 import { insert, getOneWhere } from '../db/store.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'greenfco_secret_key_2024';
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { message: 'Trop de tentatives. Réessayez dans 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+router.use('/login',    authLimiter);
+router.use('/register', authLimiter);
 
 router.post('/register', async (req, res) => {
   try {
