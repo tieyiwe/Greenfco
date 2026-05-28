@@ -1,0 +1,62 @@
+.market-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.market-filters {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.listing-card {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.listing-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.listing-header h3 {
+  font-size: 1.1rem;
+}
+
+.listing-price {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--green-mid);
+  white-space: nowrap;
+}
+
+.listing-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.listing-details span {
+  font-size: 0.85rem;
+  color: var(--gray-dark);
+}
+
+.listing-date {
+  font-size: 0.75rem;
+  color: var(--gray-mid);
+}
+
+.listing-cta {
+  align-self: flex-start;
+}

@@ -1,0 +1,114 @@
+.dashboard-home {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.dashboard-greeting h1 {
+  font-size: 1.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-greeting p {
+  color: var(--gray-mid);
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+.stat-card {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.stat-card-green {
+  background: var(--green-pale);
+}
+
+.stat-card-earth {
+  background: var(--earth-pale);
+}
+
+.stat-card-icon { font-size: 1.5rem; }
+
+.stat-card-value {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
+.stat-card-label {
+  font-size: 0.82rem;
+  color: var(--gray-mid);
+}
+
+.dashboard-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1.25rem;
+}
+
+.module-card {
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.module-card:hover h3 { color: var(--green-mid); }
+
+.module-icon { font-size: 2rem; }
+
+.module-card h3 {
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--black);
+  transition: color var(--transition);
+}
+
+.module-card p {
+  font-size: 0.78rem;
+  color: var(--gray-mid);
+  line-height: 1.4;
+}
+
+.quick-actions {
+  padding: 1.5rem;
+}
+
+.quick-actions h3 {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.quick-actions-grid {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-modules-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 900px) {
+  .dashboard-stats { grid-template-columns: repeat(2, 1fr); }
+  .dashboard-modules-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .dashboard-stats { grid-template-columns: repeat(2, 1fr); }
+  .dashboard-modules-grid { grid-template-columns: repeat(2, 1fr); }
+}

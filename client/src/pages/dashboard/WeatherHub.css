@@ -1,0 +1,194 @@
+.weather-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.weather-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.weather-header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.weather-header p {
+  color: var(--gray-mid);
+  font-size: 0.9rem;
+}
+
+.weather-controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.city-search {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.city-search .form-input {
+  width: 200px;
+}
+
+.weather-error {
+  padding: 1rem;
+  background: #fee;
+  border-radius: var(--radius-md);
+  color: #c00;
+  font-size: 0.9rem;
+}
+
+/* Today Card */
+.today-card {
+  background: linear-gradient(135deg, var(--green-deep), var(--green-mid));
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+  color: white;
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.today-main {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.today-icon {
+  font-size: 4rem;
+}
+
+.today-temp {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.temp-max {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.temp-min {
+  font-size: 1.25rem;
+  color: rgba(255,255,255,0.6);
+}
+
+.today-desc h3 {
+  color: white;
+  font-size: 1.1rem;
+  margin-bottom: 0.35rem;
+}
+
+.today-desc p {
+  color: rgba(255,255,255,0.7);
+  font-size: 0.9rem;
+}
+
+.today-recommendation {
+  background: rgba(255,255,255,0.12);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  max-width: 400px;
+  flex: 1;
+}
+
+.today-recommendation strong {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--green-light);
+  margin-bottom: 0.5rem;
+}
+
+.today-recommendation p {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.9);
+  line-height: 1.55;
+}
+
+/* Forecast */
+.forecast-section {
+  padding: 1.5rem;
+}
+
+.forecast-section h3 {
+  font-size: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.forecast-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.75rem;
+}
+
+.forecast-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.85rem 0.5rem;
+  border-radius: var(--radius-md);
+  background: var(--off-white);
+  text-align: center;
+}
+
+.forecast-date {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-mid);
+  text-transform: capitalize;
+}
+
+.forecast-icon { font-size: 1.35rem; }
+
+.forecast-max {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--black);
+}
+
+.forecast-min {
+  font-size: 0.82rem;
+  color: var(--gray-mid);
+}
+
+.forecast-rain {
+  font-size: 0.72rem;
+  color: var(--green-mid);
+}
+
+/* Rainfall */
+.rainfall-section {
+  padding: 1.5rem;
+}
+
+.rainfall-section h3 {
+  font-size: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .forecast-grid { grid-template-columns: repeat(4, 1fr); }
+  .today-card { flex-direction: column; }
+  .city-search .form-input { width: 150px; }
+}
+
+@media (max-width: 480px) {
+  .forecast-grid { grid-template-columns: repeat(2, 1fr); }
+}
