@@ -140,7 +140,7 @@ export default function About() {
                     ))}
                   </div>
                 </div>
-                <a href="mailto:dipelie@yahoo.fr" className="btn btn-primary btn-sm">
+                <a href="mailto:info@greenfco.com" className="btn btn-primary btn-sm">
                   {lang === 'fr' ? 'Contacter Elie' : 'Contact Elie'}
                 </a>
               </div>

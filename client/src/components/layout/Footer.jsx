@@ -53,7 +53,7 @@ export default function Footer() {
             </div>
             <div className="footer-col">
               <h4>Contact</h4>
-              <a href="mailto:dipelie@yahoo.fr">dipelie@yahoo.fr</a>
+              <a href="mailto:info@greenfco.com">info@greenfco.com</a>
               <a href="https://wa.me/22600000000" target="_blank" rel="noreferrer">
                 WhatsApp
               </a>

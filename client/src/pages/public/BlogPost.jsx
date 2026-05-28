@@ -207,7 +207,7 @@ export default function BlogPost() {
               <span className="badge badge-green">🏅 Mandela Washington Fellow 2023</span>
               <span className="badge badge-green">🔬 Humboldt Fellow 2025</span>
             </div>
-            <a href="mailto:dipelie@yahoo.fr" className="btn btn-secondary btn-sm" style={{ marginTop: '1rem', width: '100%', textAlign: 'center' }}>
+            <a href="mailto:info@greenfco.com" className="btn btn-secondary btn-sm" style={{ marginTop: '1rem', width: '100%', textAlign: 'center' }}>
               {lang === 'fr' ? 'Contacter l\'auteur' : 'Contact author'}
             </a>
           </div>

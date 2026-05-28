@@ -65,7 +65,7 @@ export default function NetworkPage() {
             : ['Climate-smart agriculture', 'Agroecology', 'Carbon finance', 'Training of Trainers', 'Agricultural policy analysis']
           ).map(s => <span key={s} className="badge badge-green">{s}</span>)}
         </div>
-        <a href="mailto:dipelie@yahoo.fr" className="btn btn-primary btn-sm">
+        <a href="mailto:info@greenfco.com" className="btn btn-primary btn-sm">
           {lang === 'fr' ? 'Demander une consultation' : 'Request a consultation'}
         </a>
       </div>

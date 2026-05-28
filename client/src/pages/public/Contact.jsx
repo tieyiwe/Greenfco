@@ -53,7 +53,7 @@ export default function Contact() {
             <div className="info-block card">
               <div className="info-icon">✉️</div>
               <h3>Email</h3>
-              <a href="mailto:dipelie@yahoo.fr">dipelie@yahoo.fr</a>
+              <a href="mailto:info@greenfco.com">info@greenfco.com</a>
             </div>
 
             <div className="info-block card whatsapp-block">
