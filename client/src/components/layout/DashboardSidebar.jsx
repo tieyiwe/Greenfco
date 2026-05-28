@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { to: '/dashboard/business-plan', icon: '📋', key: 'business_plan', labelFr: 'Business Plan', labelEn: 'Business Plan' },
   { to: '/dashboard/soil-advisor', icon: '🔍', key: 'ai_advisor', labelFr: 'Conseiller IA', labelEn: 'AI Advisor' },
   { to: '/dashboard/greenbot', icon: '🤖', key: 'greenbot', labelFr: 'GreenBot', labelEn: 'GreenBot' },
+  { to: '/dashboard/koob-assist', icon: '📱', key: 'koob_assist', labelFr: 'Koob Assist', labelEn: 'Koob Assist' },
 ];
 
 export default function DashboardSidebar({ isOpen, onClose }) {

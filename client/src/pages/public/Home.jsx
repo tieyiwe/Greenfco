@@ -51,6 +51,64 @@ export default function Home() {
       {/* Hero */}
       <section className="hero">
         <div className="hero-bg">
+          {/* African agricultural landscape illustration */}
+          <svg className="hero-landscape" viewBox="0 0 1440 700" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <defs>
+              <linearGradient id="hg-sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.55"/>
+                <stop offset="45%" stopColor="#d97706" stopOpacity="0.3"/>
+                <stop offset="100%" stopColor="#92400e" stopOpacity="0.05"/>
+              </linearGradient>
+              <linearGradient id="hg-field" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#52B788" stopOpacity="0.65"/>
+                <stop offset="100%" stopColor="#060f09" stopOpacity="1"/>
+              </linearGradient>
+              <radialGradient id="hg-sun" cx="78%" cy="28%" r="35%">
+                <stop offset="0%" stopColor="#fde68a" stopOpacity="0.5"/>
+                <stop offset="50%" stopColor="#f59e0b" stopOpacity="0.15"/>
+                <stop offset="100%" stopColor="#f59e0b" stopOpacity="0"/>
+              </radialGradient>
+            </defs>
+            <rect width="1440" height="700" fill="url(#hg-sky)"/>
+            <rect width="1440" height="700" fill="url(#hg-sun)"/>
+            <rect y="430" width="1440" height="270" fill="url(#hg-field)"/>
+            {/* Crop field rows */}
+            <rect y="440" width="1440" height="16" fill="#52B788" opacity="0.4"/>
+            <rect y="462" width="1440" height="12" fill="#40916C" opacity="0.3"/>
+            <rect y="480" width="1440" height="18" fill="#52B788" opacity="0.25"/>
+            <rect y="504" width="1440" height="10" fill="#74C69D" opacity="0.18"/>
+            <rect y="520" width="1440" height="15" fill="#40916C" opacity="0.2"/>
+            <rect y="541" width="1440" height="20" fill="#52B788" opacity="0.14"/>
+            <rect y="567" width="1440" height="12" fill="#2D6A4F" opacity="0.18"/>
+            {/* Horizontal haze at horizon */}
+            <ellipse cx="720" cy="433" rx="900" ry="35" fill="#1B4332" opacity="0.5"/>
+            {/* Tree silhouettes — baobab / acacia style */}
+            <ellipse cx="85" cy="434" rx="52" ry="60" fill="#1B4332" opacity="0.88"/>
+            <ellipse cx="85" cy="450" rx="30" ry="28" fill="#0a1c10" opacity="0.5"/>
+            <rect x="80" y="484" width="10" height="32" fill="#0a1c10" opacity="0.8"/>
+            <ellipse cx="280" cy="432" rx="40" ry="50" fill="#2D6A4F" opacity="0.8"/>
+            <rect x="276" y="474" width="8" height="28" fill="#0a1c10" opacity="0.7"/>
+            <ellipse cx="490" cy="431" rx="55" ry="65" fill="#1B4332" opacity="0.85"/>
+            <ellipse cx="490" cy="445" rx="32" ry="30" fill="#0a1c10" opacity="0.4"/>
+            <rect x="485" y="486" width="10" height="30" fill="#0a1c10" opacity="0.8"/>
+            <ellipse cx="700" cy="433" rx="44" ry="54" fill="#2D6A4F" opacity="0.78"/>
+            <rect x="696" y="479" width="8" height="26" fill="#0a1c10" opacity="0.7"/>
+            <ellipse cx="910" cy="430" rx="58" ry="68" fill="#1B4332" opacity="0.88"/>
+            <ellipse cx="910" cy="448" rx="34" ry="32" fill="#0a1c10" opacity="0.45"/>
+            <rect x="905" y="488" width="10" height="32" fill="#0a1c10" opacity="0.8"/>
+            <ellipse cx="1120" cy="432" rx="46" ry="56" fill="#2D6A4F" opacity="0.82"/>
+            <rect x="1116" y="480" width="8" height="28" fill="#0a1c10" opacity="0.7"/>
+            <ellipse cx="1330" cy="431" rx="50" ry="60" fill="#1B4332" opacity="0.85"/>
+            <rect x="1325" y="482" width="10" height="30" fill="#0a1c10" opacity="0.8"/>
+            {/* Smaller mid-distance trees */}
+            <ellipse cx="185" cy="436" rx="28" ry="36" fill="#1B4332" opacity="0.55"/>
+            <ellipse cx="390" cy="435" rx="32" ry="42" fill="#2D6A4F" opacity="0.58"/>
+            <ellipse cx="600" cy="436" rx="30" ry="38" fill="#1B4332" opacity="0.55"/>
+            <ellipse cx="810" cy="435" rx="35" ry="44" fill="#2D6A4F" opacity="0.6"/>
+            <ellipse cx="1020" cy="434" rx="28" ry="36" fill="#1B4332" opacity="0.55"/>
+            <ellipse cx="1225" cy="435" rx="30" ry="40" fill="#2D6A4F" opacity="0.58"/>
+            <ellipse cx="1420" cy="436" rx="26" ry="34" fill="#1B4332" opacity="0.52"/>
+          </svg>
           <div className="hero-grain" />
           <div className="hero-geo geo-1" />
           <div className="hero-geo geo-2" />
