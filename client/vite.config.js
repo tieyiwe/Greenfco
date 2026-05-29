@@ -18,23 +18,22 @@ export default defineConfig({
     outDir: '../server/public',
     emptyOutDir: true,
     chunkSizeWarningLimit: 600,
-    target: 'es2015',
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          i18n: ['i18next', 'react-i18next'],
-          charts: ['recharts'],
+        manualChunks(id) {
+          if (id.includes('recharts') || id.includes('d3-') || id.includes('victory')) {
+            return 'charts';
+          }
+          if (id.includes('i18next') || id.includes('react-i18next')) {
+            return 'i18n';
+          }
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/react-router')) {
+            return 'vendor';
+          }
         },
       },
     },
-    // Use esbuild minifier (bundled with Vite — no extra dependency needed)
-    minify: 'esbuild',
-    esbuildOptions: {
-      drop: ['console', 'debugger'],
-    },
   },
-  // Faster dev builds
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', 'i18next', 'react-i18next'],
   },
