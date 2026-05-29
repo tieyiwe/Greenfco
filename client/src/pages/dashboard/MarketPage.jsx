@@ -9,6 +9,28 @@ import api from '../../api/client';
 import useAuthStore from '../../store/authStore';
 import './MarketPage.css';
 
+/* ─── Image compression helper ───────────────────────────── */
+function compressImage(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX = 800;
+        let w = img.width, h = img.height;
+        if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+        if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.75));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 /* ─── Helpers ─────────────────────────────────────────────── */
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
