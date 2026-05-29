@@ -43,7 +43,7 @@
 .market-tab.active  { color: var(--green-deep); font-weight: 700; border-bottom-color: var(--green-mid); background: var(--green-pale); }
 
 /* ─── Buyer location bar ──────────────────────────────────── */
-.buyer-loc-bar { padding: 0.85rem 1.25rem; display: flex; align-items: center; }
+.buyer-loc-bar { display: flex; align-items: center; }
 
 .buyer-loc-prompt {
   width: 100%;

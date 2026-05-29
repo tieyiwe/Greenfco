@@ -247,6 +247,12 @@ export default function MarketPage({ mode = 'marketplace' }) {
     setSavedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   }
 
+  // Auto-try GPS the first time user opens Browse tab
+  useEffect(() => {
+    if (activeTab !== 'browse' || buyerLoc || locLoading) return;
+    detectBuyerGPS();
+  }, [activeTab]);
+
   /* ── Buyer location ──────────────────────────────────────*/
   function detectBuyerGPS() {
     if (!navigator.geolocation) { setShowCitySearch(true); return; }
@@ -466,9 +472,9 @@ export default function MarketPage({ mode = 'marketplace' }) {
           {/* Buyer location bar */}
           <div className="buyer-loc-bar card">
             {buyerLoc ? (
-              <div className="buyer-loc-active">
-                <span className="buyer-loc-label">📍 {buyerLoc.label}</span>
-                <button className="btn-link" onClick={() => { setBuyerLoc(null); setShowCitySearch(false); }}>{lang === 'fr' ? 'Changer' : 'Change'}</button>
+              <div className="buyer-loc-set">
+                <span>📍 {buyerLoc.label} · {lang === 'fr' ? 'Trier par distance' : 'Sort by distance'}</span>
+                <button onClick={() => { setBuyerLoc(null); setShowCitySearch(false); }} title={lang === 'fr' ? 'Effacer' : 'Clear'}>×</button>
               </div>
             ) : showCitySearch ? (
               <form className="buyer-city-form" onSubmit={handleCitySearch}>
@@ -476,10 +482,25 @@ export default function MarketPage({ mode = 'marketplace' }) {
                 <button type="submit" className="btn btn-primary btn-sm" disabled={locLoading}>{locLoading ? '…' : 'OK'}</button>
                 <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowCitySearch(false)}>✕</button>
               </form>
+            ) : locLoading ? (
+              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--gray-mid)' }}>
+                🔍 {lang === 'fr' ? 'Localisation en cours…' : 'Detecting location…'}
+              </p>
             ) : (
-              <button className="buyer-loc-prompt" onClick={detectBuyerGPS} disabled={locLoading}>
-                {locLoading ? (lang === 'fr' ? '🔍 Localisation…' : '🔍 Detecting…') : `📍 ${lang === 'fr' ? 'Voir la distance des producteurs' : 'Show distance to producers'}`}
-              </button>
+              <div className="buyer-loc-banner">
+                <div>
+                  <h4>📍 {lang === 'fr' ? 'Activez votre position' : 'Enable your location'}</h4>
+                  <p>{lang === 'fr' ? 'Découvrez les producteurs proches de vous' : 'Discover producers near you'}</p>
+                </div>
+                <div className="buyer-loc-actions">
+                  <button className="btn btn-primary btn-sm" onClick={detectBuyerGPS}>
+                    📍 {lang === 'fr' ? 'Utiliser ma position GPS' : 'Use my GPS location'}
+                  </button>
+                  <button className="btn-link" onClick={() => setShowCitySearch(true)}>
+                    🏙️ {lang === 'fr' ? 'Entrer ma ville' : 'Enter my city'}
+                  </button>
+                </div>
+              </div>
             )}
           </div>
 
@@ -1101,84 +1122,94 @@ export default function MarketPage({ mode = 'marketplace' }) {
   );
 }
 
+/* ─── Category top-bar colors ─────────────────────────────── */
+const CAT_COLORS = {
+  legumes:  '#52B788',
+  cereales: '#d97706',
+  fruits:   '#f97316',
+  elevage:  '#8B5E3C',
+  poisson:  '#2196F3',
+  intrants: '#1B4332',
+  autres:   '#64748b',
+  all:      '#52B788',
+};
+
 /* ─── Listing Card ────────────────────────────────────────── */
 function ListingCard({ listing, lang, categories, buyerLoc, isSaved, onToggleSave, onContact, onViewSeller }) {
-  const [expanded, setExpanded] = useState(false);
   const cat  = categories.find(c => c.value === listing.category);
   const dist = listing._dist;
+  const barColor = CAT_COLORS[listing.category] || CAT_COLORS.autres;
+
+  // Distance chip class
+  let distChipClass = 'lc-dist-unknown';
+  if (dist != null) {
+    if (dist < 20)  distChipClass = 'lc-dist-near';
+    else if (dist < 100) distChipClass = 'lc-dist-mid';
+    else distChipClass = 'lc-dist-far';
+  }
 
   return (
     <div className="listing-card card">
-      <div className="listing-card-top">
-        <span className="listing-cat-badge">{cat?.icon || '📦'} {lang === 'fr' ? cat?.fr : cat?.en}</span>
-        <div style={{ display:'flex', gap:'0.4rem', alignItems:'center' }}>
-          {buyerLoc && (
-            <span className={`dist-badge ${dist != null ? distColor(dist) : 'dist-unknown'}`}>
-              {dist != null ? `📍 ${fmtDist(dist)}` : '📍 ?'}
-            </span>
-          )}
-          <button className={`save-btn ${isSaved ? 'saved' : ''}`} onClick={onToggleSave} title={isSaved ? (lang === 'fr' ? 'Retirer' : 'Unsave') : (lang === 'fr' ? 'Sauvegarder' : 'Save')}>
-            {isSaved ? '❤️' : '🤍'}
-          </button>
+      {/* Colored top bar */}
+      <div className="lc-topbar" style={{ background: barColor }}>
+        <span className="lc-topbar-cat">{cat?.icon || '📦'} {lang === 'fr' ? cat?.fr : cat?.en}</span>
+        <button className={`save-btn ${isSaved ? 'saved' : ''}`} onClick={onToggleSave} title={isSaved ? (lang === 'fr' ? 'Retirer' : 'Unsave') : (lang === 'fr' ? 'Sauvegarder' : 'Save')}>
+          {isSaved ? '❤️' : '🤍'}
+        </button>
+      </div>
+
+      {/* Product header */}
+      <div className="lc-header">
+        <span className="lc-icon">{cat?.icon || '📦'}</span>
+        <div className="lc-title">
+          <h3 className="lc-name">{listing.crop_name}</h3>
+          <span className="lc-price">{Number(listing.price).toLocaleString()} {listing.currency}/kg</span>
         </div>
       </div>
 
-      <div className="listing-header">
-        <h3 className="listing-name">{listing.crop_name}</h3>
-        <span className="listing-price">{Number(listing.price).toLocaleString()} {listing.currency}/kg</span>
+      {/* Location row — always visible */}
+      <div className="lc-location-row">
+        <span className="lc-loc-name">📍 {listing.location || (lang === 'fr' ? 'Lieu non précisé' : 'Location not set')}</span>
+        {buyerLoc && dist != null && (
+          <span className={`lc-dist-chip ${distChipClass}`}>
+            ~{fmtDist(dist)} {lang === 'fr' ? 'de vous' : 'away'}
+          </span>
+        )}
+        {buyerLoc && dist == null && (
+          <span className={`lc-dist-chip lc-dist-unknown`}>? km</span>
+        )}
       </div>
 
-      <div className="listing-stats">
-        <span className="listing-stat">⚖️ {Number(listing.quantity_kg).toLocaleString()} kg</span>
-        <span className="listing-stat listing-total">💰 {(Number(listing.price) * Number(listing.quantity_kg)).toLocaleString()} {listing.currency}</span>
-      </div>
-
-      {/* Extra details */}
-      <div className="listing-details">
+      {/* Badges: stock, min order, delivery + certs */}
+      <div className="lc-badges">
+        <span className="lc-badge">⚖️ {Number(listing.quantity_kg).toLocaleString()} kg</span>
         {listing.min_order_kg && (
-          <span className="listing-detail-badge">📦 min {listing.min_order_kg} kg</span>
+          <span className="lc-badge">📦 min {listing.min_order_kg} kg</span>
         )}
         {listing.delivery && (
-          <span className="listing-detail-badge">
+          <span className="lc-badge">
             {listing.delivery === 'pickup' ? '📍' : listing.delivery === 'delivery' ? '🚚' : '📍🚚'}
             {' '}{listing.delivery === 'pickup' ? (lang === 'fr' ? 'Sur place' : 'Pickup') : listing.delivery === 'delivery' ? (lang === 'fr' ? 'Livraison' : 'Delivery') : (lang === 'fr' ? 'Sur place / Livraison' : 'Pickup / Delivery')}
           </span>
         )}
         {listing.harvest_date && (
-          <span className="listing-detail-badge">🗓 {new Date(listing.harvest_date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day:'numeric', month:'short' })}</span>
+          <span className="lc-badge">🗓 {new Date(listing.harvest_date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day:'numeric', month:'short' })}</span>
         )}
+        {listing.certifications?.map(c => <CertBadge key={c} id={c} lang={lang} />)}
       </div>
 
-      {/* Certifications */}
-      {listing.certifications?.length > 0 && (
-        <div className="listing-certs">
-          {listing.certifications.map(c => <CertBadge key={c} id={c} lang={lang} />)}
-        </div>
-      )}
-
-      {listing.location && (
-        <div className="listing-location">
-          📍 {listing.location}
-          {listing.lat && <span className="loc-dot" title="GPS confirmed">🟢</span>}
-        </div>
-      )}
-
-      {listing.description && (
-        <p className={`listing-desc ${expanded ? 'expanded' : ''}`} onClick={() => setExpanded(e => !e)}>
-          {listing.description}
-          {!expanded && <span className="read-more"> {lang === 'fr' ? 'Lire plus' : 'Read more'}</span>}
-        </p>
-      )}
-
-      <div className="listing-footer">
-        <button className="listing-seller" onClick={onViewSeller}>
-          <div className="seller-avatar">{listing.user_name?.charAt(0) || 'V'}</div>
-          <div>
-            <span className="seller-name">{listing.user_name}{listing.verified && ' ✅'}</span>
+      {/* Footer: seller + contact */}
+      <div className="lc-footer">
+        <button className="lc-seller" onClick={onViewSeller}>
+          <div className="lc-seller-avatar">{listing.user_name?.charAt(0)?.toUpperCase() || 'V'}</div>
+          <div className="lc-seller-info">
+            <span className="lc-seller-name">{listing.user_name}{listing.verified && ' ✅'}</span>
             <RatingStars rating={listing.seller_rating} count={listing.seller_review_count} size="xs" />
           </div>
         </button>
-        <button className="btn btn-primary btn-sm" onClick={onContact}>💬 {lang === 'fr' ? 'Contacter' : 'Contact'}</button>
+        <button className="btn btn-primary btn-sm lc-contact-btn" onClick={onContact}>
+          💬 {lang === 'fr' ? 'Contacter' : 'Contact'}
+        </button>
       </div>
     </div>
   );
