@@ -11,6 +11,7 @@ import Footer from './components/layout/Footer';
 import Home from './pages/public/Home';
 import About from './pages/public/About';
 import Services from './pages/public/Services';
+import Consulting from './pages/public/Consulting';
 import Blog from './pages/public/Blog';
 import BlogPost from './pages/public/BlogPost';
 import Gallery from './pages/public/Gallery';
@@ -84,6 +85,7 @@ export default function App() {
           <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
           <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
           <Route path="/services" element={<PublicLayout><Services /></PublicLayout>} />
+          <Route path="/consulting" element={<PublicLayout><Consulting /></PublicLayout>} />
           <Route path="/blog" element={<PublicLayout><Blog /></PublicLayout>} />
           <Route path="/blog/:slug" element={<PublicLayout><BlogPost /></PublicLayout>} />
           <Route path="/gallery" element={<PublicLayout><Gallery /></PublicLayout>} />
