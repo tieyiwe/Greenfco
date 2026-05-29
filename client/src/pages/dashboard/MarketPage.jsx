@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   LineChart, Line, CartesianGrid, Legend,
@@ -7,6 +8,28 @@ import {
 import api from '../../api/client';
 import useAuthStore from '../../store/authStore';
 import './MarketPage.css';
+
+/* ─── Image compression helper ───────────────────────────── */
+function compressImage(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX = 800;
+        let w = img.width, h = img.height;
+        if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+        if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.75));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 /* ─── Helpers ─────────────────────────────────────────────── */
 function haversineKm(lat1, lon1, lat2, lon2) {
@@ -137,15 +160,15 @@ const CITIES = [
 
 // Enhanced listings with seller profiles, ratings, certifications
 const DEMO_LISTINGS = [
-  { id:1,  crop_name:'Oignons',         category:'legumes',  quantity_kg:500,  price:250,  currency:'FCFA', location:'Ouagadougou',   lat:12.3647,  lng:-1.5337, contact:'+22670000001', created_at:'2026-05-01', user_name:'Moussa Kaboré',     user_id:'u1', min_order_kg:20,  delivery:'both',     certifications:['organic','local'], harvest_date:'2026-04-28', seller_rating:4.8, seller_review_count:24, seller_bio:'Producteur maraîcher depuis 2010, spécialisé dans les oignons de qualité supérieure du Plateau Central.', seller_since:'2022', verified:true,  description:'Oignons frais de qualité supérieure, récoltés cette semaine.' },
-  { id:2,  crop_name:'Pommes de terre', category:'legumes',  quantity_kg:1000, price:150,  currency:'FCFA', location:'Bobo-Dioulasso', lat:11.1771,  lng:-4.2979, contact:'+22671000002', created_at:'2026-05-05', user_name:'Aminata Diallo',    user_id:'u2', min_order_kg:50,  delivery:'pickup',   certifications:['local'],           harvest_date:'2026-05-02', seller_rating:4.5, seller_review_count:18, seller_bio:'Agricultrice engagée dans la production locale et durable à Bobo-Dioulasso.',                         seller_since:'2023', verified:true,  description:'Grande variété locale. Prix négociable pour grosses quantités.' },
-  { id:3,  crop_name:'Tomates',         category:'legumes',  quantity_kg:200,  price:300,  currency:'FCFA', location:'Koudougou',      lat:12.2487,  lng:-2.3622, contact:'+22672000003', created_at:'2026-05-08', user_name:'Ibrahim Sawadogo',  user_id:'u3', min_order_kg:10,  delivery:'delivery', certifications:['organic'],         harvest_date:'2026-05-06', seller_rating:4.2, seller_review_count:9,  seller_bio:'Maraîcher certifié bio, culture sans pesticides chimiques depuis 5 ans.',                              seller_since:'2021', verified:false, description:'Tomates mûres. Livraison possible dans un rayon de 50 km.' },
-  { id:4,  crop_name:'Maïs',            category:'cereales', quantity_kg:2000, price:120,  currency:'FCFA', location:"Fada N'Gourma",  lat:12.0603,  lng:0.3464,  contact:'+22673000004', created_at:'2026-05-10', user_name:'Fatimata Ouédraogo',user_id:'u4', min_order_kg:100, delivery:'pickup',   certifications:['local'],           harvest_date:'2026-04-15', seller_rating:4.6, seller_review_count:31, seller_bio:'Grande exploitation céréalière de la région Est, production de maïs et de sorgho.',                    seller_since:'2020', verified:true,  description:'Maïs jaune séché. Idéal pour transformation.' },
-  { id:5,  crop_name:'Mil',             category:'cereales', quantity_kg:800,  price:140,  currency:'FCFA', location:'Dori',            lat:14.0329,  lng:-0.0356, contact:'+22674000005', created_at:'2026-05-12', user_name:'Hamidou Compaoré',  user_id:'u5', min_order_kg:50,  delivery:'both',     certifications:['local','organic'], harvest_date:'2026-04-20', seller_rating:4.4, seller_review_count:15, seller_bio:'Producteur du Sahel, spécialiste des céréales adaptées aux zones arides.',                             seller_since:'2022', verified:false, description:'Mil local de première qualité, récolte 2026.' },
-  { id:6,  crop_name:'Sésame',          category:'autres',   quantity_kg:300,  price:600,  currency:'FCFA', location:'Dédougou',        lat:12.4625,  lng:-3.4665, contact:'+22675000006', created_at:'2026-05-14', user_name:'Mariam Traoré',     user_id:'u6', min_order_kg:25,  delivery:'pickup',   certifications:['organic','premium'],harvest_date:'2026-04-25', seller_rating:4.9, seller_review_count:42, seller_bio:'Productrice de sésame certifié bio, export vers l\'Europe. Qualité premium garantie.',                 seller_since:'2019', verified:true,  description:'Sésame blanc certifié bio, qualité premium export.' },
-  { id:7,  crop_name:'Poulet (vif)',     category:'elevage',  quantity_kg:50,   price:1800, currency:'FCFA', location:'Ouahigouya',      lat:13.5782,  lng:-2.4215, contact:'+22676000007', created_at:'2026-05-15', user_name:'Salif Barro',       user_id:'u7', min_order_kg:5,   delivery:'pickup',   certifications:['local'],           harvest_date:null,         seller_rating:4.3, seller_review_count:11, seller_bio:'Éleveur avicole traditionnel, alimentation naturelle, sans hormones.',                                seller_since:'2023', verified:false, description:'Poulets de chair locaux, bien nourris, 1,8–2,2 kg/pièce.' },
-  { id:8,  crop_name:'Poisson fumé',     category:'poisson',  quantity_kg:80,   price:3000, currency:'FCFA', location:'Ouagadougou',     lat:12.3647,  lng:-1.5337, contact:'+22677000008', created_at:'2026-05-16', user_name:'Kadi Sawadogo',     user_id:'u8', min_order_kg:10,  delivery:'both',     certifications:['local'],           harvest_date:null,         seller_rating:4.7, seller_review_count:28, seller_bio:'Transformatrice de poisson, technique de fumage traditionnel pour longue conservation.',               seller_since:'2021', verified:true,  description:'Poisson fumé de qualité. Conditionnement soigné.' },
-  { id:9,  crop_name:'BioGrowth',        category:'intrants', quantity_kg:100,  price:2500, currency:'FCFA', location:'Ouagadougou',     lat:12.3647,  lng:-1.5337, contact:'+22678000009', created_at:'2026-05-17', user_name:'GreenFCO',          user_id:'u9', min_order_kg:5,   delivery:'delivery', certifications:['verified','premium'],harvest_date:null,        seller_rating:5.0, seller_review_count:67, seller_bio:'GreenFCO — plateforme officielle, bio-fertilisants et intrants naturels pour l\'Afrique de l\'Ouest.', seller_since:'2021', verified:true,  description:'Bio-fertilisant liquide innovant pour sols ouest-africains.' },
+  { id:1,  crop_name:'Oignons',         category:'legumes',  quantity_kg:500,  price:250,  currency:'FCFA', location:'Ouagadougou',   lat:12.3647,  lng:-1.5337, contact:'+22670000001', created_at:'2026-05-01', user_name:'Moussa Kaboré',     user_id:'u1', min_order_kg:20,  delivery:'both',     certifications:['organic','local'], harvest_date:'2026-04-28', seller_rating:4.8, seller_review_count:24, seller_bio:'Producteur maraîcher depuis 2010, spécialisé dans les oignons de qualité supérieure du Plateau Central.', seller_since:'2022', verified:true,  description:'Oignons frais de qualité supérieure, récoltés cette semaine.', images:['https://images.unsplash.com/photo-1508747703725-719777637510?w=400&q=80'], video:null },
+  { id:2,  crop_name:'Pommes de terre', category:'legumes',  quantity_kg:1000, price:150,  currency:'FCFA', location:'Bobo-Dioulasso', lat:11.1771,  lng:-4.2979, contact:'+22671000002', created_at:'2026-05-05', user_name:'Aminata Diallo',    user_id:'u2', min_order_kg:50,  delivery:'pickup',   certifications:['local'],           harvest_date:'2026-05-02', seller_rating:4.5, seller_review_count:18, seller_bio:'Agricultrice engagée dans la production locale et durable à Bobo-Dioulasso.',                         seller_since:'2023', verified:true,  description:'Grande variété locale. Prix négociable pour grosses quantités.', images:['https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&q=80'], video:null },
+  { id:3,  crop_name:'Tomates',         category:'legumes',  quantity_kg:200,  price:300,  currency:'FCFA', location:'Koudougou',      lat:12.2487,  lng:-2.3622, contact:'+22672000003', created_at:'2026-05-08', user_name:'Ibrahim Sawadogo',  user_id:'u3', min_order_kg:10,  delivery:'delivery', certifications:['organic'],         harvest_date:'2026-05-06', seller_rating:4.2, seller_review_count:9,  seller_bio:'Maraîcher certifié bio, culture sans pesticides chimiques depuis 5 ans.',                              seller_since:'2021', verified:false, description:'Tomates mûres. Livraison possible dans un rayon de 50 km.', images:['https://images.unsplash.com/photo-1546092530-4f8b1d64e7dc?w=400&q=80'], video:null },
+  { id:4,  crop_name:'Maïs',            category:'cereales', quantity_kg:2000, price:120,  currency:'FCFA', location:"Fada N'Gourma",  lat:12.0603,  lng:0.3464,  contact:'+22673000004', created_at:'2026-05-10', user_name:'Fatimata Ouédraogo',user_id:'u4', min_order_kg:100, delivery:'pickup',   certifications:['local'],           harvest_date:'2026-04-15', seller_rating:4.6, seller_review_count:31, seller_bio:'Grande exploitation céréalière de la région Est, production de maïs et de sorgho.',                    seller_since:'2020', verified:true,  description:'Maïs jaune séché. Idéal pour transformation.', images:['https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=400&q=80'], video:null },
+  { id:5,  crop_name:'Mil',             category:'cereales', quantity_kg:800,  price:140,  currency:'FCFA', location:'Dori',            lat:14.0329,  lng:-0.0356, contact:'+22674000005', created_at:'2026-05-12', user_name:'Hamidou Compaoré',  user_id:'u5', min_order_kg:50,  delivery:'both',     certifications:['local','organic'], harvest_date:'2026-04-20', seller_rating:4.4, seller_review_count:15, seller_bio:'Producteur du Sahel, spécialiste des céréales adaptées aux zones arides.',                             seller_since:'2022', verified:false, description:'Mil local de première qualité, récolte 2026.', images:['https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=400&q=80'], video:null },
+  { id:6,  crop_name:'Sésame',          category:'autres',   quantity_kg:300,  price:600,  currency:'FCFA', location:'Dédougou',        lat:12.4625,  lng:-3.4665, contact:'+22675000006', created_at:'2026-05-14', user_name:'Mariam Traoré',     user_id:'u6', min_order_kg:25,  delivery:'pickup',   certifications:['organic','premium'],harvest_date:'2026-04-25', seller_rating:4.9, seller_review_count:42, seller_bio:'Productrice de sésame certifié bio, export vers l\'Europe. Qualité premium garantie.',                 seller_since:'2019', verified:true,  description:'Sésame blanc certifié bio, qualité premium export.', images:['https://images.unsplash.com/photo-1625682028590-f3a88ded5977?w=400&q=80'], video:null },
+  { id:7,  crop_name:'Poulet (vif)',     category:'elevage',  quantity_kg:50,   price:1800, currency:'FCFA', location:'Ouahigouya',      lat:13.5782,  lng:-2.4215, contact:'+22676000007', created_at:'2026-05-15', user_name:'Salif Barro',       user_id:'u7', min_order_kg:5,   delivery:'pickup',   certifications:['local'],           harvest_date:null,         seller_rating:4.3, seller_review_count:11, seller_bio:'Éleveur avicole traditionnel, alimentation naturelle, sans hormones.',                                seller_since:'2023', verified:false, description:'Poulets de chair locaux, bien nourris, 1,8–2,2 kg/pièce.', images:['https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400&q=80'], video:null },
+  { id:8,  crop_name:'Poisson fumé',     category:'poisson',  quantity_kg:80,   price:3000, currency:'FCFA', location:'Ouagadougou',     lat:12.3647,  lng:-1.5337, contact:'+22677000008', created_at:'2026-05-16', user_name:'Kadi Sawadogo',     user_id:'u8', min_order_kg:10,  delivery:'both',     certifications:['local'],           harvest_date:null,         seller_rating:4.7, seller_review_count:28, seller_bio:'Transformatrice de poisson, technique de fumage traditionnel pour longue conservation.',               seller_since:'2021', verified:true,  description:'Poisson fumé de qualité. Conditionnement soigné.', images:['https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400&q=80'], video:null },
+  { id:9,  crop_name:'BioGrowth',        category:'intrants', quantity_kg:100,  price:2500, currency:'FCFA', location:'Ouagadougou',     lat:12.3647,  lng:-1.5337, contact:'+22678000009', created_at:'2026-05-17', user_name:'GreenFCO',          user_id:'u9', min_order_kg:5,   delivery:'delivery', certifications:['verified','premium'],harvest_date:null,        seller_rating:5.0, seller_review_count:67, seller_bio:'GreenFCO — plateforme officielle, bio-fertilisants et intrants naturels pour l\'Afrique de l\'Ouest.', seller_since:'2021', verified:true,  description:'Bio-fertilisant liquide innovant pour sols ouest-africains.', images:['https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80'], video:null },
 ];
 
 const DEMO_REVIEWS = [
@@ -163,14 +186,163 @@ const DEMO_REVIEWS = [
 const DEFAULT_SELLER = { farmName: '', bio: '', phone: '', location: '', lat: null, lng: null, certifications: [], delivery: ['pickup'], memberSince: new Date().getFullYear().toString() };
 const DEFAULT_BUYER  = { name: '', location: '', lat: null, lng: null, preferredCategories: [], memberSince: new Date().getFullYear().toString() };
 
+/* ─── Farm Records (moved from KoobAssist) ─────────────────── */
+const TRACKER_TYPES = [
+  { value: 'Revenu',     fr: 'Revenu',     en: 'Income',     icon: '💰', color: '#52B788' },
+  { value: 'Dépense',    fr: 'Dépense',    en: 'Expense',    icon: '💸', color: '#EF4444' },
+  { value: 'Plantation', fr: 'Plantation', en: 'Planting',   icon: '🌱', color: '#2D6A4F' },
+  { value: 'Récolte',    fr: 'Récolte',    en: 'Harvest',    icon: '🌾', color: '#F59E0B' },
+  { value: 'Irrigation', fr: 'Irrigation', en: 'Irrigation', icon: '💧', color: '#3B82F6' },
+  { value: 'Traitement', fr: 'Traitement', en: 'Treatment',  icon: '💊', color: '#8B5CF6' },
+];
+
+function FarmRecordsTab({ lang }) {
+  const [entries, setEntries] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('greenfco_koob_tracker')) || []; } catch { return []; }
+  });
+  const [form, setForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    type: 'Revenu',
+    description: '',
+    amount: '',
+    quantity: '',
+    unit: 'kg',
+  });
+  const [showForm, setShowForm] = useState(false);
+
+  function handleAdd(e) {
+    e.preventDefault();
+    const entry = { ...form, id: Date.now() };
+    const updated = [entry, ...entries].slice(0, 100);
+    setEntries(updated);
+    localStorage.setItem('greenfco_koob_tracker', JSON.stringify(updated));
+    setForm({ date: new Date().toISOString().split('T')[0], type: 'Revenu', description: '', amount: '', quantity: '', unit: 'kg' });
+    setShowForm(false);
+  }
+
+  function handleDelete(id) {
+    const updated = entries.filter(e => e.id !== id);
+    setEntries(updated);
+    localStorage.setItem('greenfco_koob_tracker', JSON.stringify(updated));
+  }
+
+  const totalIncome  = entries.filter(e => e.type === 'Revenu'  && e.amount).reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+  const totalExpense = entries.filter(e => e.type === 'Dépense' && e.amount).reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+  const netMargin = totalIncome - totalExpense;
+  const fmt = n => n.toLocaleString('fr-FR') + ' FCFA';
+
+  return (
+    <div className="tracker-tab">
+      <div className="tracker-stats">
+        <div className="card tracker-stat-card">
+          <div className="stat-value" style={{ color: '#52B788' }}>{fmt(totalIncome)}</div>
+          <div className="stat-label">{lang === 'fr' ? 'Total Revenus' : 'Total Income'}</div>
+        </div>
+        <div className="card tracker-stat-card">
+          <div className="stat-value" style={{ color: '#EF4444' }}>{fmt(totalExpense)}</div>
+          <div className="stat-label">{lang === 'fr' ? 'Total Dépenses' : 'Total Expenses'}</div>
+        </div>
+        <div className="card tracker-stat-card">
+          <div className="stat-value" style={{ color: netMargin >= 0 ? '#52B788' : '#EF4444' }}>{fmt(netMargin)}</div>
+          <div className="stat-label">{lang === 'fr' ? 'Marge Nette' : 'Net Margin'}</div>
+        </div>
+      </div>
+
+      <button className="btn btn-primary tracker-add-btn" onClick={() => setShowForm(v => !v)}>
+        {showForm ? (lang === 'fr' ? '✕ Annuler' : '✕ Cancel') : (lang === 'fr' ? '+ Ajouter une activité' : '+ Add Activity')}
+      </button>
+
+      {showForm && (
+        <form className="card tracker-form" onSubmit={handleAdd}>
+          <h4>{lang === 'fr' ? 'Nouvelle activité' : 'New Activity'}</h4>
+          <div className="tracker-form-grid">
+            <div className="form-group">
+              <label className="form-label">{lang === 'fr' ? 'Date' : 'Date'}</label>
+              <input type="date" className="form-input" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">{lang === 'fr' ? 'Type' : 'Type'}</label>
+              <select className="form-select" value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}>
+                {TRACKER_TYPES.map(t => (
+                  <option key={t.value} value={t.value}>{t.icon} {lang === 'fr' ? t.fr : t.en}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label className="form-label">{lang === 'fr' ? 'Description' : 'Description'}</label>
+              <input type="text" className="form-input" placeholder={lang === 'fr' ? 'Ex: Vente oignons marché Dori' : 'E.g. Onion sale at Dori market'} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">{lang === 'fr' ? 'Montant (FCFA)' : 'Amount (FCFA)'}</label>
+              <input type="number" className="form-input" placeholder="0" value={form.amount} min="0" onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">{lang === 'fr' ? 'Quantité' : 'Quantity'}</label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input type="number" className="form-input" placeholder="0" value={form.quantity} min="0" onChange={e => setForm(p => ({ ...p, quantity: e.target.value }))} style={{ flex: 1 }} />
+                <select className="form-select" value={form.unit} onChange={e => setForm(p => ({ ...p, unit: e.target.value }))} style={{ width: '80px' }}>
+                  <option value="kg">kg</option>
+                  <option value="t">t</option>
+                  <option value="sac">sac</option>
+                  <option value="l">l</option>
+                  <option value="ha">ha</option>
+                  <option value="unité">unité</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
+            {lang === 'fr' ? '✓ Enregistrer' : '✓ Save'}
+          </button>
+        </form>
+      )}
+
+      <div className="tracker-timeline">
+        {entries.length === 0 ? (
+          <div className="card tracker-empty">
+            <p>📋 {lang === 'fr' ? 'Aucune activité enregistrée. Commencez à suivre vos opérations !' : 'No activities recorded yet. Start tracking your operations!'}</p>
+          </div>
+        ) : (
+          entries.map(entry => {
+            const typeObj = TRACKER_TYPES.find(t => t.value === entry.type) || TRACKER_TYPES[0];
+            return (
+              <div key={entry.id} className="tracker-entry card">
+                <div className="tracker-entry-icon" style={{ background: typeObj.color + '22', color: typeObj.color }}>{typeObj.icon}</div>
+                <div className="tracker-entry-body">
+                  <div className="tracker-entry-title">{entry.description}</div>
+                  <div className="tracker-entry-meta">
+                    {entry.date} · {lang === 'fr' ? typeObj.fr : typeObj.en}
+                    {entry.quantity && ` · ${entry.quantity} ${entry.unit}`}
+                  </div>
+                </div>
+                {entry.amount && (
+                  <span className="tracker-entry-amount" style={{ color: entry.type === 'Revenu' ? '#52B788' : entry.type === 'Dépense' ? '#EF4444' : '#6B7280' }}>
+                    {entry.type === 'Revenu' ? '+' : entry.type === 'Dépense' ? '-' : ''}{parseFloat(entry.amount).toLocaleString('fr-FR')} F
+                  </span>
+                )}
+                <button type="button" style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: '1rem', padding: '0 0.25rem' }} onClick={() => handleDelete(entry.id)} title={lang === 'fr' ? 'Supprimer' : 'Delete'}>×</button>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Main component ──────────────────────────────────────── */
-export default function MarketPage() {
+// mode: 'marketplace' = browse/sell/saved tabs | 'agropro' = prices/analytics tabs
+export default function MarketPage({ mode = 'marketplace' }) {
   const { i18n } = useTranslation();
   const lang = i18n.language?.startsWith('fr') ? 'fr' : 'en';
   const { user } = useAuthStore();
+  const navigate = useNavigate();
 
-  // Tab state
-  const [activeTab, setActiveTab] = useState('browse');
+  // Tab state — resets whenever mode changes (key prop forces full remount anyway)
+  const [activeTab, setActiveTab] = useState(mode === 'agropro' ? 'sell' : 'browse');
+  useEffect(() => {
+    setActiveTab(mode === 'agropro' ? 'sell' : 'browse');
+  }, [mode]);
 
   // Listings
   const [listings, setListings]   = useState(DEMO_LISTINGS);
@@ -200,9 +372,14 @@ export default function MarketPage() {
   // Seller profile sheet
   const [viewingSeller, setViewingSeller] = useState(null);
 
-  // Contact modal
-  const [contactListing, setContactListing] = useState(null);
-  const [msgText, setMsgText]               = useState('');
+  // Internal messaging
+  const [conversations, setConversations] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('greenfco_conversations')) || {}; } catch { return {}; }
+  });
+  const [activeConvId, setActiveConvId] = useState(null);
+  const [msgText, setMsgText]           = useState('');
+  const [showInbox, setShowInbox]       = useState(false);
+  const [qrTransaction, setQrTransaction] = useState(null);
 
   // Location
   const [buyerLoc, setBuyerLoc]     = useState(null);
@@ -212,11 +389,32 @@ export default function MarketPage() {
 
   // New listing form
   const [formLocLoading, setFormLocLoading] = useState(false);
+  const [differentLocation, setDifferentLocation] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState([]); // [{dataUrl: string, file: File}]
+  const [uploadedVideo, setUploadedVideo] = useState(null); // {objectUrl: string, duration: number, file: File}
+  const [videoDurationError, setVideoDurationError] = useState('');
+  const [imageDragOver, setImageDragOver] = useState(false);
   const [form, setForm] = useState({
     crop_name:'', category:'legumes', quantity_kg:'', price:'', currency:'FCFA',
     location:'', lat:null, lng:null, contact:'', description:'',
     min_order_kg:'', delivery:'pickup', certifications:[], harvest_date:'',
   });
+
+  // Auto-fill form location from seller profile when form opens
+  useEffect(() => {
+    if (showForm && sellerProfile?.location && !differentLocation) {
+      setForm(p => ({ ...p, location: sellerProfile.location }));
+    }
+  }, [showForm]);
+
+  // Revoke video object URL on unmount to prevent memory leak
+  useEffect(() => {
+    return () => {
+      if (uploadedVideo?.objectUrl) {
+        URL.revokeObjectURL(uploadedVideo.objectUrl);
+      }
+    };
+  }, [uploadedVideo]);
 
   // Prices tab
   const [selectedPrice, setSelectedPrice] = useState(REGIONAL_PRICES[0]);
@@ -236,6 +434,12 @@ export default function MarketPage() {
   function toggleSave(id) {
     setSavedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   }
+
+  // Auto-try GPS the first time user opens Browse tab
+  useEffect(() => {
+    if (activeTab !== 'browse' || buyerLoc || locLoading) return;
+    detectBuyerGPS();
+  }, [activeTab]);
 
   /* ── Buyer location ──────────────────────────────────────*/
   function detectBuyerGPS() {
@@ -274,32 +478,153 @@ export default function MarketPage() {
     }
   }
 
+  /* ── Image upload handler ────────────────────────────────*/
+  async function handleImageUpload(files) {
+    const remaining = 5 - uploadedImages.length;
+    const toProcess = Array.from(files).slice(0, remaining).filter(f => f.type.startsWith('image/'));
+    for (const file of toProcess) {
+      const dataUrl = await compressImage(file);
+      setUploadedImages(prev => [...prev, { dataUrl, file }].slice(0, 5));
+    }
+  }
+
+  /* ── Video upload handler ────────────────────────────────*/
+  function handleVideoUpload(file) {
+    if (!file || !file.type.startsWith('video/')) return;
+    setVideoDurationError('');
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    const url = URL.createObjectURL(file);
+    video.src = url;
+    video.load(); // Ensure metadata loads in all browsers
+    video.onloadedmetadata = () => {
+      const dur = video.duration;
+      if (dur > 16) {
+        setVideoDurationError(lang === 'fr' ? `Vidéo trop longue (${Math.round(dur)}s). Maximum 16 secondes.` : `Video too long (${Math.round(dur)}s). Maximum 16 seconds.`);
+        URL.revokeObjectURL(url);
+      } else {
+        setUploadedVideo({ objectUrl: url, duration: Math.round(dur), file });
+      }
+    };
+  }
+
   /* ── Submit listing ──────────────────────────────────────*/
   async function handleSubmit(e) {
     e.preventDefault();
+    if (uploadedImages.length === 0) {
+      alert(lang === 'fr' ? 'Veuillez ajouter au moins une photo du produit.' : 'Please add at least one product photo.');
+      return;
+    }
     setLoading(true);
+    // Use seller profile location as fallback
+    const resolvedLocation = (!differentLocation && sellerProfile?.location) ? sellerProfile.location : form.location;
+    const submitForm = { ...form, location: resolvedLocation };
     const newListing = {
-      id: Date.now(), ...form, user_name: sellerProfile?.farmName || user?.name || 'Vendeur',
+      id: Date.now(), ...submitForm, user_name: sellerProfile?.farmName || user?.name || 'Vendeur',
       user_id: user?.id || 'me', created_at: new Date().toISOString(),
       seller_rating: 0, seller_review_count: 0,
       seller_bio: sellerProfile?.bio || '',
       seller_since: sellerProfile?.memberSince || new Date().getFullYear().toString(),
       verified: false,
+      images: uploadedImages.map(i => i.dataUrl),
+      video: uploadedVideo?.objectUrl || null,
     };
-    try { const res = await api.post('/market', form); setListings(p => [res.data, ...p]); }
+    try { const res = await api.post('/market', submitForm); setListings(p => [{ ...res.data, images: newListing.images, video: newListing.video }, ...p]); }
     catch { setListings(p => [newListing, ...p]); }
     setShowForm(false);
+    setUploadedImages([]);
+    setUploadedVideo(null);
+    setVideoDurationError('');
+    setDifferentLocation(false);
     setForm({ crop_name:'', category:'legumes', quantity_kg:'', price:'', currency:'FCFA', location:'', lat:null, lng:null, contact:'', description:'', min_order_kg:'', delivery:'pickup', certifications:[], harvest_date:'' });
     setLoading(false);
   }
 
-  /* ── Contact ─────────────────────────────────────────────*/
-  function openContact(listing) {
-    const dist = buyerLoc && listing.lat ? ` (${fmtDist(haversineKm(buyerLoc.lat, buyerLoc.lng, listing.lat, listing.lng))})` : '';
-    const msg = lang === 'fr'
-      ? `Bonjour ${listing.user_name}, je suis intéressé(e) par : ${listing.crop_name}${dist}, ${Number(listing.quantity_kg).toLocaleString()} kg à ${Number(listing.price).toLocaleString()} ${listing.currency}/kg. Êtes-vous disponible ?`
-      : `Hello ${listing.user_name}, I'm interested in: ${listing.crop_name}${dist}, ${Number(listing.quantity_kg).toLocaleString()} kg at ${Number(listing.price).toLocaleString()} ${listing.currency}/kg. Are you available?`;
-    setContactListing(listing); setMsgText(msg);
+  /* ── Messaging ───────────────────────────────────────────*/
+  function convId(listing) { return `${listing.user_id}_${listing.id}`; }
+
+  function openChat(listing) {
+    const cid = convId(listing);
+    if (!conversations[cid]) {
+      const dist = buyerLoc && listing.lat ? ` (${fmtDist(haversineKm(buyerLoc.lat, buyerLoc.lng, listing.lat, listing.lng))})` : '';
+      const initMsg = lang === 'fr'
+        ? `Bonjour ${listing.user_name}, je suis intéressé(e) par votre annonce : ${listing.crop_name}${dist}, ${Number(listing.quantity_kg).toLocaleString()} kg à ${Number(listing.price).toLocaleString()} ${listing.currency}/kg. Êtes-vous disponible ?`
+        : `Hello ${listing.user_name}, I'm interested in your listing: ${listing.crop_name}${dist}, ${Number(listing.quantity_kg).toLocaleString()} kg at ${Number(listing.price).toLocaleString()} ${listing.currency}/kg. Are you available?`;
+      setMsgText(initMsg);
+    } else {
+      setMsgText('');
+    }
+    setActiveConvId(cid);
+    setConversations(prev => {
+      if (prev[cid]) return prev;
+      return { ...prev, [cid]: { listing, seller_name: listing.user_name, messages: [] } };
+    });
+  }
+
+  function sendMessage() {
+    if (!msgText.trim() || !activeConvId) return;
+    const now = new Date().toISOString();
+    const myName = buyerProfile?.name || user?.name || (lang === 'fr' ? 'Moi' : 'Me');
+    const newMsg = { from: 'buyer', name: myName, text: msgText.trim(), ts: now };
+    setConversations(prev => {
+      const conv = prev[activeConvId];
+      const updated = { ...prev, [activeConvId]: { ...conv, messages: [...conv.messages, newMsg] } };
+      localStorage.setItem('greenfco_conversations', JSON.stringify(updated));
+      return updated;
+    });
+    setMsgText('');
+    // Simulated seller auto-reply after 1.5s
+    const seller = conversations[activeConvId]?.listing || Object.values(conversations).find(c => convId(c.listing) === activeConvId)?.listing;
+    if (seller) {
+      const replies_fr = [
+        `Bonjour ! Merci pour votre intérêt. Le produit est disponible. Contactez-moi pour les détails.`,
+        `Oui, je suis disponible ! Quelle quantité vous intéresse ?`,
+        `Merci pour votre message. Je vous confirme la disponibilité.`,
+      ];
+      const replies_en = [
+        `Hello! Thanks for your interest. The product is available. Contact me for details.`,
+        `Yes, I'm available! What quantity are you interested in?`,
+        `Thank you for your message. I confirm availability.`,
+      ];
+      const replyPool = lang === 'fr' ? replies_fr : replies_en;
+      const replyText = replyPool[Math.floor(Math.random() * replyPool.length)];
+      setTimeout(() => {
+        setConversations(prev2 => {
+          const conv2 = prev2[activeConvId];
+          if (!conv2) return prev2;
+          const autoReply = { from: 'seller', name: conv2.seller_name, text: replyText, ts: new Date().toISOString() };
+          const updated2 = { ...prev2, [activeConvId]: { ...conv2, messages: [...conv2.messages, autoReply] } };
+          localStorage.setItem('greenfco_conversations', JSON.stringify(updated2));
+          return updated2;
+        });
+      }, 1500);
+    }
+  }
+
+  const totalUnread = Object.values(conversations).reduce((sum, c) => sum + (c.messages.filter(m => m.from === 'seller' && !m.read).length), 0);
+
+  /* ── QR Transaction ──────────────────────────────────────*/
+  function generateTransactionQR(conv) {
+    const listing = conv.listing;
+    const txn = {
+      id: crypto.randomUUID(),
+      token: crypto.randomUUID(),
+      sellerId: 'seller',
+      sellerName: conv.seller_name || 'Vendeur',
+      buyerName: 'Acheteur',
+      productName: listing?.crop_name || listing?.name || 'Produit',
+      listingId: listing?.id || '',
+      agreedPrice: Number(listing?.price) || 0,
+      finalPrice: null,
+      currency: listing?.currency || 'FCFA',
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      confirmedAt: null,
+      location: listing?.location || '',
+    };
+    const existing = (() => { try { return JSON.parse(localStorage.getItem('greenfco_transactions')) || []; } catch { return []; } })();
+    localStorage.setItem('greenfco_transactions', JSON.stringify([txn, ...existing]));
+    setQrTransaction(txn);
   }
 
   /* ── Seller profile save ─────────────────────────────────*/
@@ -317,7 +642,7 @@ export default function MarketPage() {
   }
 
   /* ── Filtered listings ───────────────────────────────────*/
-  const filtered = listings
+  const filtered = useMemo(() => listings
     .filter(l => {
       const ms = !search || l.crop_name.toLowerCase().includes(search.toLowerCase()) || l.location?.toLowerCase().includes(search.toLowerCase());
       const mc = activeCategory === 'all' || l.category === activeCategory;
@@ -331,33 +656,64 @@ export default function MarketPage() {
       if (sort === 'qty_desc')   return Number(b.quantity_kg) - Number(a.quantity_kg);
       if (sort === 'rating')     return (b.seller_rating || 0) - (a.seller_rating || 0);
       return new Date(b.created_at) - new Date(a.created_at);
-    });
+    }), [listings, search, activeCategory, buyerLoc, sort]);
 
   const myListings  = listings.filter(l => l.user_id === (user?.id || 'me') || l.user_name === (sellerProfile?.farmName || user?.name));
   const savedListings = listings.filter(l => savedIds.includes(l.id));
 
   /* ── Tabs config ─────────────────────────────────────────*/
-  const TABS = [
-    { key:'browse',      fr:'🛒 Annonces',      en:'🛒 Browse' },
-    { key:'sell',        fr:'📦 Vendre',        en:'📦 Sell' },
-    { key:'saved',       fr:`❤️ Sauvegardés (${savedIds.length})`, en:`❤️ Saved (${savedIds.length})` },
-    { key:'prices',      fr:'📊 Prix du marché', en:'📊 Prices' },
-    { key:'analytics',   fr:'📈 Analytics',     en:'📈 Analytics' },
+  // Marketplace = buyer-facing (browse & save)
+  // AgroPro     = seller/analyst tools (sell, prices, analytics)
+  const MARKETPLACE_TABS = [
+    { key:'browse', fr:'🛒 Annonces',                         en:'🛒 Listings' },
+    { key:'saved',  fr:`❤️ Sauvegardés (${savedIds.length})`, en:`❤️ Saved (${savedIds.length})` },
   ];
+  const AGROPRO_TABS = [
+    { key:'sell',      fr:'📦 Vendre',         en:'📦 Sell' },
+    { key:'prices',    fr:'📊 Prix du marché',  en:'📊 Market Prices' },
+    { key:'analytics', fr:'📈 Analytics',       en:'📈 Analytics' },
+    { key:'records',   fr:'📋 Mes Records',     en:'📋 My Records' },
+  ];
+  const TABS = mode === 'agropro' ? AGROPRO_TABS : MARKETPLACE_TABS;
 
   return (
     <div className="market-page">
       {/* Header */}
       <div className="module-header">
         <div>
-          <h1>{lang === 'fr' ? '🛒 Marché Numérique' : '🛒 Digital Market'}</h1>
-          <p>{lang === 'fr' ? 'Achetez, vendez et suivez les prix des marchés agricoles' : 'Buy, sell, and track agricultural market prices'}</p>
-        </div>
-        <div style={{ display:'flex', gap:'0.5rem' }}>
-          <button className="btn btn-secondary btn-sm" onClick={() => setShowBuyerSetup(true)}>👤 {lang === 'fr' ? 'Profil acheteur' : 'Buyer profile'}</button>
-          <button className="btn btn-primary" onClick={() => { setActiveTab('sell'); setShowForm(true); }}>
-            + {lang === 'fr' ? 'Publier' : 'Post listing'}
+          <button className="back-btn" onClick={() => navigate(-1)}>
+            ← {lang === 'fr' ? 'Retour' : 'Back'}
           </button>
+          {mode === 'agropro' ? (
+            <>
+              <h1>{lang === 'fr' ? '📊 AgroPro' : '📊 AgroPro'}</h1>
+              <p>{lang === 'fr' ? 'Publiez vos annonces, suivez les prix et analysez les tendances des marchés agricoles' : 'Post listings, track prices and analyse agricultural market trends'}</p>
+            </>
+          ) : (
+            <>
+              <h1>{lang === 'fr' ? '🛒 Marketplace' : '🛒 Marketplace'}</h1>
+              <p>{lang === 'fr' ? 'Parcourez les annonces de producteurs locaux et trouvez ce dont vous avez besoin' : 'Browse listings from local producers and find what you need'}</p>
+            </>
+          )}
+        </div>
+        <div style={{ display:'flex', gap:'0.5rem', flexWrap:'wrap' }}>
+          {mode !== 'agropro' ? (
+            <>
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowBuyerSetup(true)}>👤 {lang === 'fr' ? 'Mon profil' : 'My profile'}</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => navigate('/marketplace/profile')}>📋 {lang === 'fr' ? 'Profil acheteur' : 'Buyer profile'}</button>
+              <button className="btn btn-secondary btn-sm inbox-btn" onClick={() => setShowInbox(true)}>
+                💬 {lang === 'fr' ? 'Messages' : 'Messages'}
+                {totalUnread > 0 && <span className="inbox-badge">{totalUnread}</span>}
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="btn btn-secondary btn-sm" onClick={() => navigate('/agropro/profile')}>👤 {lang === 'fr' ? 'Mon profil vendeur' : 'My seller profile'}</button>
+              <button className="btn btn-primary" onClick={() => { setActiveTab('sell'); setShowForm(true); }}>
+                + {lang === 'fr' ? 'Publier une annonce' : 'Post a listing'}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -376,9 +732,9 @@ export default function MarketPage() {
           {/* Buyer location bar */}
           <div className="buyer-loc-bar card">
             {buyerLoc ? (
-              <div className="buyer-loc-active">
-                <span className="buyer-loc-label">📍 {buyerLoc.label}</span>
-                <button className="btn-link" onClick={() => { setBuyerLoc(null); setShowCitySearch(false); }}>{lang === 'fr' ? 'Changer' : 'Change'}</button>
+              <div className="buyer-loc-set">
+                <span>📍 {buyerLoc.label} · {lang === 'fr' ? 'Trier par distance' : 'Sort by distance'}</span>
+                <button onClick={() => { setBuyerLoc(null); setShowCitySearch(false); }} title={lang === 'fr' ? 'Effacer' : 'Clear'}>×</button>
               </div>
             ) : showCitySearch ? (
               <form className="buyer-city-form" onSubmit={handleCitySearch}>
@@ -386,10 +742,25 @@ export default function MarketPage() {
                 <button type="submit" className="btn btn-primary btn-sm" disabled={locLoading}>{locLoading ? '…' : 'OK'}</button>
                 <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowCitySearch(false)}>✕</button>
               </form>
+            ) : locLoading ? (
+              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--gray-mid)' }}>
+                🔍 {lang === 'fr' ? 'Localisation en cours…' : 'Detecting location…'}
+              </p>
             ) : (
-              <button className="buyer-loc-prompt" onClick={detectBuyerGPS} disabled={locLoading}>
-                {locLoading ? (lang === 'fr' ? '🔍 Localisation…' : '🔍 Detecting…') : `📍 ${lang === 'fr' ? 'Voir la distance des producteurs' : 'Show distance to producers'}`}
-              </button>
+              <div className="buyer-loc-banner">
+                <div>
+                  <h4>📍 {lang === 'fr' ? 'Activez votre position' : 'Enable your location'}</h4>
+                  <p>{lang === 'fr' ? 'Découvrez les producteurs proches de vous' : 'Discover producers near you'}</p>
+                </div>
+                <div className="buyer-loc-actions">
+                  <button className="btn btn-primary btn-sm" onClick={detectBuyerGPS}>
+                    📍 {lang === 'fr' ? 'Utiliser ma position GPS' : 'Use my GPS location'}
+                  </button>
+                  <button className="btn-link" onClick={() => setShowCitySearch(true)}>
+                    🏙️ {lang === 'fr' ? 'Entrer ma ville' : 'Enter my city'}
+                  </button>
+                </div>
+              </div>
             )}
           </div>
 
@@ -430,7 +801,7 @@ export default function MarketPage() {
               {filtered.map(l => (
                 <ListingCard key={l.id} listing={l} lang={lang} categories={CATEGORIES} buyerLoc={buyerLoc}
                   isSaved={savedIds.includes(l.id)} onToggleSave={() => toggleSave(l.id)}
-                  onContact={() => openContact(l)}
+                  onContact={() => openChat(l)}
                   onViewSeller={() => setViewingSeller(l)} />
               ))}
             </div>
@@ -480,7 +851,7 @@ export default function MarketPage() {
 
           {/* New listing form toggle */}
           <div style={{ display:'flex', justifyContent:'flex-end' }}>
-            <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
+            <button className="btn btn-primary" onClick={() => { if (showForm) { setUploadedImages([]); setUploadedVideo(null); setVideoDurationError(''); } setShowForm(s => !s); }}>
               {showForm ? '✕ ' : '+ '}{lang === 'fr' ? 'Nouvelle annonce' : 'New listing'}
             </button>
           </div>
@@ -527,13 +898,36 @@ export default function MarketPage() {
                       {lang === 'fr' ? 'Localisation ferme/stockage' : 'Farm/storage location'}
                       {form.lat && <span className="loc-confirmed"> ✅</span>}
                     </label>
-                    <div className="loc-input-row">
-                      <input type="text" className="form-input" style={{ flex:1 }} value={form.location} onChange={e => setForm(p => ({ ...p, location: e.target.value, lat:null, lng:null }))} placeholder={lang === 'fr' ? 'Ville ou secteur' : 'City or area'} />
-                      <button type="button" className="btn btn-secondary btn-sm loc-btn" onClick={locateFarm} disabled={formLocLoading}>{formLocLoading ? '…' : '📍'}</button>
-                    </div>
+                    {sellerProfile?.location && (
+                      <label className="checkbox-item" style={{ marginBottom:'0.5rem', fontSize:'0.82rem', color:'var(--gray-mid)' }}>
+                        <input
+                          type="checkbox"
+                          checked={differentLocation}
+                          onChange={e => {
+                            setDifferentLocation(e.target.checked);
+                            if (!e.target.checked && sellerProfile?.location) {
+                              setForm(p => ({ ...p, location: sellerProfile.location, lat: null, lng: null }));
+                            }
+                          }}
+                        />
+                        {lang === 'fr'
+                          ? 'Ce produit est en stock à un emplacement différent de mon profil vendeur'
+                          : 'This product is stocked at a different location than my seller profile'}
+                      </label>
+                    )}
+                    {(!sellerProfile?.location || differentLocation) ? (
+                      <div className="loc-input-row">
+                        <input type="text" className="form-input" style={{ flex:1 }} value={form.location} onChange={e => setForm(p => ({ ...p, location: e.target.value, lat:null, lng:null }))} placeholder={lang === 'fr' ? 'Ville ou secteur' : 'City or area'} />
+                        <button type="button" className="btn btn-secondary btn-sm loc-btn" onClick={locateFarm} disabled={formLocLoading}>{formLocLoading ? '…' : '📍'}</button>
+                      </div>
+                    ) : (
+                      <div className="form-input" style={{ background:'var(--gray-light-2, #f3f4f6)', color:'var(--gray-mid)', cursor:'default', display:'flex', alignItems:'center', gap:'0.4rem' }}>
+                        📍 {sellerProfile.location}
+                      </div>
+                    )}
                   </div>
                   <div className="form-group">
-                    <label className="form-label">{lang === 'fr' ? 'Contact WhatsApp *' : 'WhatsApp *'}</label>
+                    <label className="form-label">{lang === 'fr' ? 'Numéro de contact *' : 'Contact number *'}</label>
                     <input type="tel" className="form-input" required value={form.contact} onChange={e => setForm(p => ({ ...p, contact: e.target.value }))} placeholder="+226 XX XX XX XX" />
                   </div>
 
@@ -572,10 +966,68 @@ export default function MarketPage() {
                     <label className="form-label">{lang === 'fr' ? 'Description' : 'Description'}</label>
                     <textarea className="form-input" rows="2" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder={lang === 'fr' ? 'Qualité, conditions de vente…' : 'Quality, sale terms…'} />
                   </div>
+
+                  {/* Image Upload — MANDATORY */}
+                  <div className="form-group" style={{ gridColumn:'1 / -1' }}>
+                    <label className="form-label">
+                      📸 {lang === 'fr' ? `Photos du produit (${uploadedImages.length}/5) *` : `Product photos (${uploadedImages.length}/5) *`}
+                    </label>
+                    <div
+                      className={`product-upload-zone ${imageDragOver ? 'drag-over' : ''} ${uploadedImages.length >= 5 ? 'full' : ''}`}
+                      onDragOver={e => { e.preventDefault(); setImageDragOver(true); }}
+                      onDragLeave={() => setImageDragOver(false)}
+                      onDrop={e => { e.preventDefault(); setImageDragOver(false); handleImageUpload(e.dataTransfer.files); }}
+                      onClick={() => uploadedImages.length < 5 && document.getElementById('product-img-upload').click()}
+                    >
+                      {uploadedImages.length === 0 ? (
+                        <div className="upload-zone-empty">
+                          <span style={{ fontSize: '2rem' }}>📷</span>
+                          <p>{lang === 'fr' ? 'Cliquez ou glissez vos photos ici' : 'Click or drag photos here'}</p>
+                          <p style={{ fontSize: '0.8rem', color: 'var(--gray-mid)' }}>{lang === 'fr' ? 'JPG, PNG — 5 photos max (obligatoire)' : 'JPG, PNG — 5 photos max (required)'}</p>
+                        </div>
+                      ) : (
+                        <div className="upload-thumbs">
+                          {uploadedImages.map((img, i) => (
+                            <div key={i} className="upload-thumb">
+                              <img src={img.dataUrl} alt={`product-${i}`} loading="lazy" decoding="async" />
+                              <button type="button" className="upload-thumb-remove" onClick={e => { e.stopPropagation(); setUploadedImages(prev => prev.filter((_, idx) => idx !== i)); }}>×</button>
+                            </div>
+                          ))}
+                          {uploadedImages.length < 5 && <div className="upload-thumb upload-thumb-add">+</div>}
+                        </div>
+                      )}
+                    </div>
+                    <input id="product-img-upload" type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => handleImageUpload(e.target.files)} />
+                  </div>
+
+                  {/* Video Upload — OPTIONAL */}
+                  <div className="form-group" style={{ gridColumn:'1 / -1' }}>
+                    <label className="form-label">
+                      🎬 {lang === 'fr' ? 'Vidéo du produit (optionnel, max 16s)' : 'Product video (optional, max 16s)'}
+                    </label>
+                    {uploadedVideo ? (
+                      <div className="video-preview">
+                        <video src={uploadedVideo.objectUrl} controls style={{ width: '100%', maxHeight: '200px', borderRadius: '8px' }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--gray-mid)' }}>⏱ {uploadedVideo.duration}s</span>
+                          <button type="button" className="btn btn-secondary btn-sm" onClick={() => { URL.revokeObjectURL(uploadedVideo.objectUrl); setUploadedVideo(null); }}>
+                            🗑 {lang === 'fr' ? 'Supprimer' : 'Remove'}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="video-upload-area" onClick={() => document.getElementById('product-video-upload').click()}>
+                        <span style={{ fontSize: '1.5rem' }}>🎬</span>
+                        <p>{lang === 'fr' ? 'Cliquez pour ajouter une vidéo (max 16s)' : 'Click to add a video (max 16s)'}</p>
+                      </div>
+                    )}
+                    {videoDurationError && <p style={{ color: '#EF4444', fontSize: '0.85rem', marginTop: '0.25rem' }}>{videoDurationError}</p>}
+                    <input id="product-video-upload" type="file" accept="video/*" style={{ display: 'none' }} onChange={e => e.target.files[0] && handleVideoUpload(e.target.files[0])} />
+                  </div>
                 </div>
                 <div style={{ display:'flex', gap:'0.75rem', marginTop:'0.5rem' }}>
                   <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? '…' : lang === 'fr' ? 'Publier' : 'Publish'}</button>
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>{lang === 'fr' ? 'Annuler' : 'Cancel'}</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => { setShowForm(false); setUploadedImages([]); setUploadedVideo(null); setVideoDurationError(''); }}>{lang === 'fr' ? 'Annuler' : 'Cancel'}</button>
                 </div>
               </form>
             </div>
@@ -595,7 +1047,7 @@ export default function MarketPage() {
                       <span className="my-listing-meta">{Number(l.quantity_kg).toLocaleString()} kg · {Number(l.price).toLocaleString()} {l.currency}/kg · {l.location}</span>
                     </div>
                     <div className="my-listing-actions">
-                      <button className="btn btn-secondary btn-sm" onClick={() => openContact(l)}>💬</button>
+                      <button className="btn btn-secondary btn-sm" onClick={() => openChat(l)}>💬</button>
                       <button className="btn btn-danger btn-sm" onClick={() => setListings(p => p.filter(x => x.id !== l.id))}>🗑</button>
                     </div>
                   </div>
@@ -622,7 +1074,7 @@ export default function MarketPage() {
                   return (
                     <ListingCard key={l.id} listing={lWithDist} lang={lang} categories={CATEGORIES} buyerLoc={buyerLoc}
                       isSaved={true} onToggleSave={() => toggleSave(l.id)}
-                      onContact={() => openContact(l)}
+                      onContact={() => openChat(l)}
                       onViewSeller={() => setViewingSeller(l)} />
                   );
                 })}
@@ -758,6 +1210,9 @@ export default function MarketPage() {
         </div>
       )}
 
+      {/* ══ TAB: RECORDS ══════════════════════════════════════ */}
+      {activeTab === 'records' && <FarmRecordsTab lang={lang} />}
+
       {/* ══ SELLER PROFILE SHEET ═════════════════════════════ */}
       {viewingSeller && (
         <>
@@ -791,7 +1246,7 @@ export default function MarketPage() {
                   <span className="ss-listing-name">{l.crop_name}</span>
                   <span className="ss-listing-price">{Number(l.price).toLocaleString()} {l.currency}/kg</span>
                   <span className="ss-listing-qty">{Number(l.quantity_kg).toLocaleString()} kg</span>
-                  <button className="btn btn-primary btn-sm" onClick={() => { openContact(l); setViewingSeller(null); }}>💬</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => { openChat(l); setViewingSeller(null); }}>💬</button>
                 </div>
               ))}
             </div>
@@ -815,45 +1270,129 @@ export default function MarketPage() {
               </>
             )}
 
-            <button className="btn btn-whatsapp" onClick={() => openContact(viewingSeller)} style={{ width:'100%', justifyContent:'center', marginTop:'1rem' }}>
-              💬 {lang === 'fr' ? 'Contacter ce vendeur' : 'Contact this seller'}
+            <button className="btn btn-primary" onClick={() => { openChat(viewingSeller); setViewingSeller(null); }} style={{ width:'100%', justifyContent:'center', marginTop:'1rem' }}>
+              💬 {lang === 'fr' ? 'Envoyer un message' : 'Send a message'}
             </button>
           </div>
         </>
       )}
 
-      {/* ══ CONTACT MODAL ════════════════════════════════════ */}
-      {contactListing && (
-        <>
-          <div className="market-overlay" onClick={() => setContactListing(null)} />
-          <div className="contact-modal card">
-            <div className="contact-modal-header">
-              <div>
-                <h3>{lang === 'fr' ? 'Contacter le producteur' : 'Contact producer'}</h3>
-                <p style={{ display:'flex', alignItems:'center', gap:'0.35rem', flexWrap:'wrap', color:'var(--gray-mid)', fontSize:'0.85rem' }}>
-                  {contactListing.user_name} · {contactListing.crop_name}
-                  {contactListing._dist != null && (
-                    <span className={`dist-badge inline-dist ${distColor(contactListing._dist)}`}>📍 {fmtDist(contactListing._dist)}</span>
-                  )}
-                </p>
+      {/* ══ CHAT MODAL ══════════════════════════════════════ */}
+      {activeConvId && conversations[activeConvId] && (() => {
+        const conv = conversations[activeConvId];
+        return (
+          <div className="chat-modal-wrap" onClick={e => { if (e.target === e.currentTarget) setActiveConvId(null); }}>
+            <div className="chat-modal card">
+              <div className="chat-modal-header">
+                <div className="chat-modal-title">
+                  <div className="chat-modal-avatar">{conv.seller_name?.charAt(0)}</div>
+                  <div>
+                    <h3>{conv.seller_name}</h3>
+                    <p className="chat-modal-subtitle">{conv.listing?.crop_name} · {Number(conv.listing?.price).toLocaleString()} {conv.listing?.currency}/kg</p>
+                    <button className="btn btn-secondary btn-sm qr-gen-btn" onClick={() => generateTransactionQR(conv)}>
+                      📱 {lang === 'fr' ? 'QR Transaction' : 'QR Transaction'}
+                    </button>
+                  </div>
+                </div>
+                <button className="contact-modal-close" onClick={() => setActiveConvId(null)}>✕</button>
               </div>
-              <button className="contact-modal-close" onClick={() => setContactListing(null)}>✕</button>
+              <div className="chat-messages">
+                {conv.messages.length === 0 && (
+                  <p className="chat-empty">{lang === 'fr' ? 'Commencez la conversation ci-dessous.' : 'Start the conversation below.'}</p>
+                )}
+                {conv.messages.map((m, i) => (
+                  <div key={i} className={`chat-bubble ${m.from === 'buyer' ? 'chat-me' : 'chat-them'}`}>
+                    <span className="chat-bubble-text">{m.text}</span>
+                    <span className="chat-bubble-time">{new Date(m.ts).toLocaleTimeString(lang === 'fr' ? 'fr-FR' : 'en-US', { hour:'2-digit', minute:'2-digit' })}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="chat-input-row">
+                <textarea
+                  className="form-input chat-input"
+                  rows="2"
+                  placeholder={lang === 'fr' ? 'Écrivez votre message…' : 'Write your message…'}
+                  value={msgText}
+                  onChange={e => setMsgText(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                />
+                <button className="btn btn-primary chat-send-btn" onClick={sendMessage} disabled={!msgText.trim()}>
+                  {lang === 'fr' ? 'Envoyer' : 'Send'}
+                </button>
+              </div>
             </div>
-            <div className="contact-modal-body">
-              <label className="form-label">{lang === 'fr' ? 'Votre message' : 'Your message'}</label>
-              <textarea className="form-input" rows="4" value={msgText} onChange={e => setMsgText(e.target.value)} />
-            </div>
-            <div className="contact-modal-actions">
-              {contactListing.contact && (
-                <a href={`https://wa.me/${contactListing.contact.replace(/\D/g,'') }?text=${encodeURIComponent(msgText)}`} target="_blank" rel="noreferrer" className="btn btn-whatsapp">
-                  💬 {lang === 'fr' ? 'Envoyer via WhatsApp' : 'Send via WhatsApp'}
-                </a>
-              )}
-              <button className="btn btn-secondary" onClick={() => setContactListing(null)}>{lang === 'fr' ? 'Fermer' : 'Close'}</button>
-            </div>
-            <p className="contact-modal-note">💡 {lang === 'fr' ? "WhatsApp est le moyen le plus rapide de contacter les producteurs en Afrique de l'Ouest." : 'WhatsApp is the fastest way to reach producers in West Africa.'}</p>
           </div>
-        </>
+        );
+      })()}
+
+      {/* ══ QR TRANSACTION MODAL ════════════════════════════ */}
+      {qrTransaction && (
+        <div className="qr-modal-wrap" onClick={e => { if (e.target === e.currentTarget) setQrTransaction(null); }}>
+          <div className="qr-modal card">
+            <div className="qr-modal-header">
+              <h3>📱 {lang === 'fr' ? 'QR Code Transaction' : 'Transaction QR Code'}</h3>
+              <button className="chat-close-btn" onClick={() => setQrTransaction(null)}>✕</button>
+            </div>
+
+            <div className="qr-product-info">
+              <span className="qr-product-name">🌿 {qrTransaction.productName}</span>
+              <span className="qr-agreed-price">{qrTransaction.agreedPrice.toLocaleString()} {qrTransaction.currency}</span>
+            </div>
+
+            <div className="qr-code-area">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(window.location.origin + '/verify-transaction?token=' + qrTransaction.token)}`}
+                alt="QR Code"
+                className="qr-img"
+              />
+              <p className="qr-code-text">{lang === 'fr' ? 'Code:' : 'Code:'} <strong>{qrTransaction.token.slice(0, 8).toUpperCase()}</strong></p>
+            </div>
+
+            <div className="qr-instructions">
+              <p>📲 {lang === 'fr'
+                ? "Montrez ce QR code à l'acheteur. Il le scannera avec son téléphone pour confirmer la transaction et saisir le prix final."
+                : "Show this QR code to the buyer. They will scan it with their phone to confirm the transaction and enter the final price."
+              }</p>
+            </div>
+
+            <button
+              className="btn btn-secondary btn-sm qr-copy-btn"
+              onClick={() => { navigator.clipboard?.writeText(window.location.origin + '/verify-transaction?token=' + qrTransaction.token); }}
+            >
+              🔗 {lang === 'fr' ? 'Copier le lien' : 'Copy link'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ══ INBOX DRAWER ════════════════════════════════════ */}
+      {showInbox && (
+        <div className="chat-modal-wrap" onClick={e => { if (e.target === e.currentTarget) setShowInbox(false); }}>
+          <div className="chat-modal card">
+            <div className="chat-modal-header">
+              <h3>💬 {lang === 'fr' ? 'Mes messages' : 'My messages'}</h3>
+              <button className="contact-modal-close" onClick={() => setShowInbox(false)}>✕</button>
+            </div>
+            <div className="inbox-list">
+              {Object.entries(conversations).length === 0 ? (
+                <p className="chat-empty">{lang === 'fr' ? 'Aucun message pour linstant.' : 'No messages yet.'}</p>
+              ) : Object.entries(conversations).map(([cid, conv]) => {
+                const last = conv.messages[conv.messages.length - 1];
+                const unread = conv.messages.filter(m => m.from === 'seller' && !m.read).length;
+                return (
+                  <button key={cid} className="inbox-row" onClick={() => { setActiveConvId(cid); setShowInbox(false); }}>
+                    <div className="inbox-avatar">{conv.seller_name?.charAt(0)}</div>
+                    <div className="inbox-info">
+                      <div className="inbox-name">{conv.seller_name} <span className="inbox-product">· {conv.listing?.crop_name}</span></div>
+                      <div className="inbox-preview">{last ? last.text : (lang === 'fr' ? 'Pas encore de message' : 'No messages yet')}</div>
+                    </div>
+                    {unread > 0 && <span className="inbox-badge">{unread}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ══ SELLER SETUP MODAL ══════════════════════════════ */}
@@ -880,7 +1419,7 @@ export default function MarketPage() {
                   <textarea className="form-input" rows="3" value={sellerForm.bio} onChange={e => setSellerForm(p => ({ ...p, bio: e.target.value }))} placeholder={lang === 'fr' ? 'Types de cultures, expérience, particularités…' : 'Crop types, experience, specialties…'} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">{lang === 'fr' ? 'Téléphone / WhatsApp' : 'Phone / WhatsApp'}</label>
+                  <label className="form-label">{lang === 'fr' ? 'Téléphone' : 'Phone'}</label>
                   <input type="tel" className="form-input" value={sellerForm.phone} onChange={e => setSellerForm(p => ({ ...p, phone: e.target.value }))} placeholder="+226 XX XX XX XX" />
                 </div>
                 <div className="form-group">
@@ -970,85 +1509,104 @@ export default function MarketPage() {
   );
 }
 
+/* ─── Category top-bar colors ─────────────────────────────── */
+const CAT_COLORS = {
+  legumes:  '#52B788',
+  cereales: '#d97706',
+  fruits:   '#f97316',
+  elevage:  '#8B5E3C',
+  poisson:  '#2196F3',
+  intrants: '#1B4332',
+  autres:   '#64748b',
+  all:      '#52B788',
+};
+
 /* ─── Listing Card ────────────────────────────────────────── */
-function ListingCard({ listing, lang, categories, buyerLoc, isSaved, onToggleSave, onContact, onViewSeller }) {
-  const [expanded, setExpanded] = useState(false);
+const ListingCard = memo(function ListingCard({ listing, lang, categories, buyerLoc, isSaved, onToggleSave, onContact, onViewSeller }) {
   const cat  = categories.find(c => c.value === listing.category);
   const dist = listing._dist;
+  const barColor = CAT_COLORS[listing.category] || CAT_COLORS.autres;
+
+  // Distance chip class
+  let distChipClass = 'lc-dist-unknown';
+  if (dist != null) {
+    if (dist < 20)  distChipClass = 'lc-dist-near';
+    else if (dist < 100) distChipClass = 'lc-dist-mid';
+    else distChipClass = 'lc-dist-far';
+  }
 
   return (
     <div className="listing-card card">
-      <div className="listing-card-top">
-        <span className="listing-cat-badge">{cat?.icon || '📦'} {lang === 'fr' ? cat?.fr : cat?.en}</span>
-        <div style={{ display:'flex', gap:'0.4rem', alignItems:'center' }}>
-          {buyerLoc && (
-            <span className={`dist-badge ${dist != null ? distColor(dist) : 'dist-unknown'}`}>
-              {dist != null ? `📍 ${fmtDist(dist)}` : '📍 ?'}
-            </span>
-          )}
-          <button className={`save-btn ${isSaved ? 'saved' : ''}`} onClick={onToggleSave} title={isSaved ? (lang === 'fr' ? 'Retirer' : 'Unsave') : (lang === 'fr' ? 'Sauvegarder' : 'Save')}>
-            {isSaved ? '❤️' : '🤍'}
-          </button>
+      {/* Colored top bar */}
+      <div className="lc-topbar" style={{ background: barColor }}>
+        <span className="lc-topbar-cat">{cat?.icon || '📦'} {lang === 'fr' ? cat?.fr : cat?.en}</span>
+        <button className={`save-btn ${isSaved ? 'saved' : ''}`} onClick={onToggleSave} title={isSaved ? (lang === 'fr' ? 'Retirer' : 'Unsave') : (lang === 'fr' ? 'Sauvegarder' : 'Save')}>
+          {isSaved ? '❤️' : '🤍'}
+        </button>
+      </div>
+
+      {/* Product image */}
+      {listing.images?.length > 0 && (
+        <div className="lc-image">
+          <img src={listing.images[0]} alt={listing.crop_name} loading="lazy" decoding="async" />
+          {listing.images.length > 1 && <span className="lc-image-count">+{listing.images.length - 1}</span>}
+          {listing.video && <span className="lc-video-badge">🎬</span>}
+        </div>
+      )}
+
+      {/* Product header */}
+      <div className="lc-header">
+        <span className="lc-icon">{cat?.icon || '📦'}</span>
+        <div className="lc-title">
+          <h3 className="lc-name">{listing.crop_name}</h3>
+          <span className="lc-price">{Number(listing.price).toLocaleString()} {listing.currency}/kg</span>
         </div>
       </div>
 
-      <div className="listing-header">
-        <h3 className="listing-name">{listing.crop_name}</h3>
-        <span className="listing-price">{Number(listing.price).toLocaleString()} {listing.currency}/kg</span>
+      {/* Location row — always visible */}
+      <div className="lc-location-row">
+        <span className="lc-loc-name">📍 {listing.location || (lang === 'fr' ? 'Lieu non précisé' : 'Location not set')}</span>
+        {buyerLoc && dist != null && (
+          <span className={`lc-dist-chip ${distChipClass}`}>
+            ~{fmtDist(dist)} {lang === 'fr' ? 'de vous' : 'away'}
+          </span>
+        )}
+        {buyerLoc && dist == null && (
+          <span className={`lc-dist-chip lc-dist-unknown`}>? km</span>
+        )}
       </div>
 
-      <div className="listing-stats">
-        <span className="listing-stat">⚖️ {Number(listing.quantity_kg).toLocaleString()} kg</span>
-        <span className="listing-stat listing-total">💰 {(Number(listing.price) * Number(listing.quantity_kg)).toLocaleString()} {listing.currency}</span>
-      </div>
-
-      {/* Extra details */}
-      <div className="listing-details">
+      {/* Badges: stock, min order, delivery + certs */}
+      <div className="lc-badges">
+        <span className="lc-badge">⚖️ {Number(listing.quantity_kg).toLocaleString()} kg</span>
         {listing.min_order_kg && (
-          <span className="listing-detail-badge">📦 min {listing.min_order_kg} kg</span>
+          <span className="lc-badge">📦 min {listing.min_order_kg} kg</span>
         )}
         {listing.delivery && (
-          <span className="listing-detail-badge">
+          <span className="lc-badge">
             {listing.delivery === 'pickup' ? '📍' : listing.delivery === 'delivery' ? '🚚' : '📍🚚'}
             {' '}{listing.delivery === 'pickup' ? (lang === 'fr' ? 'Sur place' : 'Pickup') : listing.delivery === 'delivery' ? (lang === 'fr' ? 'Livraison' : 'Delivery') : (lang === 'fr' ? 'Sur place / Livraison' : 'Pickup / Delivery')}
           </span>
         )}
         {listing.harvest_date && (
-          <span className="listing-detail-badge">🗓 {new Date(listing.harvest_date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day:'numeric', month:'short' })}</span>
+          <span className="lc-badge">🗓 {new Date(listing.harvest_date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day:'numeric', month:'short' })}</span>
         )}
+        {listing.certifications?.map(c => <CertBadge key={c} id={c} lang={lang} />)}
       </div>
 
-      {/* Certifications */}
-      {listing.certifications?.length > 0 && (
-        <div className="listing-certs">
-          {listing.certifications.map(c => <CertBadge key={c} id={c} lang={lang} />)}
-        </div>
-      )}
-
-      {listing.location && (
-        <div className="listing-location">
-          📍 {listing.location}
-          {listing.lat && <span className="loc-dot" title="GPS confirmed">🟢</span>}
-        </div>
-      )}
-
-      {listing.description && (
-        <p className={`listing-desc ${expanded ? 'expanded' : ''}`} onClick={() => setExpanded(e => !e)}>
-          {listing.description}
-          {!expanded && <span className="read-more"> {lang === 'fr' ? 'Lire plus' : 'Read more'}</span>}
-        </p>
-      )}
-
-      <div className="listing-footer">
-        <button className="listing-seller" onClick={onViewSeller}>
-          <div className="seller-avatar">{listing.user_name?.charAt(0) || 'V'}</div>
-          <div>
-            <span className="seller-name">{listing.user_name}{listing.verified && ' ✅'}</span>
+      {/* Footer: seller + contact */}
+      <div className="lc-footer">
+        <button className="lc-seller" onClick={onViewSeller}>
+          <div className="lc-seller-avatar">{listing.user_name?.charAt(0)?.toUpperCase() || 'V'}</div>
+          <div className="lc-seller-info">
+            <span className="lc-seller-name">{listing.user_name}{listing.verified && ' ✅'}</span>
             <RatingStars rating={listing.seller_rating} count={listing.seller_review_count} size="xs" />
           </div>
         </button>
-        <button className="btn btn-primary btn-sm" onClick={onContact}>💬 {lang === 'fr' ? 'Contacter' : 'Contact'}</button>
+        <button className="btn btn-primary btn-sm lc-contact-btn" onClick={onContact}>
+          💬 {lang === 'fr' ? 'Contacter' : 'Contact'}
+        </button>
       </div>
     </div>
   );
-}
+});

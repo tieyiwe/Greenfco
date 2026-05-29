@@ -23,8 +23,40 @@
   flex-wrap: wrap;
 }
 
+.city-search-wrap { position: relative; }
 .city-search { display: flex; gap: 0.5rem; }
-.city-search .form-input { width: 200px; }
+.city-search .form-input { width: 220px; }
+
+/* Autocomplete dropdown */
+.city-suggestions {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--white); border: 1px solid var(--gray-light);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+  z-index: 200; list-style: none; margin: 0; padding: 0.25rem 0;
+  max-height: 260px; overflow-y: auto;
+}
+.city-suggestions li button {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  padding: 0.5rem 0.9rem; background: none; border: none;
+  cursor: pointer; text-align: left; gap: 0.5rem;
+  transition: background var(--transition);
+}
+.city-suggestions li button:hover { background: var(--off-white); }
+.city-sug-name { font-size: 0.88rem; font-weight: 500; color: var(--black); }
+.city-sug-country { font-size: 0.75rem; color: var(--gray-mid); }
+
+/* Quick city chips */
+.city-chips {
+  display: flex; flex-wrap: wrap; gap: 0.4rem;
+}
+.city-chip {
+  padding: 0.3rem 0.75rem; border-radius: 100px;
+  background: var(--off-white); border: 1px solid var(--gray-light);
+  font-size: 0.8rem; font-weight: 500; color: var(--gray-dark);
+  cursor: pointer; transition: all var(--transition);
+}
+.city-chip:hover  { background: var(--green-mid); color: white; border-color: var(--green-mid); }
+.city-chip.active { background: var(--green-deep); color: white; border-color: var(--green-deep); }
 
 .weather-error {
   padding: 1rem;
@@ -481,15 +513,50 @@
 @media (max-width: 768px) {
   .today-card { padding: 1.5rem; flex-direction: column; gap: 1.5rem; }
   .agri-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Main weather card rounded */
+  .weather-main-card { border-radius: 20px; padding: 1.5rem 1.25rem; }
+
+  /* Big temperature */
+  .temp-max { font-size: 3.5rem; }
+
+  /* Forecast cards */
+  .forecast-card { border-radius: 12px; padding: 0.75rem 0.5rem; }
+
+  /* Weather detail 2-col */
+  .weather-detail-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.75rem; }
+
+  /* City search input */
+  .city-search-input, .city-search .form-input { font-size: 16px; min-height: 48px; width: 100%; }
+
+  /* Activity planner — allow horizontal scroll to avoid overflow */
   .activity-row {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(10, minmax(64px, 1fr));
     gap: 0.35rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.25rem;
   }
-  .city-search .form-input { width: 140px; }
+  .activity-row::-webkit-scrollbar { display: none; }
+  .activity-day { min-width: 64px; }
+
+  /* City chips wrap instead of overflow */
+  .city-chips { flex-wrap: wrap; }
+
+  /* Forecast grid — 2 cols on mobile */
+  .forecast-grid, .weather-forecast { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Weather stats — 2 cols */
+  .weather-stats { grid-template-columns: repeat(2, 1fr) !important; }
 }
 
 @media (max-width: 480px) {
   .agri-grid { grid-template-columns: 1fr 1fr; }
-  .activity-row { grid-template-columns: repeat(5, 1fr); }
+  .activity-row {
+    grid-template-columns: repeat(10, minmax(58px, 1fr));
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
   .activity-day { padding: 0.5rem 0.2rem; min-width: 58px; }
 }

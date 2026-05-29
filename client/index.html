@@ -9,19 +9,63 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="GreenFCO" />
     <meta name="theme-color" content="#1B4332" />
-    <meta name="description" content="Green Field Consortium (GreenFCO) — Cultiver un avenir durable, ensemble. Plateforme agro-environnementale pour l'Afrique francophone." />
-    <meta name="keywords" content="agriculture durable, agroécologie, Burkina Faso, Afrique de l'Ouest, agro-environnement, GreenFCO" />
+
+    <!-- SEO Core -->
+    <meta name="description" content="Green Field Consortium (GreenFCO) — Plateforme agro-environnementale pour l'Afrique francophone. Conseil agricole, négoce, formations, études et innovations durables au Burkina Faso et en Afrique de l'Ouest. Agro-environmental platform for West Africa." />
+    <meta name="keywords" content="agriculture durable, agroécologie, Burkina Faso, Afrique de l'Ouest, agro-environnement, GreenFCO, Green Field Consortium, sustainable agriculture, agroecology, West Africa, conseil agricole, formations agricoles, smart farming, agriculture intelligente, intrants bio, BioGrowth, Koob Assist, finance carbone, hydro-agricole" />
+    <meta name="author" content="GreenFCO" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://greenfco.com/" />
+    <link rel="alternate" hreflang="fr" href="https://greenfco.com/" />
+    <link rel="alternate" hreflang="en" href="https://greenfco.com/" />
+
+    <!-- Open Graph -->
     <meta property="og:title" content="GreenFCO — Green Field Consortium" />
-    <meta property="og:description" content="Cultiver un avenir durable, ensemble." />
+    <meta property="og:description" content="Plateforme agro-environnementale pour l'Afrique francophone. Cultiver un avenir durable, ensemble. / Agro-environmental platform for West Africa." />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://greenfco.com/" />
+    <meta property="og:image" content="https://greenfco.com/logo.png" />
+    <meta property="og:site_name" content="GreenFCO" />
+    <meta property="og:locale" content="fr_FR" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="GreenFCO — Green Field Consortium" />
+    <meta name="twitter:description" content="Plateforme agro-environnementale pour l'Afrique francophone. Cultiver un avenir durable, ensemble." />
+    <meta name="twitter:image" content="https://greenfco.com/logo.png" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Preconnect / DNS-prefetch for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://api.open-meteo.com" />
+    <link rel="preconnect" href="https://geocoding-api.open-meteo.com" />
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+    <link rel="preconnect" href="https://api.qrserver.com" />
+    <link rel="dns-prefetch" href="https://archive-api.open-meteo.com" />
+    <link rel="dns-prefetch" href="https://unpkg.com" />
+
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Structured Data: Organization -->
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"Organization","name":"GreenFCO","url":"https://greenfco.com","description":"Plateforme agro-environnementale pour l'Afrique francophone","logo":"https://greenfco.com/logo.png","contactPoint":{"@type":"ContactPoint","email":"info@greenfco.com","contactType":"customer service"}}
+    </script>
+
     <title>GreenFCO — Green Field Consortium</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>

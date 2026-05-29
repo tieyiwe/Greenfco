@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import useAuthStore from '../../store/authStore';
 import './DashboardSidebar.css';
 
-const NAV_ITEMS = [
+const DASHBOARD_NAV = [
   { to: '/dashboard', icon: '🏠', key: 'overview', labelFr: 'Tableau de bord', labelEn: 'Dashboard' },
   { to: '/dashboard/crops', icon: '🌱', key: 'crops', labelFr: 'Mes Cultures', labelEn: 'My Crops' },
   { to: '/dashboard/irrigation', icon: '💧', key: 'irrigation', labelFr: 'Irrigation', labelEn: 'Irrigation' },
@@ -12,11 +12,25 @@ const NAV_ITEMS = [
   { to: '/dashboard/map', icon: '🗺️', key: 'map', labelFr: 'Cartographie', labelEn: 'Farm Map' },
   { to: '/dashboard/weather', icon: '🌤️', key: 'weather', labelFr: 'Météo', labelEn: 'Weather' },
   { to: '/dashboard/species', icon: '📚', key: 'species', labelFr: 'Espèces', labelEn: 'Species' },
-  { to: '/market', icon: '🛒', key: 'market', labelFr: 'Marché', labelEn: 'Market' },
+  { to: '/marketplace', icon: '🛒', key: 'market', labelFr: 'Marché', labelEn: 'Market' },
   { to: '/dashboard/business-plan', icon: '📋', key: 'business_plan', labelFr: 'Business Plan', labelEn: 'Business Plan' },
   { to: '/dashboard/soil-advisor', icon: '🔍', key: 'ai_advisor', labelFr: 'Conseiller IA', labelEn: 'AI Advisor' },
   { to: '/dashboard/greenbot', icon: '🤖', key: 'greenbot', labelFr: 'GreenBot', labelEn: 'GreenBot' },
   { to: '/dashboard/koob-assist', icon: '📱', key: 'koob_assist', labelFr: 'Koob Assist', labelEn: 'Koob Assist' },
+];
+
+const MARKETPLACE_NAV = [
+  { to: '/marketplace', icon: '🛒', key: 'browse', labelFr: 'Parcourir', labelEn: 'Browse' },
+  { to: '/marketplace', icon: '❤️', key: 'saved', labelFr: 'Sauvegardés', labelEn: 'Saved' },
+  { to: '/agropro', icon: '💼', key: 'agropro', labelFr: 'Agro Business', labelEn: 'Agro Business' },
+];
+
+const AGROPRO_NAV = [
+  { to: '/agropro', icon: '📦', key: 'sell', labelFr: 'Publier', labelEn: 'Sell' },
+  { to: '/agropro', icon: '📊', key: 'prices', labelFr: 'Prix marché', labelEn: 'Market Prices' },
+  { to: '/agropro', icon: '📈', key: 'analytics', labelFr: 'Analytique', labelEn: 'Analytics' },
+  { to: '/agropro', icon: '📋', key: 'records', labelFr: 'Mes Records', labelEn: 'My Records' },
+  { to: '/marketplace', icon: '🛒', key: 'marketplace', labelFr: 'Marketplace', labelEn: 'Marketplace' },
 ];
 
 export default function DashboardSidebar({ isOpen, onClose }) {
@@ -24,6 +38,27 @@ export default function DashboardSidebar({ isOpen, onClose }) {
   const lang = i18n.language?.startsWith('fr') ? 'fr' : 'en';
   const location = useLocation();
   const { user, logout } = useAuthStore();
+
+  const isMarketplace = location.pathname === '/marketplace';
+  const isAgroPro = location.pathname === '/agropro';
+
+  let navItems;
+  let sectionLabel;
+  let backLink;
+
+  if (isMarketplace) {
+    navItems = MARKETPLACE_NAV;
+    sectionLabel = lang === 'fr' ? 'Marketplace' : 'Marketplace';
+    backLink = { to: '/dashboard', label: lang === 'fr' ? '← Tableau de bord' : '← Dashboard' };
+  } else if (isAgroPro) {
+    navItems = AGROPRO_NAV;
+    sectionLabel = lang === 'fr' ? 'Agro Business' : 'Agro Business';
+    backLink = { to: '/dashboard', label: lang === 'fr' ? '← Tableau de bord' : '← Dashboard' };
+  } else {
+    navItems = DASHBOARD_NAV;
+    sectionLabel = null;
+    backLink = null;
+  }
 
   return (
     <>
@@ -45,10 +80,20 @@ export default function DashboardSidebar({ isOpen, onClose }) {
           </div>
         )}
 
+        {backLink && (
+          <Link to={backLink.to} className="sidebar-link sidebar-back" onClick={onClose}>
+            <span>{backLink.label}</span>
+          </Link>
+        )}
+
+        {sectionLabel && (
+          <div className="sidebar-section-label">{sectionLabel}</div>
+        )}
+
         <nav className="sidebar-nav">
-          {NAV_ITEMS.map(item => (
+          {navItems.map(item => (
             <Link
-              key={item.to}
+              key={item.key}
               to={item.to}
               className={`sidebar-link ${location.pathname === item.to ? 'active' : ''}`}
               onClick={onClose}
@@ -59,16 +104,27 @@ export default function DashboardSidebar({ isOpen, onClose }) {
           ))}
         </nav>
 
-        <div className="sidebar-footer">
-          <Link to="/network" className="sidebar-link" onClick={onClose}>
-            <span className="sidebar-icon">🌍</span>
-            <span>{lang === 'fr' ? 'Réseau' : 'Network'}</span>
-          </Link>
-          <button onClick={logout} className="sidebar-link sidebar-logout">
-            <span className="sidebar-icon">🚪</span>
-            <span>{lang === 'fr' ? 'Déconnexion' : 'Sign Out'}</span>
-          </button>
-        </div>
+        {!isMarketplace && !isAgroPro && (
+          <div className="sidebar-footer">
+            <Link to="/network" className="sidebar-link" onClick={onClose}>
+              <span className="sidebar-icon">🌍</span>
+              <span>{lang === 'fr' ? 'Réseau' : 'Network'}</span>
+            </Link>
+            <button onClick={logout} className="sidebar-link sidebar-logout">
+              <span className="sidebar-icon">🚪</span>
+              <span>{lang === 'fr' ? 'Déconnexion' : 'Sign Out'}</span>
+            </button>
+          </div>
+        )}
+
+        {(isMarketplace || isAgroPro) && (
+          <div className="sidebar-footer">
+            <button onClick={logout} className="sidebar-link sidebar-logout">
+              <span className="sidebar-icon">🚪</span>
+              <span>{lang === 'fr' ? 'Déconnexion' : 'Sign Out'}</span>
+            </button>
+          </div>
+        )}
       </aside>
     </>
   );
