@@ -117,7 +117,7 @@ export default function App() {
               <DashboardLayout />
             </ProtectedRoute>
           }>
-            <Route index element={<MarketPage mode="marketplace" />} />
+            <Route index element={<MarketPage key="marketplace" mode="marketplace" />} />
           </Route>
 
           {/* AgroPro (prices & analytics) */}
@@ -126,7 +126,7 @@ export default function App() {
               <DashboardLayout />
             </ProtectedRoute>
           }>
-            <Route index element={<MarketPage mode="agropro" />} />
+            <Route index element={<MarketPage key="agropro" mode="agropro" />} />
           </Route>
 
           {/* Legacy redirect */}

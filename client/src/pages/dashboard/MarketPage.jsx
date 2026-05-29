@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   LineChart, Line, CartesianGrid, Legend,
@@ -169,9 +170,13 @@ export default function MarketPage({ mode = 'marketplace' }) {
   const { i18n } = useTranslation();
   const lang = i18n.language?.startsWith('fr') ? 'fr' : 'en';
   const { user } = useAuthStore();
+  const navigate = useNavigate();
 
-  // Tab state — default tab depends on mode
+  // Tab state — resets whenever mode changes (key prop forces full remount anyway)
   const [activeTab, setActiveTab] = useState(mode === 'agropro' ? 'sell' : 'browse');
+  useEffect(() => {
+    setActiveTab(mode === 'agropro' ? 'sell' : 'browse');
+  }, [mode]);
 
   // Listings
   const [listings, setListings]   = useState(DEMO_LISTINGS);
@@ -414,6 +419,9 @@ export default function MarketPage({ mode = 'marketplace' }) {
       {/* Header */}
       <div className="module-header">
         <div>
+          <button className="back-btn" onClick={() => navigate(-1)}>
+            ← {lang === 'fr' ? 'Retour' : 'Back'}
+          </button>
           {mode === 'agropro' ? (
             <>
               <h1>{lang === 'fr' ? '📊 AgroPro' : '📊 AgroPro'}</h1>
