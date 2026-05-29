@@ -5,7 +5,7 @@ import './NetworkPage.css';
 const NETWORK_MODULES = [
   { icon: '💬', fr: 'Forums', en: 'Forums', desc_fr: 'Discussions par thème', desc_en: 'Discussions by topic', soon: false },
   { icon: '🔬', fr: 'Experts', en: 'Experts', desc_fr: 'Consultez des experts', desc_en: 'Consult experts', soon: false },
-  { icon: '📅', fr: 'Événements', en: 'Events', desc_fr: 'Formations et webinaires', desc_en: 'Training and webinars', soon: false, link: '/events' },
+  { icon: '📅', fr: 'Événements', en: 'Events', desc_fr: 'Formations et webinaires', desc_en: 'Training and webinars', soon: false },
   { icon: '📚', fr: 'Ressources', en: 'Resources', desc_fr: 'Guides et fiches pratiques', desc_en: 'Guides and fact sheets', soon: false },
   { icon: '🌳', fr: 'Parrainage Plantes', en: 'Plant Sponsorship', desc_fr: 'Parrainer des arbres', desc_en: 'Sponsor trees', soon: true },
   { icon: '💼', fr: 'Hub Investisseurs', en: 'Investor Hub', desc_fr: 'Projets à financer', desc_en: 'Projects to fund', soon: true },
@@ -35,10 +35,6 @@ export default function NetworkPage() {
             <p>{lang === 'fr' ? mod.desc_fr : mod.desc_en}</p>
             {mod.soon ? (
               <span className="badge badge-earth">{lang === 'fr' ? 'Bientôt' : 'Coming soon'}</span>
-            ) : mod.link ? (
-              <Link to={mod.link} className="btn btn-secondary btn-sm">
-                {lang === 'fr' ? 'Accéder' : 'Access'} →
-              </Link>
             ) : (
               <button className="btn btn-secondary btn-sm">
                 {lang === 'fr' ? 'Accéder' : 'Access'} →

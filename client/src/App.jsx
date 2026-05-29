@@ -17,7 +17,6 @@ import Blog from './pages/public/Blog';
 import BlogPost from './pages/public/BlogPost';
 import Gallery from './pages/public/Gallery';
 import Contact from './pages/public/Contact';
-import IndustryEvents from './pages/public/IndustryEvents';
 
 // Auth Pages
 import Login from './pages/auth/Login';
@@ -107,7 +106,6 @@ export default function App() {
           <Route path="/blog/:slug" element={<PublicLayout><BlogPost /></PublicLayout>} />
           <Route path="/gallery" element={<PublicLayout><Gallery /></PublicLayout>} />
           <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
-          <Route path="/events" element={<PublicLayout><IndustryEvents /></PublicLayout>} />
 
           {/* Auth */}
           <Route path="/login" element={<Login />} />
@@ -176,7 +174,7 @@ export default function App() {
             <Route path="consulting" element={<AdminConsulting />} />
             <Route path="transactions" element={<AdminTransactions />} />
             <Route path="settings" element={<AdminSettings />} />
-            {import.meta.env.DEV && <Route path="projects" element={<AdminProjects />} />}
+            <Route path="projects" element={<AdminProjects />} />
             <Route path="activity" element={<AdminActivity />} />
             <Route path="messages" element={<AdminTeamChat />} />
           </Route>
