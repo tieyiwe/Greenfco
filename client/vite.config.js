@@ -17,5 +17,14 @@ export default defineConfig({
   build: {
     outDir: '../server/public',
     emptyOutDir: true,
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          i18n: ['i18next', 'react-i18next'],
+        },
+      },
+    },
   },
 });

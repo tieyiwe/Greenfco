@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Suspense } from 'react';
+import { Suspense, lazy } from 'react';
 import './i18n';
 import useAuthStore from './store/authStore';
 
@@ -21,19 +21,19 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 
-// Dashboard
-import DashboardLayout from './pages/dashboard/DashboardLayout';
-import DashboardHome from './pages/dashboard/DashboardHome';
-import CropManager from './pages/dashboard/CropManager';
-import IrrigationManager from './pages/dashboard/IrrigationManager';
-import FinanceManager from './pages/dashboard/FinanceManager';
-import WeatherHub from './pages/dashboard/WeatherHub';
-import SpeciesLibrary from './pages/dashboard/SpeciesLibrary';
-import GreenBot from './pages/dashboard/GreenBot';
-import SoilAdvisor from './pages/dashboard/SoilAdvisor';
-import KoobAssist from './pages/dashboard/KoobAssist';
-import MarketPage from './pages/dashboard/MarketPage';
-import NetworkPage from './pages/network/NetworkPage';
+// Dashboard (lazy-loaded for code splitting)
+const DashboardLayout = lazy(() => import('./pages/dashboard/DashboardLayout'));
+const DashboardHome = lazy(() => import('./pages/dashboard/DashboardHome'));
+const CropManager = lazy(() => import('./pages/dashboard/CropManager'));
+const IrrigationManager = lazy(() => import('./pages/dashboard/IrrigationManager'));
+const FinanceManager = lazy(() => import('./pages/dashboard/FinanceManager'));
+const WeatherHub = lazy(() => import('./pages/dashboard/WeatherHub'));
+const SpeciesLibrary = lazy(() => import('./pages/dashboard/SpeciesLibrary'));
+const GreenBot = lazy(() => import('./pages/dashboard/GreenBot'));
+const SoilAdvisor = lazy(() => import('./pages/dashboard/SoilAdvisor'));
+const KoobAssist = lazy(() => import('./pages/dashboard/KoobAssist'));
+const MarketPage = lazy(() => import('./pages/dashboard/MarketPage'));
+const NetworkPage = lazy(() => import('./pages/network/NetworkPage'));
 
 // Auth bypass for testing — re-enable before production
 function ProtectedRoute({ children }) {
