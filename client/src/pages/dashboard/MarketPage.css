@@ -566,3 +566,19 @@
   .sp-header { flex-wrap: wrap; }
   .profile-form-grid { grid-template-columns: 1fr; }
 }
+
+/* QR Transaction Modal */
+.qr-modal-wrap { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 300; }
+.qr-modal { max-width: 380px; width: 90%; padding: 1.5rem; }
+.qr-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.qr-modal-header h3 { color: var(--green-deep); margin: 0; }
+.qr-product-info { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f0fdf4; border-radius: 8px; margin-bottom: 1rem; }
+.qr-product-name { font-weight: 600; color: var(--green-deep); }
+.qr-agreed-price { font-weight: 700; color: var(--green-mid); }
+.qr-code-area { text-align: center; padding: 1rem 0; }
+.qr-img { width: 200px; height: 200px; border: 3px solid var(--green-light); border-radius: 8px; }
+.qr-code-text { margin-top: 0.5rem; font-size: 0.9rem; color: var(--gray-mid); }
+.qr-instructions { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 0.75rem; margin: 1rem 0; font-size: 0.9rem; }
+.qr-copy-btn { width: 100%; }
+.qr-gen-btn { font-size: 0.8rem; padding: 0.3rem 0.6rem; margin-top: 0.4rem; }
+.chat-close-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--gray-mid); padding: 0.25rem; line-height: 1; }

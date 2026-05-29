@@ -36,6 +36,15 @@ const OBJECTIVES = [
   { value: 'certify', fr: 'Me certifier / Me former', en: 'Get certified / Trained' },
 ];
 
+const TRACKER_TYPES = [
+  { value: 'Revenu', fr: 'Revenu', en: 'Income', icon: '💰', color: '#52B788' },
+  { value: 'Dépense', fr: 'Dépense', en: 'Expense', icon: '💸', color: '#EF4444' },
+  { value: 'Plantation', fr: 'Plantation', en: 'Planting', icon: '🌱', color: '#2D6A4F' },
+  { value: 'Récolte', fr: 'Récolte', en: 'Harvest', icon: '🌾', color: '#F59E0B' },
+  { value: 'Irrigation', fr: 'Irrigation', en: 'Irrigation', icon: '💧', color: '#3B82F6' },
+  { value: 'Traitement', fr: 'Traitement', en: 'Treatment', icon: '💊', color: '#8B5CF6' },
+];
+
 const FALLBACK_PLAN_FR = `## 🎯 Actions Immédiates (0-2 semaines)
 - Dresser l'inventaire complet de vos ressources actuelles (terres, équipements, semences)
 - Identifier 2-3 marchés locaux les plus proches et leurs jours de marché
@@ -102,15 +111,339 @@ const FALLBACK_PLAN_EN = `## 🎯 Immediate Actions (0-2 weeks)
 - Maintain a reserve fund of at least 10% of your budget for emergencies
 - Avoid borrowing beyond your seasonal repayment capacity`;
 
+// ─── PlantAnalysisResult component ────────────────────────────────────────────
+function PlantAnalysisResult({ analysis, lang, onReset }) {
+  const statusColor = { healthy: '#52B788', warning: '#F59E0B', critical: '#EF4444' };
+  const severityLabel = { low: lang === 'fr' ? 'Faible' : 'Low', medium: lang === 'fr' ? 'Modérée' : 'Medium', high: lang === 'fr' ? 'Élevée' : 'High' };
+  const urgencyLabel = {
+    monitor: lang === 'fr' ? '👀 Surveiller' : '👀 Monitor',
+    treat_soon: lang === 'fr' ? '⚠️ Traiter bientôt' : '⚠️ Treat soon',
+    treat_immediately: lang === 'fr' ? '🚨 Traiter immédiatement' : '🚨 Treat immediately',
+  };
+  const urgencyColor = { monitor: '#52B788', treat_soon: '#F59E0B', treat_immediately: '#EF4444' };
+
+  return (
+    <div className="pa-results">
+      {/* Header card */}
+      <div className="card pa-result-header" style={{ borderLeft: `4px solid ${statusColor[analysis.healthStatus]}` }}>
+        <div className="pa-result-plant">
+          <span className="pa-result-name">🌿 {analysis.plantIdentified}</span>
+          <span className="pa-confidence">{lang === 'fr' ? 'Confiance' : 'Confidence'}: {analysis.confidence}%</span>
+        </div>
+        <div className="pa-status-row">
+          <span className="pa-status-badge" style={{ background: statusColor[analysis.healthStatus] }}>
+            {analysis.healthStatus === 'healthy' ? (lang === 'fr' ? '✅ Saine' : '✅ Healthy')
+             : analysis.healthStatus === 'warning' ? (lang === 'fr' ? '⚠️ Attention' : '⚠️ Warning')
+             : (lang === 'fr' ? '🚨 Critique' : '🚨 Critical')}
+          </span>
+          {analysis.urgency && (
+            <span className="pa-urgency-badge" style={{ background: urgencyColor[analysis.urgency] }}>
+              {urgencyLabel[analysis.urgency]}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Issues */}
+      {analysis.issues?.length > 0 ? (
+        <div className="card">
+          <h4>🦠 {lang === 'fr' ? 'Problèmes détectés' : 'Detected Issues'}</h4>
+          {analysis.issues.map((issue, i) => (
+            <div key={i} className="pa-issue">
+              <div className="pa-issue-header">
+                <span className="pa-issue-name">{lang === 'fr' ? issue.nameFr || issue.name : issue.name}</span>
+                <span className={`pa-severity pa-severity-${issue.severity}`}>
+                  {severityLabel[issue.severity]}
+                </span>
+              </div>
+              {issue.symptoms && <p className="pa-issue-detail">📋 {issue.symptoms}</p>}
+              {issue.cause && <p className="pa-issue-detail">🔬 {lang === 'fr' ? 'Cause:' : 'Cause:'} {issue.cause}</p>}
+              {issue.affectedParts?.length > 0 && (
+                <div className="pa-affected">
+                  {issue.affectedParts.map(p => <span key={p} className="pa-part">{p}</span>)}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="card pa-healthy">
+          <span>✅</span>
+          <p>{lang === 'fr' ? 'Aucun problème détecté. Votre culture semble en bonne santé !' : 'No issues detected. Your crop appears healthy!'}</p>
+        </div>
+      )}
+
+      {/* Treatments */}
+      {analysis.organicTreatment && (
+        <div className="card pa-treatment pa-organic">
+          <h4>🌿 {lang === 'fr' ? 'Traitement organique (recommandé)' : 'Organic Treatment (recommended)'}</h4>
+          <p>{analysis.organicTreatment}</p>
+        </div>
+      )}
+      {analysis.conventionalTreatment && (
+        <div className="card pa-treatment pa-conventional">
+          <h4>💊 {lang === 'fr' ? 'Traitement conventionnel' : 'Conventional Treatment'}</h4>
+          <p>{analysis.conventionalTreatment}</p>
+        </div>
+      )}
+      {analysis.prevention && (
+        <div className="card pa-treatment pa-prevention">
+          <h4>🛡️ {lang === 'fr' ? 'Prévention' : 'Prevention'}</h4>
+          <p>{analysis.prevention}</p>
+        </div>
+      )}
+
+      {/* References */}
+      {analysis.references?.length > 0 && (
+        <div className="card pa-refs">
+          <span>📚 {lang === 'fr' ? 'Sources:' : 'Sources:'} {analysis.references.join(' · ')}</span>
+        </div>
+      )}
+
+      {/* Consult CTA */}
+      {analysis.recommendConsultation && (
+        <div className="card pa-consult-cta">
+          <p>👨‍🌾 {lang === 'fr' ? 'Un diagnostic terrain est recommandé pour ce cas.' : 'An on-site diagnosis is recommended for this case.'}</p>
+          <a href="/consulting" className="btn btn-primary btn-sm">{lang === 'fr' ? 'Prendre RDV expert' : 'Book Expert Consultation'}</a>
+        </div>
+      )}
+
+      <button className="btn btn-secondary pa-reset" onClick={onReset}>
+        🔄 {lang === 'fr' ? 'Nouvelle analyse' : 'New Analysis'}
+      </button>
+    </div>
+  );
+}
+
+// ─── TrackerTab component ──────────────────────────────────────────────────────
+function TrackerTab({ lang }) {
+  const [trackerEntries, setTrackerEntries] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('greenfco_koob_tracker')) || []; } catch { return []; }
+  });
+  const [trackerForm, setTrackerForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    type: 'Revenu',
+    description: '',
+    amount: '',
+    quantity: '',
+    unit: 'kg',
+  });
+  const [showTrackerForm, setShowTrackerForm] = useState(false);
+
+  function handleTrackerAdd(e) {
+    e.preventDefault();
+    const entry = { ...trackerForm, id: Date.now() };
+    const updated = [entry, ...trackerEntries].slice(0, 20);
+    setTrackerEntries(updated);
+    localStorage.setItem('greenfco_koob_tracker', JSON.stringify(updated));
+    setTrackerForm({
+      date: new Date().toISOString().split('T')[0],
+      type: 'Revenu',
+      description: '',
+      amount: '',
+      quantity: '',
+      unit: 'kg',
+    });
+    setShowTrackerForm(false);
+  }
+
+  function handleTrackerDelete(id) {
+    const updated = trackerEntries.filter(e => e.id !== id);
+    setTrackerEntries(updated);
+    localStorage.setItem('greenfco_koob_tracker', JSON.stringify(updated));
+  }
+
+  const totalIncome = trackerEntries
+    .filter(e => e.type === 'Revenu' && e.amount)
+    .reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+  const totalExpense = trackerEntries
+    .filter(e => e.type === 'Dépense' && e.amount)
+    .reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+  const netMargin = totalIncome - totalExpense;
+
+  function fmt(n) {
+    return n.toLocaleString('fr-FR') + ' FCFA';
+  }
+
+  return (
+    <div className="tracker-tab">
+      {/* Stats */}
+      <div className="tracker-stats">
+        <div className="card tracker-stat-card">
+          <div className="stat-value" style={{ color: '#52B788' }}>{fmt(totalIncome)}</div>
+          <div className="stat-label">{lang === 'fr' ? 'Total Revenus' : 'Total Income'}</div>
+        </div>
+        <div className="card tracker-stat-card">
+          <div className="stat-value" style={{ color: '#EF4444' }}>{fmt(totalExpense)}</div>
+          <div className="stat-label">{lang === 'fr' ? 'Total Dépenses' : 'Total Expenses'}</div>
+        </div>
+        <div className="card tracker-stat-card">
+          <div className="stat-value" style={{ color: netMargin >= 0 ? '#52B788' : '#EF4444' }}>{fmt(netMargin)}</div>
+          <div className="stat-label">{lang === 'fr' ? 'Marge Nette' : 'Net Margin'}</div>
+        </div>
+      </div>
+
+      {/* Add button */}
+      <button
+        className="btn btn-primary tracker-add-btn"
+        onClick={() => setShowTrackerForm(v => !v)}
+      >
+        {showTrackerForm
+          ? (lang === 'fr' ? '✕ Annuler' : '✕ Cancel')
+          : (lang === 'fr' ? '+ Ajouter une activité' : '+ Add Activity')}
+      </button>
+
+      {/* Add form */}
+      {showTrackerForm && (
+        <form className="card tracker-form" onSubmit={handleTrackerAdd}>
+          <h4>{lang === 'fr' ? 'Nouvelle activité' : 'New Activity'}</h4>
+          <div className="tracker-form-grid">
+            <div className="form-group">
+              <label className="form-label">{lang === 'fr' ? 'Date' : 'Date'}</label>
+              <input
+                type="date"
+                className="form-input"
+                value={trackerForm.date}
+                onChange={e => setTrackerForm(p => ({ ...p, date: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">{lang === 'fr' ? 'Type' : 'Type'}</label>
+              <select
+                className="form-select"
+                value={trackerForm.type}
+                onChange={e => setTrackerForm(p => ({ ...p, type: e.target.value }))}
+              >
+                {TRACKER_TYPES.map(t => (
+                  <option key={t.value} value={t.value}>
+                    {t.icon} {lang === 'fr' ? t.fr : t.en}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label className="form-label">{lang === 'fr' ? 'Description' : 'Description'}</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder={lang === 'fr' ? 'Ex: Vente oignons marché Dori' : 'E.g. Onion sale at Dori market'}
+                value={trackerForm.description}
+                onChange={e => setTrackerForm(p => ({ ...p, description: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">{lang === 'fr' ? 'Montant (FCFA)' : 'Amount (FCFA)'}</label>
+              <input
+                type="number"
+                className="form-input"
+                placeholder="0"
+                value={trackerForm.amount}
+                min="0"
+                onChange={e => setTrackerForm(p => ({ ...p, amount: e.target.value }))}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">{lang === 'fr' ? 'Quantité' : 'Quantity'}</label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="number"
+                  className="form-input"
+                  placeholder="0"
+                  value={trackerForm.quantity}
+                  min="0"
+                  onChange={e => setTrackerForm(p => ({ ...p, quantity: e.target.value }))}
+                  style={{ flex: 1 }}
+                />
+                <select
+                  className="form-select"
+                  value={trackerForm.unit}
+                  onChange={e => setTrackerForm(p => ({ ...p, unit: e.target.value }))}
+                  style={{ width: '80px' }}
+                >
+                  <option value="kg">kg</option>
+                  <option value="t">t</option>
+                  <option value="sac">sac</option>
+                  <option value="l">l</option>
+                  <option value="ha">ha</option>
+                  <option value="unité">unité</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
+            {lang === 'fr' ? '✓ Enregistrer' : '✓ Save'}
+          </button>
+        </form>
+      )}
+
+      {/* Timeline */}
+      <div className="tracker-timeline">
+        {trackerEntries.length === 0 ? (
+          <div className="card tracker-empty">
+            <p>📋 {lang === 'fr' ? 'Aucune activité enregistrée. Commencez à suivre vos opérations !' : 'No activities recorded yet. Start tracking your operations!'}</p>
+          </div>
+        ) : (
+          trackerEntries.map(entry => {
+            const typeObj = TRACKER_TYPES.find(t => t.value === entry.type) || TRACKER_TYPES[0];
+            return (
+              <div key={entry.id} className="tracker-entry card">
+                <div className="tracker-entry-icon" style={{ background: typeObj.color + '22', color: typeObj.color }}>
+                  {typeObj.icon}
+                </div>
+                <div className="tracker-entry-body">
+                  <div className="tracker-entry-title">{entry.description}</div>
+                  <div className="tracker-entry-meta">
+                    {entry.date} · {lang === 'fr' ? typeObj.fr : typeObj.en}
+                    {entry.quantity && ` · ${entry.quantity} ${entry.unit}`}
+                  </div>
+                </div>
+                {entry.amount && (
+                  <span
+                    className="tracker-entry-amount"
+                    style={{ color: entry.type === 'Revenu' ? '#52B788' : entry.type === 'Dépense' ? '#EF4444' : '#6B7280' }}
+                  >
+                    {entry.type === 'Revenu' ? '+' : entry.type === 'Dépense' ? '-' : ''}{parseFloat(entry.amount).toLocaleString('fr-FR')} F
+                  </span>
+                )}
+                <button
+                  type="button"
+                  style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: '1rem', padding: '0 0.25rem' }}
+                  onClick={() => handleTrackerDelete(entry.id)}
+                  title={lang === 'fr' ? 'Supprimer' : 'Delete'}
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main KoobAssist component ─────────────────────────────────────────────────
 export default function KoobAssist() {
   const { i18n } = useTranslation();
   const lang = i18n.language?.startsWith('fr') ? 'fr' : 'en';
 
   const [tab, setTab] = useState('diagnostic');
+
+  // Diagnostic / Plan state
   const [form, setForm] = useState({ activity: '', surface: '', budget: '', challenges: [], objective: '' });
   const [plan, setPlan] = useState('');
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState({});
+
+  // Plant analyser state
+  const [plantImages, setPlantImages] = useState([]);
+  const [plantType, setPlantType] = useState('');
+  const [plantAnalysis, setPlantAnalysis] = useState(null);
+  const [plantLoading, setPlantLoading] = useState(false);
+  const [plantError, setPlantError] = useState('');
+  const [dragOver, setDragOver] = useState(false);
 
   function toggleChallenge(val) {
     setForm(p => ({
@@ -144,6 +477,37 @@ export default function KoobAssist() {
     }
   }
 
+  function handleImageFiles(files) {
+    Array.from(files).slice(0, 4 - plantImages.length).forEach(file => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPlantImages(prev => [...prev, { preview: e.target.result, base64: e.target.result }].slice(0, 4));
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handlePlantAnalyze(e) {
+    e.preventDefault();
+    if (!plantImages.length) return;
+    setPlantLoading(true);
+    setPlantError('');
+    setPlantAnalysis(null);
+    try {
+      const res = await api.post('/ai/plant-analyze', {
+        images: plantImages.map(img => img.base64),
+        plantType,
+        language: lang,
+      });
+      setPlantAnalysis(res.data);
+    } catch {
+      setPlantError(lang === 'fr' ? "Erreur lors de l'analyse. Réessayez." : 'Analysis error. Please try again.');
+    } finally {
+      setPlantLoading(false);
+    }
+  }
+
   const planSections = plan
     ? plan.split(/\n(?=## )/).filter(s => s.trim())
     : [];
@@ -152,7 +516,7 @@ export default function KoobAssist() {
     <div className="koob-assist">
       <div className="module-header">
         <div>
-          <span className="koob-badge">📱 Beta</span>
+          <span className="koob-badge">📱 IA</span>
           <h1>Koob Assist</h1>
           <p>{lang === 'fr' ? 'Conseiller IA pour entrepreneurs agricoles' : 'AI Advisor for Agricultural Entrepreneurs'}</p>
         </div>
@@ -170,8 +534,15 @@ export default function KoobAssist() {
           📈 {lang === 'fr' ? 'Mon Plan' : 'My Plan'}
           {plan && <span className="koob-dot" />}
         </button>
+        <button className={`koob-tab ${tab === 'plant' ? 'active' : ''}`} onClick={() => setTab('plant')}>
+          🔬 {lang === 'fr' ? 'Analyse Plante' : 'Plant Analysis'}
+        </button>
+        <button className={`koob-tab ${tab === 'tracker' ? 'active' : ''}`} onClick={() => setTab('tracker')}>
+          📊 {lang === 'fr' ? 'Suivi' : 'Tracker'}
+        </button>
       </div>
 
+      {/* ── Diagnostic tab ── */}
       {tab === 'diagnostic' && (
         <form className="koob-form card" onSubmit={handleGenerate}>
           <h3>{lang === 'fr' ? 'Votre situation agricole' : 'Your Farming Situation'}</h3>
@@ -289,6 +660,7 @@ export default function KoobAssist() {
         </form>
       )}
 
+      {/* ── Plan tab ── */}
       {tab === 'plan' && plan && (
         <div className="koob-plan">
           <div className="koob-plan-meta card">
@@ -350,6 +722,108 @@ export default function KoobAssist() {
           </button>
         </div>
       )}
+
+      {/* ── Plant Analyser tab ── */}
+      {tab === 'plant' && (
+        <div className="plant-analyser">
+          <div className="pa-intro card">
+            <h3>🔬 {lang === 'fr' ? 'Analyseur de Plantes IA' : 'AI Plant Analyser'}</h3>
+            <p>{lang === 'fr'
+              ? 'Prenez 1 à 4 photos de votre culture et notre IA détecte maladies, ravageurs et carences nutritionnelles.'
+              : 'Take 1 to 4 photos of your crop and our AI detects diseases, pests and nutritional deficiencies.'
+            }</p>
+            <div className="pa-supported">
+              <span>🌾 Maïs</span><span>🧅 Oignon</span><span>🍅 Tomate</span><span>🫘 Niébé</span>
+              <span>🌿 Sésame</span><span>🌻 Tournesol</span><span>+ {lang === 'fr' ? 'plus' : 'more'}</span>
+            </div>
+          </div>
+
+          <form onSubmit={handlePlantAnalyze} className="card pa-form">
+            {/* Plant type field */}
+            <div className="form-group">
+              <label className="form-label">
+                🌱 {lang === 'fr' ? 'Type de culture / plante' : 'Crop / plant type'}
+              </label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder={lang === 'fr' ? 'Ex: Tomate, Maïs, Oignon, Mil...' : 'E.g. Tomato, Maize, Onion, Millet...'}
+                value={plantType}
+                onChange={e => setPlantType(e.target.value)}
+              />
+            </div>
+
+            {/* Image upload zone */}
+            <div className="form-group">
+              <label className="form-label">
+                📸 {lang === 'fr' ? `Photos (${plantImages.length}/4 max)` : `Photos (${plantImages.length}/4 max)`}
+              </label>
+              <div
+                className={`pa-dropzone ${dragOver ? 'drag-over' : ''} ${plantImages.length >= 4 ? 'full' : ''}`}
+                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={e => { e.preventDefault(); setDragOver(false); handleImageFiles(e.dataTransfer.files); }}
+                onClick={() => plantImages.length < 4 && document.getElementById('plant-img-input').click()}
+              >
+                {plantImages.length === 0 ? (
+                  <>
+                    <div className="pa-drop-icon">📷</div>
+                    <p>{lang === 'fr' ? 'Cliquez ou glissez des photos ici' : 'Click or drag photos here'}</p>
+                    <p className="pa-drop-hint">{lang === 'fr' ? 'JPG, PNG — 4 photos maximum' : 'JPG, PNG — 4 photos max'}</p>
+                  </>
+                ) : (
+                  <div className="pa-thumbnails">
+                    {plantImages.map((img, i) => (
+                      <div key={i} className="pa-thumb">
+                        <img src={img.preview} alt={`plant-${i}`} />
+                        <button
+                          type="button"
+                          className="pa-thumb-remove"
+                          onClick={e => { e.stopPropagation(); setPlantImages(prev => prev.filter((_, idx) => idx !== i)); }}
+                        >×</button>
+                      </div>
+                    ))}
+                    {plantImages.length < 4 && (
+                      <div className="pa-thumb pa-thumb-add">
+                        <span>+</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <input
+                id="plant-img-input"
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ display: 'none' }}
+                onChange={e => handleImageFiles(e.target.files)}
+              />
+            </div>
+
+            {plantError && <div className="pa-error">{plantError}</div>}
+
+            <button type="submit" className="btn btn-primary pa-submit" disabled={plantLoading || !plantImages.length}>
+              {plantLoading ? (
+                <span>⏳ {lang === 'fr' ? 'Analyse en cours (30s)…' : 'Analyzing (30s)…'}</span>
+              ) : (
+                <span>🔍 {lang === 'fr' ? "Lancer l'analyse IA" : 'Run AI Analysis'}</span>
+              )}
+            </button>
+          </form>
+
+          {plantAnalysis && (
+            <PlantAnalysisResult
+              analysis={plantAnalysis}
+              lang={lang}
+              onReset={() => { setPlantAnalysis(null); setPlantImages([]); setPlantType(''); }}
+            />
+          )}
+        </div>
+      )}
+
+      {/* ── Tracker tab ── */}
+      {tab === 'tracker' && <TrackerTab lang={lang} />}
     </div>
   );
 }

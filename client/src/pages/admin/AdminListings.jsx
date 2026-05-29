@@ -74,6 +74,10 @@ const s = {
   actions: { display: 'flex', gap: '0.4rem' },
 };
 
+const adminRole = (() => {
+  try { return JSON.parse(localStorage.getItem('greenfco_admin_session'))?.role || 'analyst'; } catch { return 'analyst'; }
+})();
+
 export default function AdminListings() {
   const [category, setCategory] = useState('All');
 
@@ -132,12 +136,23 @@ export default function AdminListings() {
                     </td>
                     <td style={s.td}>
                       <div style={s.actions}>
-                        <button style={s.approveBtn} onClick={() => alert(`[Demo] Approve: ${listing.product}`)}>
-                          Approve
-                        </button>
-                        <button style={s.removeBtn} onClick={() => alert(`[Demo] Remove: ${listing.product}`)}>
-                          Remove
-                        </button>
+                        {/* Approve: manager+ */}
+                        {(adminRole === 'super_admin' || adminRole === 'manager') && (
+                          <button style={s.approveBtn} onClick={() => alert(`[Demo] Approve: ${listing.product}`)}>
+                            Approve
+                          </button>
+                        )}
+                        {/* Remove: super_admin only */}
+                        {adminRole === 'super_admin' && (
+                          <button style={s.removeBtn} onClick={() => alert(`[Demo] Remove: ${listing.product}`)}>
+                            Remove
+                          </button>
+                        )}
+                        {adminRole === 'analyst' && (
+                          <span style={{ fontSize: '0.75rem', color: 'var(--gray-mid)', fontStyle: 'italic' }}>
+                            View only
+                          </span>
+                        )}
                       </div>
                     </td>
                   </tr>

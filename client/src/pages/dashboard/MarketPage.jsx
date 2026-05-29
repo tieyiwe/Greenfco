@@ -213,6 +213,7 @@ export default function MarketPage({ mode = 'marketplace' }) {
   const [activeConvId, setActiveConvId] = useState(null);
   const [msgText, setMsgText]           = useState('');
   const [showInbox, setShowInbox]       = useState(false);
+  const [qrTransaction, setQrTransaction] = useState(null);
 
   // Location
   const [buyerLoc, setBuyerLoc]     = useState(null);
@@ -383,6 +384,30 @@ export default function MarketPage({ mode = 'marketplace' }) {
   }
 
   const totalUnread = Object.values(conversations).reduce((sum, c) => sum + (c.messages.filter(m => m.from === 'seller' && !m.read).length), 0);
+
+  /* ── QR Transaction ──────────────────────────────────────*/
+  function generateTransactionQR(conv) {
+    const listing = conv.listing;
+    const txn = {
+      id: crypto.randomUUID(),
+      token: crypto.randomUUID(),
+      sellerId: 'seller',
+      sellerName: conv.seller_name || 'Vendeur',
+      buyerName: 'Acheteur',
+      productName: listing?.crop_name || listing?.name || 'Produit',
+      listingId: listing?.id || '',
+      agreedPrice: Number(listing?.price) || 0,
+      finalPrice: null,
+      currency: listing?.currency || 'FCFA',
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      confirmedAt: null,
+      location: listing?.location || '',
+    };
+    const existing = (() => { try { return JSON.parse(localStorage.getItem('greenfco_transactions')) || []; } catch { return []; } })();
+    localStorage.setItem('greenfco_transactions', JSON.stringify([txn, ...existing]));
+    setQrTransaction(txn);
+  }
 
   /* ── Seller profile save ─────────────────────────────────*/
   function saveSellerProfile(e) {
@@ -984,6 +1009,9 @@ export default function MarketPage({ mode = 'marketplace' }) {
                   <div>
                     <h3>{conv.seller_name}</h3>
                     <p className="chat-modal-subtitle">{conv.listing?.crop_name} · {Number(conv.listing?.price).toLocaleString()} {conv.listing?.currency}/kg</p>
+                    <button className="btn btn-secondary btn-sm qr-gen-btn" onClick={() => generateTransactionQR(conv)}>
+                      📱 {lang === 'fr' ? 'QR Transaction' : 'QR Transaction'}
+                    </button>
                   </div>
                 </div>
                 <button className="contact-modal-close" onClick={() => setActiveConvId(null)}>✕</button>
@@ -1016,6 +1044,46 @@ export default function MarketPage({ mode = 'marketplace' }) {
           </div>
         );
       })()}
+
+      {/* ══ QR TRANSACTION MODAL ════════════════════════════ */}
+      {qrTransaction && (
+        <div className="qr-modal-wrap" onClick={e => { if (e.target === e.currentTarget) setQrTransaction(null); }}>
+          <div className="qr-modal card">
+            <div className="qr-modal-header">
+              <h3>📱 {lang === 'fr' ? 'QR Code Transaction' : 'Transaction QR Code'}</h3>
+              <button className="chat-close-btn" onClick={() => setQrTransaction(null)}>✕</button>
+            </div>
+
+            <div className="qr-product-info">
+              <span className="qr-product-name">🌿 {qrTransaction.productName}</span>
+              <span className="qr-agreed-price">{qrTransaction.agreedPrice.toLocaleString()} {qrTransaction.currency}</span>
+            </div>
+
+            <div className="qr-code-area">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(window.location.origin + '/verify-transaction?token=' + qrTransaction.token)}`}
+                alt="QR Code"
+                className="qr-img"
+              />
+              <p className="qr-code-text">{lang === 'fr' ? 'Code:' : 'Code:'} <strong>{qrTransaction.token.slice(0, 8).toUpperCase()}</strong></p>
+            </div>
+
+            <div className="qr-instructions">
+              <p>📲 {lang === 'fr'
+                ? "Montrez ce QR code à l'acheteur. Il le scannera avec son téléphone pour confirmer la transaction et saisir le prix final."
+                : "Show this QR code to the buyer. They will scan it with their phone to confirm the transaction and enter the final price."
+              }</p>
+            </div>
+
+            <button
+              className="btn btn-secondary btn-sm qr-copy-btn"
+              onClick={() => { navigator.clipboard?.writeText(window.location.origin + '/verify-transaction?token=' + qrTransaction.token); }}
+            >
+              🔗 {lang === 'fr' ? 'Copier le lien' : 'Copy link'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ══ INBOX DRAWER ════════════════════════════════════ */}
       {showInbox && (

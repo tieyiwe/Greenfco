@@ -88,6 +88,10 @@ const s = {
   actions: { display: 'flex', gap: '0.4rem' },
 };
 
+const adminRole = (() => {
+  try { return JSON.parse(localStorage.getItem('greenfco_admin_session'))?.role || 'analyst'; } catch { return 'analyst'; }
+})();
+
 export default function AdminUsers() {
   const [search, setSearch] = useState('');
 
@@ -168,12 +172,23 @@ export default function AdminUsers() {
                       </td>
                       <td style={s.td}>
                         <div style={s.actions}>
-                          <button style={s.actionBtn('suspend')} onClick={() => handleSuspend(user)}>
-                            Suspend
-                          </button>
-                          <button style={s.actionBtn('delete')} onClick={() => handleDelete(user)}>
-                            Delete
-                          </button>
+                          {/* Only managers and super_admins can manage users */}
+                          {(adminRole === 'super_admin' || adminRole === 'manager') && (
+                            <button style={s.actionBtn('suspend')} onClick={() => handleSuspend(user)}>
+                              Suspend
+                            </button>
+                          )}
+                          {/* Only super_admin can delete */}
+                          {adminRole === 'super_admin' && (
+                            <button style={s.actionBtn('delete')} onClick={() => handleDelete(user)}>
+                              Delete
+                            </button>
+                          )}
+                          {adminRole === 'analyst' && (
+                            <span style={{ fontSize: '0.75rem', color: 'var(--gray-mid)', fontStyle: 'italic' }}>
+                              View only
+                            </span>
+                          )}
                         </div>
                       </td>
                     </tr>

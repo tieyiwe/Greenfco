@@ -144,4 +144,103 @@ router.post('/soil-advisor', async (req, res) => {
   }
 });
 
+const PLANT_ANALYZE_SYSTEM = `You are an expert plant pathologist and agronomist specializing in West African crops.
+Analyze the provided plant/crop image(s) to detect diseases, pests, nutrient deficiencies, or other issues.
+
+Return your analysis in this EXACT JSON format (no markdown, pure JSON):
+{
+  "plantIdentified": "Name of plant/crop identified (or user-provided)",
+  "healthStatus": "healthy|warning|critical",
+  "confidence": 85,
+  "issues": [
+    {
+      "name": "Disease/issue name",
+      "nameFr": "French name",
+      "severity": "low|medium|high",
+      "confidence": 90,
+      "symptoms": "Observed symptoms",
+      "cause": "Pathogen or cause",
+      "affectedParts": ["leaf", "stem", "root", "fruit"]
+    }
+  ],
+  "organicTreatment": "Step-by-step organic treatment in the user's language",
+  "conventionalTreatment": "Conventional treatment if needed",
+  "prevention": "Prevention advice for next season",
+  "urgency": "monitor|treat_soon|treat_immediately",
+  "recommendConsultation": true,
+  "references": ["PlantVillage", "INERA Burkina Faso", "FAO crop protection"]
+}
+
+If the image shows a healthy plant, issues array should be empty and healthStatus = "healthy".
+If no plant is visible or image is unclear, set confidence to 0 and explain in the issues array.
+Respond with pure JSON only — no markdown code blocks, no explanation outside the JSON.`;
+
+router.post('/plant-analyze', async (req, res) => {
+  const { images, plantType, language = 'fr' } = req.body;
+  if (!images || !images.length) return res.status(400).json({ error: 'At least one image required' });
+
+  try {
+    // Build content array with all images
+    const content = [];
+
+    // Add each image
+    for (const img of images.slice(0, 4)) { // max 4 images
+      // img is either a base64 data URL (data:image/jpeg;base64,...) or pure base64
+      let base64Data = img;
+      let mediaType = 'image/jpeg';
+
+      if (img.startsWith('data:')) {
+        const match = img.match(/^data:([^;]+);base64,(.+)$/);
+        if (match) {
+          mediaType = match[1];
+          base64Data = match[2];
+        }
+      }
+
+      content.push({
+        type: 'image',
+        source: { type: 'base64', media_type: mediaType, data: base64Data }
+      });
+    }
+
+    // Add text prompt
+    const textPrompt = language === 'fr'
+      ? `Analyse ces images de ${plantType ? `la culture "${plantType}"` : 'cette plante/culture'}. Identifie toutes les maladies, ravageurs, carences nutritionnelles ou autres problèmes visibles. Réponds en JSON pur.`
+      : `Analyze these images of ${plantType ? `the crop "${plantType}"` : 'this plant/crop'}. Identify all diseases, pests, nutritional deficiencies or other visible issues. Respond in pure JSON.`;
+
+    content.push({ type: 'text', text: textPrompt });
+
+    const response = await client.messages.create({
+      model: 'claude-opus-4-8',
+      max_tokens: 2000,
+      system: PLANT_ANALYZE_SYSTEM,
+      messages: [{ role: 'user', content }],
+    });
+
+    let result;
+    try {
+      result = JSON.parse(response.content[0].text);
+    } catch {
+      // Fallback if JSON parsing fails
+      result = {
+        plantIdentified: plantType || 'Unknown',
+        healthStatus: 'warning',
+        confidence: 60,
+        issues: [{ name: 'Analysis incomplete', nameFr: 'Analyse incomplète', severity: 'low', confidence: 60, symptoms: response.content[0].text.slice(0, 200), cause: 'Image quality or model error', affectedParts: [] }],
+        organicTreatment: language === 'fr' ? 'Consultez un agronome GreenFCO.' : 'Consult a GreenFCO agronomist.',
+        conventionalTreatment: '',
+        prevention: '',
+        urgency: 'monitor',
+        recommendConsultation: true,
+        references: []
+      };
+    }
+
+    res.json(result);
+  } catch (err) {
+    console.error('Plant analyze error:', err.message);
+    res.status(500).json({ error: language === 'fr' ? 'Erreur analyse. Réessayez.' : 'Analysis error. Try again.' });
+  }
+});
+
 export default router;

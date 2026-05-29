@@ -45,6 +45,9 @@ const MarketPage = lazy(() => import('./pages/dashboard/MarketPage'));
 const SellerProfilePage = lazy(() => import('./pages/dashboard/SellerProfilePage'));
 const BuyerProfilePage = lazy(() => import('./pages/dashboard/BuyerProfilePage'));
 const NetworkPage = lazy(() => import('./pages/network/NetworkPage'));
+const VerifyTransaction = lazy(() => import('./pages/dashboard/VerifyTransaction'));
+const AdminTransactions = lazy(() => import('./pages/admin/AdminTransactions'));
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
 
 // Auth bypass for testing — re-enable before production
 function ProtectedRoute({ children }) {
@@ -143,6 +146,9 @@ export default function App() {
             <Route path="profile" element={<SellerProfilePage />} />
           </Route>
 
+          {/* QR Transaction verification — standalone (no layout) */}
+          <Route path="/verify-transaction" element={<VerifyTransaction />} />
+
           {/* Legacy redirect */}
           <Route path="/market" element={<Navigate to="/marketplace" replace />} />
 
@@ -162,6 +168,8 @@ export default function App() {
             <Route path="listings" element={<AdminListings />} />
             <Route path="blog" element={<AdminBlog />} />
             <Route path="consulting" element={<AdminConsulting />} />
+            <Route path="transactions" element={<AdminTransactions />} />
+            <Route path="settings" element={<AdminSettings />} />
           </Route>
 
           {/* Catch all */}
