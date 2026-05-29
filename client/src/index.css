@@ -551,10 +551,9 @@ textarea.form-input {
   }
 }
 
-/* Momentum scrolling on iOS */
+/* Momentum scrolling on iOS — no overflow-y so the page scrolls, not the container */
 .scroll-ios {
   -webkit-overflow-scrolling: touch;
-  overflow-y: auto;
 }
 
 /* Tap highlight — remove default, use our own */

@@ -18,7 +18,7 @@ const NAV_LINKS = [
   { to: '/admin/transactions', icon: '🔗', label: 'Transactions',             permission: 'view_transactions' },
   { to: '/admin/blog',         icon: '📰', label: 'Blog',                     permission: 'view_blog' },
   { to: '/admin/consulting',   icon: '🗓️', label: 'Consulting',               permission: 'view_consulting' },
-  { to: '/admin/projects',     icon: '📋', label: 'Projets',                  permission: 'view_projects' },
+  { to: '/admin/projects',     icon: '📋', label: 'Projets',                  permission: 'view_projects', devOnly: true },
   { to: '/admin/activity',     icon: '📜', label: 'Activité',                 permission: 'view_activity' },
   { to: '/admin/messages',     icon: '💬', label: 'Messages',                 permission: null },
   { to: '/admin/settings',     icon: '⚙️', label: 'Settings',                 permission: 'view_settings' },
@@ -69,9 +69,10 @@ export default function AdminLayout() {
     }
   })();
 
-  const visibleLinks = NAV_LINKS.filter(
-    link => !link.permission || hasPermission(adminUser, collaborators, link.permission)
-  );
+  const visibleLinks = NAV_LINKS.filter(link => {
+    if (link.devOnly && !import.meta.env.DEV) return false;
+    return !link.permission || hasPermission(adminUser, collaborators, link.permission);
+  });
 
   // Split visible links into "Main" (first 8 nav items max) and "System" (remainder)
   // We keep the original split point: links before messages/settings are "Main", the rest "System"

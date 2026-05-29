@@ -22,6 +22,7 @@ export default function Navbar() {
     { to: '/services', icon: '🌿', label: t('nav.services') },
     { to: '/consulting', icon: '🤝', label: lang === 'fr' ? 'Consultation' : 'Consulting' },
     { to: '/about', icon: '👥', label: t('nav.about') },
+    { to: '/events', icon: '📅', label: lang === 'fr' ? 'Événements' : 'Events' },
     { to: '/blog', icon: '📰', label: t('nav.blog') },
     { to: '/gallery', icon: '📷', label: t('nav.gallery') },
     { to: '/contact', icon: '✉️', label: t('nav.contact') },
