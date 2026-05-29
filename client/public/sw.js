@@ -1,4 +1,4 @@
-const CACHE_NAME = 'greenfco-v1';
+const CACHE_NAME = 'greenfco-v3';
 const STATIC_ASSETS = ['/', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
