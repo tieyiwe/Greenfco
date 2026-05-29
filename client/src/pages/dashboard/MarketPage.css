@@ -546,6 +546,27 @@
 @media (max-width: 768px) {
   .listing-card { margin-bottom: 12px; border-radius: 12px; }
   .lc-contact-btn { padding: 12px 20px; font-size: 16px; min-height: 48px; }
+
+  /* Tab bars — horizontally scrollable, no wrap overflow */
+  .market-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+  .market-tabs::-webkit-scrollbar { display: none; }
+
+  /* Listings collapse to single column */
+  .listings-grid { grid-template-columns: 1fr !important; }
+
+  /* Badges and action rows wrap */
+  .lc-badges { flex-wrap: wrap; }
+  .buyer-loc-actions { flex-wrap: wrap; }
+  .lc-footer { flex-wrap: wrap; gap: 0.5rem; }
+
+  /* Analytics summary collapses to 2 columns */
+  .analytics-summary { grid-template-columns: repeat(2, 1fr) !important; }
+  .analytics-grid { grid-template-columns: 1fr !important; }
 }
 
 @media (max-width: 1100px) { .analytics-summary { grid-template-columns: 1fr 1fr; } }

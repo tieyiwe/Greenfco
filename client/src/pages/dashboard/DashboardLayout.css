@@ -83,12 +83,16 @@
   .dashboard-content {
     margin-left: 0 !important;
     padding-bottom: 80px; /* space for bottom nav */
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   .dashboard-topbar {
     height: 56px;
     padding: 0 1rem;
     padding-top: var(--safe-top);
+    max-width: 100vw;
+    overflow: hidden;
   }
 
   .sidebar-toggle {

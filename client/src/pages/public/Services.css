@@ -122,6 +122,9 @@
 }
 
 @media (max-width: 768px) {
+  /* Services list collapses to single column */
+  .services-grid { grid-template-columns: 1fr !important; }
+
   .service-detail-card {
     grid-template-columns: auto 1fr;
     gap: 1.25rem;

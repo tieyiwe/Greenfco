@@ -332,6 +332,29 @@
   }
 }
 
+@media (max-width: 768px) {
+  /* Koob tabs — horizontally scrollable so 4 tabs don't overflow */
+  .koob-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+  }
+  .koob-tabs::-webkit-scrollbar { display: none; }
+  .koob-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.82rem;
+  }
+
+  /* Activity grid — 2 columns on mobile */
+  .activity-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Tracker form goes single column */
+  .tracker-form-grid { grid-template-columns: 1fr !important; }
+}
+
 @media (max-width: 600px) {
   .activity-grid {
     grid-template-columns: repeat(2, 1fr);

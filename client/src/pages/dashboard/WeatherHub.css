@@ -513,15 +513,37 @@
 @media (max-width: 768px) {
   .today-card { padding: 1.5rem; flex-direction: column; gap: 1.5rem; }
   .agri-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Activity planner — allow horizontal scroll to avoid overflow */
   .activity-row {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(10, minmax(64px, 1fr));
     gap: 0.35rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.25rem;
   }
+  .activity-row::-webkit-scrollbar { display: none; }
+  .activity-day { min-width: 64px; }
+
   .city-search .form-input { width: 140px; }
+
+  /* City chips wrap instead of overflow */
+  .city-chips { flex-wrap: wrap; }
+
+  /* Forecast grid — 2 cols on mobile */
+  .forecast-grid, .weather-forecast { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Weather stats — 2 cols */
+  .weather-stats { grid-template-columns: repeat(2, 1fr) !important; }
 }
 
 @media (max-width: 480px) {
   .agri-grid { grid-template-columns: 1fr 1fr; }
-  .activity-row { grid-template-columns: repeat(5, 1fr); }
+  .activity-row {
+    grid-template-columns: repeat(10, minmax(58px, 1fr));
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
   .activity-day { padding: 0.5rem 0.2rem; min-width: 58px; }
 }

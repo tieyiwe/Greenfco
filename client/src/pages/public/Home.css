@@ -435,6 +435,13 @@
   }
 }
 
+@media (max-width: 768px) {
+  .hero-section { padding: 2rem 1rem !important; }
+  .features-grid, .services-grid { grid-template-columns: 1fr !important; }
+  /* Newsletter form must never overflow */
+  .newsletter-form { min-width: unset; width: 100%; flex-direction: column; }
+}
+
 @media (max-width: 600px) {
   .stats-grid {
     grid-template-columns: 1fr;
