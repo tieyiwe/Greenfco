@@ -937,6 +937,252 @@ Mariam Kaboré, market gardener in Koudougou (Burkina Faso): *"Before, I sold my
 Digital markets do not replace physical markets, but they offer producers an additional channel and better price information. The key is to start simply and learn progressively.
     `,
   },
+  'agroecologie-burkina-faso-enjeux': {
+    title_fr: "Agroécologie au Burkina Faso : Enjeux et Perspectives pour 2025",
+    title_en: "Agroecology in Burkina Faso: Challenges and Prospects for 2025",
+    author: 'GreenFCO Team',
+    date: '2024-04-10',
+    category: 'Agriculture Durable',
+    readTime: '6 min',
+    body_fr: `
+## Un contexte difficile mais porteur
+
+Le Burkina Faso fait face à des défis climatiques et sécuritaires sans précédent. La dégradation des terres agricoles touche plus de 34 % du territoire national. Dans ce contexte, l'agroécologie émerge comme une réponse adaptée, conciliant productivité, résilience et durabilité.
+
+---
+
+## Les défis de l'agriculture burkinabè
+
+**Dégradation des sols :** L'érosion hydrique et éolienne entraîne une perte annuelle estimée à 40 tonnes de sol par hectare dans les zones non protégées. La teneur en matière organique des sols burkinabè est parmi les plus faibles de la sous-région (< 0,5 % dans de nombreuses zones).
+
+**Variabilité climatique :** Les pluviométries sont de plus en plus erratiques. La saison des pluies se raccourcit progressivement, passant de 5 mois dans les années 1970 à moins de 3,5 mois dans certaines zones sahéliennes aujourd'hui.
+
+**Accès aux intrants :** Les engrais minéraux sont coûteux et peu accessibles aux petits producteurs. Le prix de l'urée a doublé depuis 2020, rendant les systèmes intensifs encore moins durables financièrement.
+
+---
+
+## Les pratiques agroécologiques adaptées
+
+**Le compostage et la fumure organique :** En substituant partiellement les engrais chimiques par du compost, les agriculteurs peuvent maintenir leurs rendements tout en améliorant la structure du sol. Un hectare traité avec 5 tonnes de compost de qualité produit autant que 100 kg d'engrais NPK, à moindre coût.
+
+**Les haies vives et brise-vent :** Les haies de Jatropha, Euphorbe ou Acacia protègent les cultures de l'érosion éolienne, fixent le sol et fournissent du bois de chauffe.
+
+**L'association culturale :** Associer le maïs avec le niébé ou l'arachide améliore la fertilité du sol, diversifie la production et réduit les risques liés aux aléas climatiques.
+
+---
+
+## Perspectives 2025
+
+Les institutions nationales (INERA, Ministère de l'Agriculture) et des ONG comme GreenFCO travaillent à la diffusion des bonnes pratiques agroécologiques. Les formations de terrain, les champs-école paysans et les plateformes numériques (comme GreenFCO) jouent un rôle crucial dans cette transition.
+
+L'agroécologie n'est pas une contrainte mais une opportunité : elle permet aux agriculteurs burkinabè de produire mieux, à moindre coût, tout en préservant leur capital naturel pour les générations futures.
+    `,
+    body_en: `
+## A Difficult But Promising Context
+
+Burkina Faso faces unprecedented climate and security challenges. Agricultural land degradation affects more than 34% of the national territory. In this context, agroecology is emerging as an adapted response, reconciling productivity, resilience, and sustainability.
+
+---
+
+## Challenges Facing Burkinabe Agriculture
+
+**Soil degradation:** Water and wind erosion causes an estimated annual loss of 40 tonnes of soil per hectare in unprotected areas. Burkina Faso's soil organic matter content is among the lowest in the sub-region (< 0.5% in many zones).
+
+**Climate variability:** Rainfall patterns are increasingly erratic. The rainy season is progressively shortening, from 5 months in the 1970s to less than 3.5 months in some Sahelian zones today.
+
+**Input access:** Mineral fertilizers are expensive and inaccessible to small producers. Urea prices have doubled since 2020, making intensive systems even less financially sustainable.
+
+---
+
+## Adapted Agroecological Practices
+
+**Composting and organic manure:** By partially substituting chemical fertilizers with compost, farmers can maintain yields while improving soil structure. One hectare treated with 5 tonnes of quality compost produces as much as 100 kg of NPK fertilizer, at lower cost.
+
+**Living hedges and windbreaks:** Jatropha, Euphorbia, or Acacia hedges protect crops from wind erosion, stabilize soil, and provide firewood.
+
+**Intercropping:** Associating maize with cowpea or peanut improves soil fertility, diversifies production, and reduces risks related to climate variability.
+
+---
+
+## 2025 Outlook
+
+National institutions (INERA, Ministry of Agriculture) and NGOs like GreenFCO are working to spread good agroecological practices. Field training, farmer field schools, and digital platforms (like GreenFCO) play a crucial role in this transition.
+
+Agroecology is not a constraint but an opportunity: it allows Burkinabe farmers to produce better, at lower cost, while preserving their natural capital for future generations.
+    `,
+  },
+  'finance-carbone-afrique-opportunites': {
+    title_fr: "Finance Carbone en Afrique de l'Ouest : Opportunités pour les Agriculteurs",
+    title_en: "Carbon Finance in West Africa: Opportunities for Farmers",
+    author: 'Wenmanegda Elie DIPAMA',
+    date: '2024-05-22',
+    category: 'Recherche & Innovation',
+    readTime: '7 min',
+    body_fr: `
+## Qu'est-ce que la finance carbone ?
+
+Les marchés volontaires du carbone permettent à des entreprises et des individus de compenser leurs émissions de gaz à effet de serre en achetant des crédits carbone. Chaque crédit représente une tonne de CO₂ équivalent séquestré ou évité. Pour les agriculteurs africains pratiquant des techniques comme l'agroforesterie, la régénération naturelle assistée ou la séquestration dans les sols, ces marchés représentent une source de revenus supplémentaire significative.
+
+---
+
+## Potentiel pour l'Afrique de l'Ouest
+
+L'Afrique subsaharienne dispose d'un potentiel théorique de séquestration carbone estimé à 1,5 à 3 gigatonnes de CO₂ par an via la restauration des terres et les pratiques agricoles durables. Pourtant, moins de 5 % des crédits carbone échangés sur les marchés mondiaux proviennent d'Afrique, selon Verra et Gold Standard.
+
+Les principales raisons de cette sous-représentation : les coûts de certification élevés, la complexité des procédures de MRV (Mesure, Reporting, Vérification), et le manque d'accès à l'information des producteurs africains.
+
+---
+
+## Pratiques génératrices de crédits carbone
+
+**Agroforesterie (RNAAA) :** La régénération d'arbres sur les parcelles agricoles séquestre du carbone dans la biomasse et le sol. Au Sahel, chaque hectare pratiquant la RNAAA séquestre en moyenne 0,5 à 2 tonnes de CO₂ par an.
+
+**Agriculture de conservation :** Le non-travail du sol (semis direct) réduit l'oxydation de la matière organique et maintient le carbone dans le sol. Des projets au Kenya et en Éthiopie ont démontré des séquestrations de 1 à 3 tonnes CO₂/ha/an.
+
+**Biogaz agricole :** La valorisation des déchets animaux en biogaz réduit les émissions de méthane et remplace les combustibles fossiles.
+
+---
+
+## Comment accéder aux marchés carbone ?
+
+**Via des agrégateurs de projets :** Des organisations comme Natural Capital Partners, South Pole ou des ONG locales agréées regroupent les petits producteurs pour atteindre les seuils de certification. GreenFCO travaille à devenir un agrégateur certifié pour les agriculteurs d'Afrique de l'Ouest.
+
+**Programmes gouvernementaux :** Le Burkina Faso, le Sénégal et le Ghana ont lancé des programmes REDD+ (Réduction des Émissions dues à la Déforestation et à la Dégradation des forêts) qui permettent aux communautés rurales de bénéficier de paiements pour services environnementaux.
+
+---
+
+## Perspectives
+
+Avec le renforcement de l'Accord de Paris et la montée en puissance des engagements de neutralité carbone des entreprises mondiales, la demande de crédits carbone de haute qualité devrait croître de 15 à 20 % par an jusqu'en 2030. L'Afrique de l'Ouest, avec ses vastes terres dégradées à restaurer, est idéalement positionnée pour saisir ces opportunités — à condition d'investir dans les capacités, la certification et les réseaux de distribution.
+    `,
+    body_en: `
+## What is Carbon Finance?
+
+Voluntary carbon markets allow companies and individuals to offset their greenhouse gas emissions by purchasing carbon credits. Each credit represents one tonne of CO₂ equivalent sequestered or avoided. For African farmers practicing techniques such as agroforestry, farmer-managed natural regeneration (FMNR), or soil sequestration, these markets represent a significant additional income source.
+
+---
+
+## Potential for West Africa
+
+Sub-Saharan Africa has a theoretical carbon sequestration potential estimated at 1.5 to 3 gigatons of CO₂ per year through land restoration and sustainable agricultural practices. Yet less than 5% of carbon credits traded on global markets come from Africa, according to Verra and Gold Standard.
+
+The main reasons for this under-representation: high certification costs, the complexity of MRV (Measurement, Reporting, Verification) procedures, and lack of access to information among African producers.
+
+---
+
+## Practices That Generate Carbon Credits
+
+**Agroforestry (FMNR):** Tree regeneration on agricultural plots sequesters carbon in biomass and soil. In the Sahel, each hectare practicing FMNR sequesters on average 0.5 to 2 tonnes of CO₂ per year.
+
+**Conservation agriculture:** No-till farming (direct seeding) reduces organic matter oxidation and maintains carbon in the soil. Projects in Kenya and Ethiopia have demonstrated sequestrations of 1 to 3 tonnes CO₂/ha/year.
+
+**Agricultural biogas:** Converting animal waste into biogas reduces methane emissions and replaces fossil fuels.
+
+---
+
+## How to Access Carbon Markets?
+
+**Via project aggregators:** Organizations such as Natural Capital Partners, South Pole, or certified local NGOs pool small producers to reach certification thresholds. GreenFCO is working to become a certified aggregator for West African farmers.
+
+**Government programs:** Burkina Faso, Senegal, and Ghana have launched REDD+ programs (Reducing Emissions from Deforestation and Forest Degradation) that allow rural communities to benefit from payments for environmental services.
+
+---
+
+## Outlook
+
+With the strengthening of the Paris Agreement and the rise of net-zero commitments from global companies, demand for high-quality carbon credits is expected to grow by 15 to 20% per year through 2030. West Africa, with its vast degraded lands to restore, is ideally positioned to seize these opportunities — provided it invests in capacity, certification, and distribution networks.
+    `,
+  },
+  'faidherbia-albida-sahel': {
+    title_fr: "Faidherbia Albida : L'Arbre du Sahel qui Nourrit les Champs",
+    title_en: "Faidherbia Albida: The Sahel Tree that Feeds the Fields",
+    author: 'GreenFCO Team',
+    date: '2024-06-08',
+    category: 'Environnement',
+    readTime: '5 min',
+    body_fr: `
+## L'arbre inversé du Sahel
+
+Le Faidherbia albida (syn. Acacia albida), appelé "baobab inversé" ou "arbre à palabres" au Burkina Faso, est l'espèce agroforestière la plus stratégique du Sahel. Sa particularité remarquable : contrairement à presque tous les autres arbres, il perd ses feuilles en saison des pluies et les garde en saison sèche. Cette phénologie inversée en fait l'allié idéal des cultures céréalières.
+
+---
+
+## Bénéfices agronomiques prouvés
+
+**Augmentation des rendements :** De nombreuses études ont documenté des augmentations de rendements spectaculaires sous les Faidherbia. Au Mali et au Niger, des gains de 30 à 100 % de rendement en mil et sorgho ont été mesurés sous la canopée des arbres par rapport aux zones sans arbres.
+
+**Fixation de l'azote :** Comme toutes les légumineuses, le Faidherbia possède des nodosités racinaires fixant l'azote atmosphérique. Un arbre adulte peut fixer jusqu'à 30 à 50 kg d'azote par hectare et par an — l'équivalent de 65 à 110 kg d'urée.
+
+**Amélioration de la structure du sol :** Ses racines pivotantes profondes (jusqu'à 40 mètres) remontrent les nutriments des couches profondes et améliorent la porosité du sol, favorisant l'infiltration de l'eau.
+
+**Fourrage de qualité :** Les gousses et les feuilles sont une source précieuse de fourrage pour le bétail pendant la saison sèche, période de pénurie alimentaire animale.
+
+---
+
+## Le miracle du Niger : la RNAAA
+
+Dans les années 1980, le Niger subissait une catastrophe écologique : les sécheresses successives et le défrichement avaient transformé des millions d'hectares en désert. Depuis 1985, grâce à la Régénération Naturelle Assistée des Arbres et Arbustes (RNAAA) initiée par Tony Rinaudo et les communautés locales, plus de 5 millions d'hectares ont été reverdis, principalement grâce au Faidherbia albida.
+
+Résultat : les rendements agricoles ont augmenté, la sécurité alimentaire s'est améliorée pour plusieurs millions de familles, et des centaines de tonnes de carbone ont été séquestrées.
+
+---
+
+## Comment intégrer le Faidherbia dans son exploitation
+
+**Régénération naturelle :** La méthode la plus simple et la moins coûteuse est de protéger les jeunes pousses naturelles de Faidherbia déjà présentes dans les champs et en bordure de parcelle, en évitant de les arracher lors du labour.
+
+**Plantation en pépinière :** Pour les zones très dégradées, des plants peuvent être produits en pépinière (les graines nécessitent une scarification avant semis) et transplantés en début de saison des pluies.
+
+**Densité recommandée :** Pour les cultures céréalières, une densité de 40 à 100 arbres par hectare est recommandée, avec un espacement de 10 à 15 mètres pour maintenir un bon accès à la lumière.
+
+---
+
+## Un symbole de l'espoir agroécologique
+
+Le Faidherbia albida incarne la vision de GreenFCO : une agriculture qui travaille avec la nature plutôt que contre elle. Dans un contexte de changement climatique et de pression sur les ressources naturelles, cet arbre représente une solution à la fois ancestrale et scientifiquement validée pour la sécurité alimentaire de l'Afrique sahélienne.
+    `,
+    body_en: `
+## The Inverted Tree of the Sahel
+
+Faidherbia albida (syn. Acacia albida), called the "inverted baobab" or "palaver tree" in Burkina Faso, is the most strategic agroforestry species in the Sahel. Its remarkable characteristic: unlike almost all other trees, it loses its leaves during the rainy season and keeps them during the dry season. This inverted phenology makes it the ideal ally of cereal crops.
+
+---
+
+## Proven Agronomic Benefits
+
+**Yield increases:** Many studies have documented spectacular yield increases under Faidherbia trees. In Mali and Niger, gains of 30 to 100% in millet and sorghum yields have been measured under tree canopies compared to treeless areas.
+
+**Nitrogen fixation:** Like all legumes, Faidherbia has root nodules that fix atmospheric nitrogen. A mature tree can fix up to 30 to 50 kg of nitrogen per hectare per year — the equivalent of 65 to 110 kg of urea.
+
+**Soil structure improvement:** Its deep taproot (up to 40 meters) brings nutrients from deep layers to the surface and improves soil porosity, promoting water infiltration.
+
+**Quality fodder:** The pods and leaves are a valuable fodder source for livestock during the dry season, a period of animal food scarcity.
+
+---
+
+## The Niger Miracle: FMNR
+
+In the 1980s, Niger was experiencing an ecological catastrophe: successive droughts and land clearing had turned millions of hectares into desert. Since 1985, thanks to Farmer-Managed Natural Regeneration (FMNR) initiated by Tony Rinaudo and local communities, more than 5 million hectares have been regreened, mainly through Faidherbia albida.
+
+Result: agricultural yields have increased, food security has improved for several million families, and hundreds of tonnes of carbon have been sequestered.
+
+---
+
+## How to Integrate Faidherbia into Your Farm
+
+**Natural regeneration:** The simplest and least expensive method is to protect young Faidherbia shoots already present in fields and field borders, avoiding uprooting them during tillage.
+
+**Nursery planting:** For heavily degraded areas, seedlings can be produced in nurseries (seeds require scarification before sowing) and transplanted at the start of the rainy season.
+
+**Recommended density:** For cereal crops, a density of 40 to 100 trees per hectare is recommended, with 10 to 15 meter spacing to maintain good light access.
+
+---
+
+## A Symbol of Agroecological Hope
+
+Faidherbia albida embodies GreenFCO's vision: an agriculture that works with nature rather than against it. In a context of climate change and pressure on natural resources, this tree represents a solution that is both ancestral and scientifically validated for food security in Sahelian Africa.
+    `,
+  },
   'agroforesterie-arbres-rendements': {
     title_fr: "Agroforesterie : planter des arbres pour améliorer les rendements",
     title_en: "Agroforestry: Planting Trees to Improve Yields",
