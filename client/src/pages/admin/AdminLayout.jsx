@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import './AdminLayout.css';
-import { ROLE_BASE_PERMISSIONS } from './AdminSettings';
+import { ROLE_BASE_PERMISSIONS } from './adminPermissions';
 
 const ADMIN_ROLES = {
   super_admin: { label: 'Super Admin', color: '#EF4444', canManageUsers: true, canDeleteContent: true, canInvite: true, canAccessSettings: true },

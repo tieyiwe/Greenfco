@@ -9,7 +9,7 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
   // TODO: persist to database when available
-  console.log(`[Consulting] New request: ${name} (${email}) — ${service} on ${date} at ${time}`);
+  console.log(`[Consulting] New request from ${country || 'unknown country'} — service: ${service}, date: ${date}`);
   res.json({ success: true, message: 'Appointment request received' });
 });
 

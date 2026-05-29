@@ -117,7 +117,7 @@ export default function Register() {
             {marketRole === 'seller' && (
               <div className="form-group">
                 <label className="form-label">
-                  {lang === 'fr' ? 'Localisation (ville / région)' : 'Location (city / region)'}
+                  {lang === 'fr' ? 'Localisation (ville / région) *' : 'Location (city / region) *'}
                 </label>
                 <input
                   type="text"
@@ -125,6 +125,7 @@ export default function Register() {
                   value={sellerLocation}
                   onChange={e => setSellerLocation(e.target.value)}
                   placeholder={lang === 'fr' ? 'Ex : Ouagadougou, Plateau Central' : 'E.g. Ouagadougou, Plateau Central'}
+                  required
                 />
               </div>
             )}

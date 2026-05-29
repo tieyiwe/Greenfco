@@ -38,12 +38,30 @@ export default function VerifyTransaction() {
     setConfirmed(true);
   }
 
-  if (!token || !txn) return (
+  if (!token) return (
     <div className="vt-container">
       <div className="vt-card card">
         <div className="vt-icon">❌</div>
-        <h2>{!token ? 'Lien invalide / Invalid link' : 'Transaction introuvable / Transaction not found'}</h2>
+        <h2>Lien invalide / Invalid link</h2>
         <Link to="/marketplace" className="btn btn-primary">Retour / Back</Link>
+      </div>
+    </div>
+  );
+
+  if (token && !txn) return (
+    <div className="vt-container">
+      <div className="vt-card card">
+        <div className="vt-icon">ℹ️</div>
+        <h2>Mode démo / Demo mode</h2>
+        <p style={{ color: 'var(--gray-mid)', marginBottom: '1rem' }}>
+          Cette transaction existe dans une autre session ou a été générée en mode démo.
+          Les transactions QR sont stockées localement sur l&apos;appareil de l&apos;émetteur.
+        </p>
+        <p style={{ fontSize: '0.85rem', color: 'var(--gray-mid)', marginBottom: '1.25rem' }}>
+          This transaction exists in another session or was generated in demo mode.
+          QR transactions are stored locally on the issuer&apos;s device.
+        </p>
+        <Link to="/marketplace" className="btn btn-primary">← Marketplace</Link>
       </div>
     </div>
   );

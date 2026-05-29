@@ -263,6 +263,15 @@ export default function MarketPage({ mode = 'marketplace' }) {
     }
   }, [showForm]);
 
+  // Revoke video object URL on unmount to prevent memory leak
+  useEffect(() => {
+    return () => {
+      if (uploadedVideo?.objectUrl) {
+        URL.revokeObjectURL(uploadedVideo.objectUrl);
+      }
+    };
+  }, [uploadedVideo]);
+
   // Prices tab
   const [selectedPrice, setSelectedPrice] = useState(REGIONAL_PRICES[0]);
   const trendData = buildTrendData(selectedPrice.prices.ouaga);
@@ -343,6 +352,7 @@ export default function MarketPage({ mode = 'marketplace' }) {
     video.preload = 'metadata';
     const url = URL.createObjectURL(file);
     video.src = url;
+    video.load(); // Ensure metadata loads in all browsers
     video.onloadedmetadata = () => {
       const dur = video.duration;
       if (dur > 16) {
@@ -892,7 +902,7 @@ export default function MarketPage({ mode = 'marketplace' }) {
                       <span className="my-listing-meta">{Number(l.quantity_kg).toLocaleString()} kg · {Number(l.price).toLocaleString()} {l.currency}/kg · {l.location}</span>
                     </div>
                     <div className="my-listing-actions">
-                      <button className="btn btn-secondary btn-sm" onClick={() => openContact(l)}>💬</button>
+                      <button className="btn btn-secondary btn-sm" onClick={() => openChat(l)}>💬</button>
                       <button className="btn btn-danger btn-sm" onClick={() => setListings(p => p.filter(x => x.id !== l.id))}>🗑</button>
                     </div>
                   </div>

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import './i18n';
 import useAuthStore from './store/authStore';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Layout
 import Navbar from './components/layout/Navbar';
@@ -22,13 +23,13 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 
-// Admin
-import AdminLayout from './pages/admin/AdminLayout';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminUsers from './pages/admin/AdminUsers';
-import AdminListings from './pages/admin/AdminListings';
-import AdminBlog from './pages/admin/AdminBlog';
-import AdminConsulting from './pages/admin/AdminConsulting';
+// Admin (lazy-loaded for code splitting)
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'));
+const AdminListings = lazy(() => import('./pages/admin/AdminListings'));
+const AdminBlog = lazy(() => import('./pages/admin/AdminBlog'));
+const AdminConsulting = lazy(() => import('./pages/admin/AdminConsulting'));
 
 // Dashboard (lazy-loaded for code splitting)
 const DashboardLayout = lazy(() => import('./pages/dashboard/DashboardLayout'));
@@ -93,8 +94,9 @@ function ComingSoon({ title, icon }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
           {/* Public */}
           <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
           <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
@@ -181,7 +183,8 @@ export default function App() {
           {/* Catch all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </Suspense>
+        </Suspense>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }
