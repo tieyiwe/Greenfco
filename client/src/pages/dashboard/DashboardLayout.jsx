@@ -18,7 +18,6 @@ const PAGE_TITLES_FR = {
   '/dashboard/greenbot': 'GreenBot',
   '/dashboard/soil-advisor': 'Conseiller IA',
   '/dashboard/koob-assist': 'Koob Assist',
-  '/dashboard/business-plan': 'Business Plan',
   '/market': 'Marché Numérique',
   '/network': 'Réseau',
 };
@@ -34,7 +33,6 @@ const PAGE_TITLES_EN = {
   '/dashboard/greenbot': 'GreenBot',
   '/dashboard/soil-advisor': 'AI Advisor',
   '/dashboard/koob-assist': 'Koob Assist',
-  '/dashboard/business-plan': 'Business Plan',
   '/market': 'Digital Market',
   '/network': 'Network',
 };

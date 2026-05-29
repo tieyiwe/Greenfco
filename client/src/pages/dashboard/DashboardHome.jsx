@@ -11,7 +11,7 @@ const MODULES = [
   { to: '/dashboard/weather', icon: '🌤️', fr: 'Météo', en: 'Weather', desc_fr: 'Prévisions et alertes', desc_en: 'Forecasts and alerts' },
   { to: '/dashboard/species', icon: '📚', fr: 'Espèces', en: 'Species', desc_fr: 'Bibliothèque des cultures', desc_en: 'Crop species library' },
   { to: '/market', icon: '🛒', fr: 'Marché', en: 'Market', desc_fr: 'Vendre vos produits', desc_en: 'Sell your produce' },
-  { to: '/dashboard/business-plan', icon: '📋', fr: 'Business Plan', en: 'Business Plan', desc_fr: 'Planifier votre activité', desc_en: 'Plan your business' },
+  { to: '/consulting', icon: '📋', fr: 'Consultation', en: 'Consulting', desc_fr: 'Réserver un accompagnement expert', desc_en: 'Book an expert advisory session' },
   { to: '/dashboard/soil-advisor', icon: '🔍', fr: 'Conseiller IA', en: 'AI Advisor', desc_fr: 'Diagnostic maladies/sols', desc_en: 'Disease & soil diagnosis' },
   { to: '/dashboard/greenbot', icon: '🤖', fr: 'GreenBot', en: 'GreenBot', desc_fr: 'Votre assistant agricole IA', desc_en: 'Your AI farm assistant' },
   { to: '/dashboard/koob-assist', icon: '📱', fr: 'Koob Assist', en: 'Koob Assist', desc_fr: "Plan d'action IA pour votre exploitation", desc_en: 'AI action plan for your farm business' },

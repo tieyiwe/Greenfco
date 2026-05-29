@@ -13,7 +13,7 @@ const DASHBOARD_NAV = [
   { to: '/dashboard/weather', icon: '🌤️', key: 'weather', labelFr: 'Météo', labelEn: 'Weather' },
   { to: '/dashboard/species', icon: '📚', key: 'species', labelFr: 'Espèces', labelEn: 'Species' },
   { to: '/marketplace', icon: '🛒', key: 'market', labelFr: 'Marché', labelEn: 'Market' },
-  { to: '/dashboard/business-plan', icon: '📋', key: 'business_plan', labelFr: 'Business Plan', labelEn: 'Business Plan' },
+  { to: '/consulting', icon: '📋', key: 'consulting', labelFr: 'Consultation', labelEn: 'Consulting' },
   { to: '/dashboard/soil-advisor', icon: '🔍', key: 'ai_advisor', labelFr: 'Conseiller IA', labelEn: 'AI Advisor' },
   { to: '/dashboard/greenbot', icon: '🤖', key: 'greenbot', labelFr: 'GreenBot', labelEn: 'GreenBot' },
   { to: '/dashboard/koob-assist', icon: '📱', key: 'koob_assist', labelFr: 'Koob Assist', labelEn: 'Koob Assist' },

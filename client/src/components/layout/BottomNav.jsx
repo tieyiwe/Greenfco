@@ -21,7 +21,7 @@ const MORE_ITEMS = [
   { to: '/dashboard/greenbot', icon: '🤖', fr: 'GreenBot', en: 'GreenBot' },
   { to: '/dashboard/soil-advisor', icon: '🔍', fr: 'Conseiller', en: 'Advisor' },
   { to: '/dashboard/koob-assist', icon: '📱', fr: 'Koob Assist', en: 'Koob Assist' },
-  { to: '/dashboard/business-plan', icon: '📋', fr: 'Biz Plan', en: 'Biz Plan' },
+  { to: '/consulting', icon: '📋', fr: 'Consultation', en: 'Consulting' },
   { to: '/network', icon: '🌍', fr: 'Réseau', en: 'Network' },
 ];
 

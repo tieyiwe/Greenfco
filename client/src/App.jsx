@@ -108,7 +108,6 @@ export default function App() {
             <Route path="soil-advisor" element={<SoilAdvisor />} />
             <Route path="koob-assist" element={<KoobAssist />} />
             <Route path="map" element={<ComingSoon title="Farm Map" icon="🗺️" />} />
-            <Route path="business-plan" element={<ComingSoon title="Business Plan" icon="📋" />} />
           </Route>
 
           {/* Market (Protected) */}
