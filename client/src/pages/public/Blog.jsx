@@ -1,7 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './Blog.css';
+
+function setMeta(title, description) {
+  document.title = title;
+  const el = document.querySelector('meta[name="description"]');
+  if (el) el.setAttribute('content', description);
+}
 
 const ARTICLES = [
   {
@@ -158,6 +164,20 @@ export default function Blog() {
   const [activeCategory, setActiveCategory] = useState('Tous');
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+
+  useEffect(() => {
+    if (lang === 'fr') {
+      setMeta(
+        'Blog | GreenFCO — Agriculture Durable, Agroécologie & Innovation en Afrique',
+        "Articles et analyses sur l'agriculture durable, l'agroécologie, la finance carbone, l'innovation agricole et le développement rural en Afrique de l'Ouest par les experts de GreenFCO."
+      );
+    } else {
+      setMeta(
+        'Blog | GreenFCO — Sustainable Agriculture, Agroecology & Innovation in Africa',
+        "Articles and analysis on sustainable agriculture, agroecology, carbon finance, agricultural innovation, and rural development in West Africa by GreenFCO experts."
+      );
+    }
+  }, [lang]);
 
   const featured = ARTICLES.find(a => a.featured);
   const filtered = ARTICLES.filter(a =>

@@ -1,0 +1,16 @@
+{
+  "name": "GreenFCO",
+  "short_name": "GreenFCO",
+  "description": "Plateforme agro-environnementale pour l'Afrique francophone",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1B4332",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
