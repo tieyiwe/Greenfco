@@ -249,11 +249,6 @@ function getCropTips(selectedCrops, forecast, lang) {
   return tips.length ? tips : null;
 }
 
-/* ─── In-memory weather cache (module-level, persists across renders) ── */
-const weatherCache = new Map(); // `${lat},${lon}` → { forecast, historical, timestamp }
-const geocodeCache = new Map(); // city name → geocode result
-const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
-
 /* ─── Main component ──────────────────────────────────────── */
 export default function WeatherHub() {
   const { i18n } = useTranslation();
@@ -300,17 +295,6 @@ export default function WeatherHub() {
       setCityName(name);
       saveFarmProfile({ locationName: name });
     }
-
-    // Check cache first
-    const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
-    const cached = weatherCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      setForecast(cached.forecast);
-      setHistorical(cached.historical);
-      setLoading(false);
-      return;
-    }
-
     try {
       const daily = [
         'temperature_2m_max', 'temperature_2m_min',
@@ -331,12 +315,8 @@ export default function WeatherHub() {
         fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=${daily}&timezone=auto&forecast_days=10`),
         fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${fmt(start)}&end_date=${fmt(end)}&daily=precipitation_sum&timezone=auto`),
       ]);
-      const forecastData  = await fRes.json();
-      const historicalData = await hRes.json();
-      setForecast(forecastData);
-      setHistorical(historicalData);
-      // Store in cache
-      weatherCache.set(cacheKey, { forecast: forecastData, historical: historicalData, timestamp: Date.now() });
+      setForecast(await fRes.json());
+      setHistorical(await hRes.json());
     } catch {
       setError(lang === 'fr' ? 'Impossible de charger la météo.' : 'Unable to load weather data.');
     } finally {
@@ -383,13 +363,8 @@ export default function WeatherHub() {
     if (local.length < 3) {
       citySearchRef.current = setTimeout(async () => {
         try {
-          const gcKey = val.toLowerCase();
-          let data = geocodeCache.get(gcKey);
-          if (!data) {
-            const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=6&language=${lang}&format=json`);
-            data = await res.json();
-            geocodeCache.set(gcKey, data);
-          }
+          const res  = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=6&language=${lang}&format=json`);
+          const data = await res.json();
           if (data.results?.length) {
             const apiResults = data.results.map(r => ({ name: r.name, country: r.country_code, lat: r.latitude, lng: r.longitude }));
             // merge: presets first, then API results not already in presets
@@ -414,13 +389,8 @@ export default function WeatherHub() {
     if (!cityInput.trim()) return;
     setLoading(true);
     try {
-      const gcKey = cityInput.toLowerCase();
-      let data = geocodeCache.get(gcKey);
-      if (!data) {
-        const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityInput)}&count=1&language=${lang}&format=json`);
-        data = await res.json();
-        geocodeCache.set(gcKey, data);
-      }
+      const res  = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityInput)}&count=1&language=${lang}&format=json`);
+      const data = await res.json();
       if (data.results?.length) {
         const { latitude, longitude, name } = data.results[0];
         fetchWeather(latitude, longitude, name);

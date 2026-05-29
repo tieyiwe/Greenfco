@@ -514,21 +514,6 @@
   .today-card { padding: 1.5rem; flex-direction: column; gap: 1.5rem; }
   .agri-grid { grid-template-columns: repeat(2, 1fr); }
 
-  /* Main weather card rounded */
-  .weather-main-card { border-radius: 20px; padding: 1.5rem 1.25rem; }
-
-  /* Big temperature */
-  .temp-max { font-size: 3.5rem; }
-
-  /* Forecast cards */
-  .forecast-card { border-radius: 12px; padding: 0.75rem 0.5rem; }
-
-  /* Weather detail 2-col */
-  .weather-detail-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.75rem; }
-
-  /* City search input */
-  .city-search-input, .city-search .form-input { font-size: 16px; min-height: 48px; width: 100%; }
-
   /* Activity planner — allow horizontal scroll to avoid overflow */
   .activity-row {
     grid-template-columns: repeat(10, minmax(64px, 1fr));
@@ -540,6 +525,8 @@
   }
   .activity-row::-webkit-scrollbar { display: none; }
   .activity-day { min-width: 64px; }
+
+  .city-search .form-input { width: 140px; }
 
   /* City chips wrap instead of overflow */
   .city-chips { flex-wrap: wrap; }

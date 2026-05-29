@@ -47,13 +47,14 @@ export default function Footer() {
             <div className="footer-col">
               <h4>Plateforme</h4>
               <Link to="/dashboard">{t('nav.dashboard')}</Link>
-              <Link to="/market">{t('nav.market')}</Link>
+              <Link to="/marketplace">{t('nav.marketplace')}</Link>
+              <Link to="/agropro">{t('nav.agropro')}</Link>
               <Link to="/network">{t('nav.network')}</Link>
               <Link to="/register">{t('nav.register')}</Link>
             </div>
             <div className="footer-col">
               <h4>Contact</h4>
-              <a href="mailto:dipelie@yahoo.fr">dipelie@yahoo.fr</a>
+              <a href="mailto:info@greenfco.com">info@greenfco.com</a>
               <a href="https://wa.me/22600000000" target="_blank" rel="noreferrer">
                 WhatsApp
               </a>

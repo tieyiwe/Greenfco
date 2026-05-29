@@ -16,6 +16,8 @@ export default function Register() {
     name: '', email: '', password: '', confirm_password: '',
     country: '', user_type: 'farmer', language: lang,
   });
+  const [marketRole, setMarketRole] = useState('buyer'); // 'buyer' | 'seller'
+  const [sellerLocation, setSellerLocation] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -31,8 +33,16 @@ export default function Register() {
     }
     setLoading(true);
     setError('');
+
+    // Save seller location to localStorage if role = seller
+    if (marketRole === 'seller') {
+      const existing = (() => { try { return JSON.parse(localStorage.getItem('greenfco_seller_profile')) || {}; } catch { return {}; } })();
+      const sellerProfile = { ...existing, location: sellerLocation, memberSince: new Date().getFullYear().toString() };
+      localStorage.setItem('greenfco_seller_profile', JSON.stringify(sellerProfile));
+    }
+
     try {
-      const res = await register(form);
+      const res = await register({ ...form, market_role: marketRole });
       setAuth(res.data.user, res.data.token);
       navigate('/dashboard');
     } catch (err) {
@@ -97,6 +107,28 @@ export default function Register() {
                 ))}
               </select>
             </div>
+            <div className="form-group">
+              <label className="form-label">{lang === 'fr' ? 'Je souhaite utiliser la plateforme comme' : 'I want to use the platform as'} *</label>
+              <select className="form-select" value={marketRole} onChange={e => setMarketRole(e.target.value)}>
+                <option value="buyer">{lang === 'fr' ? 'Acheteur (je cherche des produits)' : 'Buyer (I look for products)'}</option>
+                <option value="seller">{lang === 'fr' ? 'Vendeur (je vends des produits)' : 'Seller (I sell products)'}</option>
+              </select>
+            </div>
+            {marketRole === 'seller' && (
+              <div className="form-group">
+                <label className="form-label">
+                  {lang === 'fr' ? 'Localisation (ville / région) *' : 'Location (city / region) *'}
+                </label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={sellerLocation}
+                  onChange={e => setSellerLocation(e.target.value)}
+                  placeholder={lang === 'fr' ? 'Ex : Ouagadougou, Plateau Central' : 'E.g. Ouagadougou, Plateau Central'}
+                  required
+                />
+              </div>
+            )}
             <div className="form-group">
               <label className="form-label">{t('auth.language_pref')}</label>
               <select name="language" className="form-select" value={form.language} onChange={handleChange}>

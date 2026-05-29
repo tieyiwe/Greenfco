@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Suspense } from 'react';
+import { Suspense, lazy } from 'react';
 import './i18n';
 import useAuthStore from './store/authStore';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Layout
 import Navbar from './components/layout/Navbar';
@@ -11,6 +12,7 @@ import Footer from './components/layout/Footer';
 import Home from './pages/public/Home';
 import About from './pages/public/About';
 import Services from './pages/public/Services';
+import Consulting from './pages/public/Consulting';
 import Blog from './pages/public/Blog';
 import BlogPost from './pages/public/BlogPost';
 import Gallery from './pages/public/Gallery';
@@ -21,19 +23,35 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 
-// Dashboard
-import DashboardLayout from './pages/dashboard/DashboardLayout';
-import DashboardHome from './pages/dashboard/DashboardHome';
-import CropManager from './pages/dashboard/CropManager';
-import IrrigationManager from './pages/dashboard/IrrigationManager';
-import FinanceManager from './pages/dashboard/FinanceManager';
-import WeatherHub from './pages/dashboard/WeatherHub';
-import SpeciesLibrary from './pages/dashboard/SpeciesLibrary';
-import GreenBot from './pages/dashboard/GreenBot';
-import SoilAdvisor from './pages/dashboard/SoilAdvisor';
-import KoobAssist from './pages/dashboard/KoobAssist';
-import MarketPage from './pages/dashboard/MarketPage';
-import NetworkPage from './pages/network/NetworkPage';
+// Admin (lazy-loaded for code splitting)
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'));
+const AdminListings = lazy(() => import('./pages/admin/AdminListings'));
+const AdminBlog = lazy(() => import('./pages/admin/AdminBlog'));
+const AdminConsulting = lazy(() => import('./pages/admin/AdminConsulting'));
+
+// Dashboard (lazy-loaded for code splitting)
+const DashboardLayout = lazy(() => import('./pages/dashboard/DashboardLayout'));
+const DashboardHome = lazy(() => import('./pages/dashboard/DashboardHome'));
+const CropManager = lazy(() => import('./pages/dashboard/CropManager'));
+const IrrigationManager = lazy(() => import('./pages/dashboard/IrrigationManager'));
+const FinanceManager = lazy(() => import('./pages/dashboard/FinanceManager'));
+const WeatherHub = lazy(() => import('./pages/dashboard/WeatherHub'));
+const SpeciesLibrary = lazy(() => import('./pages/dashboard/SpeciesLibrary'));
+const GreenBot = lazy(() => import('./pages/dashboard/GreenBot'));
+const SoilAdvisor = lazy(() => import('./pages/dashboard/SoilAdvisor'));
+const KoobAssist = lazy(() => import('./pages/dashboard/KoobAssist'));
+const MarketPage = lazy(() => import('./pages/dashboard/MarketPage'));
+const SellerProfilePage = lazy(() => import('./pages/dashboard/SellerProfilePage'));
+const BuyerProfilePage = lazy(() => import('./pages/dashboard/BuyerProfilePage'));
+const NetworkPage = lazy(() => import('./pages/network/NetworkPage'));
+const VerifyTransaction = lazy(() => import('./pages/dashboard/VerifyTransaction'));
+const AdminTransactions = lazy(() => import('./pages/admin/AdminTransactions'));
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
+const AdminProjects = lazy(() => import('./pages/admin/AdminProjects'));
+const AdminActivity = lazy(() => import('./pages/admin/AdminActivity'));
+const AdminTeamChat = lazy(() => import('./pages/admin/AdminTeamChat'));
 
 // Auth bypass for testing — re-enable before production
 function ProtectedRoute({ children }) {
@@ -76,12 +94,14 @@ function ComingSoon({ title, icon }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
           {/* Public */}
           <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
           <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
           <Route path="/services" element={<PublicLayout><Services /></PublicLayout>} />
+          <Route path="/consulting" element={<PublicLayout><Consulting /></PublicLayout>} />
           <Route path="/blog" element={<PublicLayout><Blog /></PublicLayout>} />
           <Route path="/blog/:slug" element={<PublicLayout><BlogPost /></PublicLayout>} />
           <Route path="/gallery" element={<PublicLayout><Gallery /></PublicLayout>} />
@@ -110,14 +130,31 @@ export default function App() {
             <Route path="map" element={<ComingSoon title="Farm Map" icon="🗺️" />} />
           </Route>
 
-          {/* Market (Protected) */}
-          <Route path="/market" element={
+          {/* Marketplace (buy/sell listings) */}
+          <Route path="/marketplace" element={
             <ProtectedRoute>
               <DashboardLayout />
             </ProtectedRoute>
           }>
-            <Route index element={<MarketPage />} />
+            <Route index element={<MarketPage key="marketplace" mode="marketplace" />} />
+            <Route path="profile" element={<BuyerProfilePage />} />
           </Route>
+
+          {/* AgroPro (prices & analytics) */}
+          <Route path="/agropro" element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<MarketPage key="agropro" mode="agropro" />} />
+            <Route path="profile" element={<SellerProfilePage />} />
+          </Route>
+
+          {/* QR Transaction verification — standalone (no layout) */}
+          <Route path="/verify-transaction" element={<VerifyTransaction />} />
+
+          {/* Legacy redirect */}
+          <Route path="/market" element={<Navigate to="/marketplace" replace />} />
 
           {/* Network (Protected) */}
           <Route path="/network" element={
@@ -128,10 +165,25 @@ export default function App() {
             <Route index element={<NetworkPage />} />
           </Route>
 
+          {/* Admin */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="listings" element={<AdminListings />} />
+            <Route path="blog" element={<AdminBlog />} />
+            <Route path="consulting" element={<AdminConsulting />} />
+            <Route path="transactions" element={<AdminTransactions />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="projects" element={<AdminProjects />} />
+            <Route path="activity" element={<AdminActivity />} />
+            <Route path="messages" element={<AdminTeamChat />} />
+          </Route>
+
           {/* Catch all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </Suspense>
+        </Suspense>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

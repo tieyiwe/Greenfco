@@ -129,7 +129,7 @@ export default function SoilAdvisor() {
                     ? 'Pour un suivi professionnel, contactez l\'équipe GreenFCO.'
                     : 'For professional follow-up, contact the GreenFCO team.'}
                 </p>
-                <a href="mailto:dipelie@yahoo.fr" className="btn btn-secondary btn-sm">
+                <a href="mailto:info@greenfco.com" className="btn btn-secondary btn-sm">
                   {lang === 'fr' ? 'Contacter un expert' : 'Contact an expert'}
                 </a>
               </div>

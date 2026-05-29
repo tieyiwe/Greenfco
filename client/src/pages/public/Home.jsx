@@ -1,8 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../../api/client';
 import './Home.css';
+
+function setMeta(title, description) {
+  document.title = title;
+  const el = document.querySelector('meta[name="description"]');
+  if (el) el.setAttribute('content', description);
+}
 
 const SERVICES = [
   { key: 'conseil', icon: '🤝', color: '#1B4332' },
@@ -31,6 +37,20 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (lang === 'fr') {
+      setMeta(
+        'GreenFCO — Green Field Consortium | Agriculture Durable en Afrique',
+        "Green Field Consortium (GreenFCO) — Plateforme agro-environnementale pour l'Afrique francophone. Conseil, formations, négoce et innovations agricoles durables au Burkina Faso et en Afrique de l'Ouest."
+      );
+    } else {
+      setMeta(
+        'GreenFCO — Green Field Consortium | Sustainable Agriculture in West Africa',
+        'Green Field Consortium (GreenFCO) — Agro-environmental platform for West Africa. Advisory, training, trade, and sustainable agricultural innovations in Burkina Faso and across West Africa.'
+      );
+    }
+  }, [lang]);
 
   async function handleNewsletter(e) {
     e.preventDefault();

@@ -256,6 +256,11 @@
   }
 }
 
+@media (max-width: 768px) {
+  .blog-grid, .posts-grid { grid-template-columns: 1fr !important; }
+  .articles-grid { grid-template-columns: 1fr !important; }
+}
+
 @media (max-width: 600px) {
   .articles-grid {
     grid-template-columns: 1fr;

@@ -20,15 +20,19 @@ export default function Navbar() {
   const publicLinks = [
     { to: '/', icon: '🏠', label: t('nav.home'), exact: true },
     { to: '/services', icon: '🌿', label: t('nav.services') },
+    { to: '/consulting', icon: '🤝', label: lang === 'fr' ? 'Consultation' : 'Consulting' },
     { to: '/about', icon: '👥', label: t('nav.about') },
     { to: '/blog', icon: '📰', label: t('nav.blog') },
     { to: '/gallery', icon: '📷', label: t('nav.gallery') },
     { to: '/contact', icon: '✉️', label: t('nav.contact') },
+    { to: '/marketplace', icon: '🛒', label: t('nav.marketplace'), highlight: true },
+    { to: '/agropro', icon: '📊', label: t('nav.agropro'), highlight: true },
   ];
 
   const authLinks = [
     { to: '/dashboard', icon: '📊', label: t('nav.dashboard'), exact: true },
-    { to: '/market', icon: '🛒', label: t('nav.market') },
+    { to: '/marketplace', icon: '🛒', label: t('nav.marketplace'), highlight: true },
+    { to: '/agropro', icon: '📊', label: t('nav.agropro'), highlight: true },
     { to: '/network', icon: '🌍', label: t('nav.network') },
     { to: '/blog', icon: '📰', label: t('nav.blog') },
   ];
@@ -55,7 +59,7 @@ export default function Navbar() {
           {/* Desktop nav links */}
           <nav className="navbar-links">
             {links.map((link) => (
-              link.to === '/market' ? (
+              link.highlight ? (
                 <NavLink
                   key={link.to}
                   to={link.to}
@@ -75,6 +79,14 @@ export default function Navbar() {
               )
             ))}
           </nav>
+
+          {/* Admin link — subtle, always visible for now */}
+          <Link
+            to="/admin"
+            style={{ fontSize: '0.75rem', color: 'var(--gray-mid)', marginRight: '0.5rem', textDecoration: 'none', letterSpacing: '0.02em', opacity: 0.7 }}
+          >
+            Admin
+          </Link>
 
           <div className="navbar-actions">
             <LanguageToggle />

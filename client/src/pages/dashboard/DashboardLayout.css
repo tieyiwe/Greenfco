@@ -80,13 +80,11 @@
     width: 80vw;
   }
 
-  /* Content area — proper safe area padding */
   .dashboard-content {
-    padding: 1rem !important;
-    padding-bottom: 84px !important; /* bottom nav + safe area */
+    margin-left: 0 !important;
+    padding-bottom: 80px; /* space for bottom nav */
     overflow-x: hidden;
     max-width: 100vw;
-    margin-left: 0 !important;
   }
 
   .dashboard-topbar {
@@ -113,11 +111,4 @@
   .topbar-wa {
     display: none; /* hide on mobile — WhatsApp FAB used instead */
   }
-
-  /* Module headers compact on mobile */
-  .module-header h1 { font-size: 1.4rem; }
-  .module-header p { font-size: 0.9rem; }
-
-  /* Page-level cards full-bleed */
-  .page-card, .content-card { border-radius: 16px; }
 }

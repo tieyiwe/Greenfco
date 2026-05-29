@@ -1,12 +1,12 @@
-run = "npm run build && node server/index.js"
+run = "npm install && npm run dev"
 
 [nix]
 channel = "stable-24_05"
 
 [deployment]
-run = ["sh", "-c", "npm run build && node server/index.js"]
+run = ["sh", "-c", "cd client && npm install && npm run build && cd ../server && npm install && node index.js"]
 deploymentTarget = "cloudrun"
 
 [[ports]]
-localPort = 5000
+localPort = 3003
 externalPort = 80

@@ -91,3 +91,10 @@
 }
 
 .expert-specialties .badge { font-size: 0.75rem; }
+
+@media (max-width: 768px) {
+  .network-page { padding: 1rem; }
+  .network-grid { grid-template-columns: 1fr !important; }
+  .network-modules { grid-template-columns: 1fr !important; }
+  .network-hero { padding: 1.5rem; }
+}

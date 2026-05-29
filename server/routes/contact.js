@@ -9,7 +9,6 @@ router.post('/', (req, res) => {
     return res.status(400).json({ message: 'Champs requis manquants.' });
   }
   insert('contact', { name, email, subject, message, country });
-  console.log(`📧 Contact from ${name} <${email}>: ${subject}`);
   res.json({ success: true });
 });
 

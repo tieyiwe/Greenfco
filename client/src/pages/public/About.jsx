@@ -1,5 +1,12 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import './About.css';
+
+function setMeta(title, description) {
+  document.title = title;
+  const el = document.querySelector('meta[name="description"]');
+  if (el) el.setAttribute('content', description);
+}
 
 const TIMELINE = [
   { year: '2021', icon: '🌱', fr: 'Fondation de GreenFCO le 7 octobre 2021 à Ouagadougou, Burkina Faso.', en: 'GreenFCO founded on October 7, 2021 in Ouagadougou, Burkina Faso.' },
@@ -18,6 +25,20 @@ const VALUES = [
 export default function About() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.startsWith('fr') ? 'fr' : 'en';
+
+  useEffect(() => {
+    if (lang === 'fr') {
+      setMeta(
+        'À Propos | GreenFCO — Notre Histoire et Mission Agro-Environnementale',
+        "Découvrez l'histoire, la mission et les fondateurs de GreenFCO. Elie et Elisée Dipama, experts agro-environnementaux, Mandela Washington Fellows et Humboldt Fellows, engagés pour une agriculture durable en Afrique de l'Ouest."
+      );
+    } else {
+      setMeta(
+        'About | GreenFCO — Our Story and Agro-Environmental Mission',
+        'Discover the story, mission, and founders of GreenFCO. Elie and Elisée Dipama, agro-environmental experts, Mandela Washington Fellows, and Humboldt Fellows, committed to sustainable agriculture in West Africa.'
+      );
+    }
+  }, [lang]);
 
   return (
     <main className="about-page">
@@ -140,7 +161,7 @@ export default function About() {
                     ))}
                   </div>
                 </div>
-                <a href="mailto:dipelie@yahoo.fr" className="btn btn-primary btn-sm">
+                <a href="mailto:info@greenfco.com" className="btn btn-primary btn-sm">
                   {lang === 'fr' ? 'Contacter Elie' : 'Contact Elie'}
                 </a>
               </div>

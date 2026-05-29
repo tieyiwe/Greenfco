@@ -269,18 +269,19 @@
 }
 
 .sheet-close {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--off-white);
   border: none;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--gray-dark);
   -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
 }
 
 .sheet-links {
@@ -299,6 +300,8 @@
   transition: background 0.15s ease;
   border: none;
   background: none;
+  min-height: 52px;
+  border-bottom: 1px solid var(--gray-light);
 }
 
 .sheet-link:active {
@@ -330,6 +333,47 @@
 /* Utility classes */
 .desktop-only { display: inline; }
 .mobile-only { display: none; }
+
+/* ─── Mobile drawer classes (right-side drawer alternative) ── */
+@media (max-width: 768px) {
+  .nav-mobile-drawer {
+    position: fixed;
+    top: 0; right: -100%; bottom: 0;
+    width: min(80vw, 320px);
+    background: #fff;
+    z-index: 1000;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+    display: flex; flex-direction: column;
+    overflow-y: auto;
+    padding: 1rem 0 2rem;
+  }
+  .nav-mobile-drawer.open { right: 0; }
+  .nav-drawer-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 999;
+  }
+  .nav-drawer-backdrop.open { display: block; }
+  .nav-drawer-link {
+    display: flex; align-items: center;
+    padding: 0.9rem 1.5rem;
+    font-size: 1rem; font-weight: 500;
+    color: #111; text-decoration: none;
+    border-bottom: 1px solid #f3f4f6;
+    min-height: 52px;
+  }
+  .nav-drawer-link:active { background: #f0fdf4; }
+  .nav-drawer-close {
+    align-self: flex-end;
+    margin: 0 1rem 0.5rem;
+    background: none; border: none;
+    font-size: 1.5rem; cursor: pointer;
+    color: #6B7280; padding: 0.5rem;
+    min-height: 44px; min-width: 44px;
+  }
+}
 
 /* ─── Responsive ────────────────────────────────────────── */
 @media (max-width: 900px) {

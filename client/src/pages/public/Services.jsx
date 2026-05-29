@@ -1,5 +1,13 @@
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './Services.css';
+
+function setMeta(title, description) {
+  document.title = title;
+  const el = document.querySelector('meta[name="description"]');
+  if (el) el.setAttribute('content', description);
+}
 
 const SERVICES_DATA = [
   {
@@ -70,6 +78,20 @@ const SERVICES_DATA = [
 export default function Services() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.startsWith('fr') ? 'fr' : 'en';
+
+  useEffect(() => {
+    if (lang === 'fr') {
+      setMeta(
+        'Services | GreenFCO — 7 Lignes de Services Agro-Environnementaux',
+        "GreenFCO offre 7 services intégrés : conseil agricole, négoce de produits agricoles, formations certifiantes, études environnementales, aménagements hydro-agricoles, intrants bio et développement de projets. Burkina Faso, Afrique de l'Ouest."
+      );
+    } else {
+      setMeta(
+        'Services | GreenFCO — 7 Integrated Agro-Environmental Service Lines',
+        'GreenFCO offers 7 integrated services: agricultural advisory, commodity trading, certified training, environmental studies, hydro-agricultural development, bio-inputs, and project development. Burkina Faso, West Africa.'
+      );
+    }
+  }, [lang]);
 
   return (
     <main className="services-page">
@@ -157,7 +179,10 @@ export default function Services() {
                 : "Let's discuss your project. Our team is available to support you."}
             </p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <a href="/contact" className="btn btn-primary btn-lg">
+              <Link to="/consulting" className="btn btn-primary btn-lg">
+                {lang === 'fr' ? 'Réserver une consultation' : 'Book a consultation'}
+              </Link>
+              <a href="/contact" className="btn btn-secondary btn-lg">
                 {lang === 'fr' ? 'Contactez-nous' : 'Contact us'}
               </a>
               <a
@@ -192,9 +217,15 @@ function ServiceDetailCard({ service, index, t, lang }) {
             <span key={tag} className="badge badge-green">{tag}</span>
           ))}
         </div>
-        <a href="/contact" className="btn btn-secondary btn-sm" style={{ alignSelf: 'flex-start' }}>
-          {t(`services.${service.key}.cta`)} →
-        </a>
+        {service.key === 'conseil' ? (
+          <Link to="/consulting" className="btn btn-secondary btn-sm" style={{ alignSelf: 'flex-start' }}>
+            {t(`services.${service.key}.cta`)} →
+          </Link>
+        ) : (
+          <a href="/contact" className="btn btn-secondary btn-sm" style={{ alignSelf: 'flex-start' }}>
+            {t(`services.${service.key}.cta`)} →
+          </a>
+        )}
       </div>
     </div>
   );

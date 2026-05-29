@@ -1,7 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../../api/client';
 import './Contact.css';
+
+function setMeta(title, description) {
+  document.title = title;
+  const el = document.querySelector('meta[name="description"]');
+  if (el) el.setAttribute('content', description);
+}
 
 export default function Contact() {
   const { t, i18n } = useTranslation();
@@ -9,6 +15,20 @@ export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '', country: '' });
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (lang === 'fr') {
+      setMeta(
+        'Contact | GreenFCO — Parlons de Votre Projet Agricole',
+        "Contactez GreenFCO pour discuter de votre projet agro-environnemental. Notre équipe d'experts est basée à Ouagadougou, Burkina Faso et disponible du lundi au vendredi."
+      );
+    } else {
+      setMeta(
+        "Contact | GreenFCO — Let's Talk About Your Agricultural Project",
+        "Contact GreenFCO to discuss your agro-environmental project. Our team of experts is based in Ouagadougou, Burkina Faso and available Monday to Friday."
+      );
+    }
+  }, [lang]);
 
   function handleChange(e) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -53,7 +73,7 @@ export default function Contact() {
             <div className="info-block card">
               <div className="info-icon">✉️</div>
               <h3>Email</h3>
-              <a href="mailto:dipelie@yahoo.fr">dipelie@yahoo.fr</a>
+              <a href="mailto:info@greenfco.com">info@greenfco.com</a>
             </div>
 
             <div className="info-block card whatsapp-block">

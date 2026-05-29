@@ -49,28 +49,11 @@ app.get('/api/health', (req, res) => {
 
 // Serve built React app
 if (fs.existsSync(publicDir)) {
-  // Hashed assets (JS/CSS bundles) get a 1-year immutable cache
-  app.use('/assets', express.static(path.join(publicDir, 'assets'), {
-    maxAge: '1y',
-    immutable: true,
-  }));
-
-  // Everything else: short cache, never cache index.html
-  app.use(express.static(publicDir, {
-    maxAge: '1h',
-    etag: true,
-    setHeaders: (res, filePath) => {
-      if (filePath.endsWith('index.html')) {
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      }
-    },
-  }));
-
+  app.use(express.static(publicDir, { index: 'index.html' }));
   app.use((req, res) => {
     if (req.path.startsWith('/api')) {
       res.status(404).json({ error: 'Not found' });
     } else {
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.sendFile(path.join(publicDir, 'index.html'));
     }
   });
