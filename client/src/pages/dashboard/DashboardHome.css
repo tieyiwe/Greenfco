@@ -113,6 +113,29 @@
   .dashboard-stats { grid-template-columns: repeat(2, 1fr) !important; }
   .dashboard-modules-grid { grid-template-columns: repeat(2, 1fr) !important; }
 
+  /* Quick actions — 2x2 grid */
+  .quick-actions-grid, .dashboard-modules-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem;
+  }
+
+  /* Action buttons full-height touch targets */
+  .quick-action-btn, .module-card {
+    min-height: 80px;
+    border-radius: 16px;
+    padding: 1rem 0.75rem;
+  }
+
+  /* Welcome / greeting section compact */
+  .welcome-section, .dashboard-welcome, .dashboard-greeting {
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .dashboard-greeting h1 {
+    font-size: 1.4rem;
+  }
+
   /* Recent activity table — scrollable block */
   .recent-table {
     overflow-x: auto;

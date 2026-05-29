@@ -503,6 +503,42 @@ textarea.form-input {
    NATIVE MOBILE EXPERIENCE
    ============================================================ */
 
+/* Touch targets — all interactive elements at least 44px */
+@media (max-width: 768px) {
+  button, .btn, a.btn, input[type="submit"],
+  input[type="button"], select {
+    min-height: 44px;
+  }
+
+  /* Comfortable tap padding on nav links and list items */
+  a { padding: 2px 0; }
+
+  /* Inputs — prevent iOS zoom, comfortable height */
+  input, select, textarea {
+    font-size: 16px !important;
+    min-height: 44px;
+    border-radius: 10px;
+  }
+  textarea { min-height: 88px; }
+
+  /* Cards full-width and properly rounded */
+  .card {
+    border-radius: 16px;
+    padding: 1rem;
+  }
+
+  /* Remove box shadows that look bad on mobile */
+  .card:hover { box-shadow: none; transform: none; }
+
+  /* Section spacing tighter on mobile */
+  section, .section { padding: 1.5rem 0; }
+
+  /* Headings scale down */
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.1rem; }
+}
+
 /* Prevent iOS text zoom on inputs */
 @media (max-width: 768px) {
   input, textarea, select {
