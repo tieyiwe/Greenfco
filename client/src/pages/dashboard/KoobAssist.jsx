@@ -514,15 +514,16 @@ export default function KoobAssist() {
 
   return (
     <div className="koob-assist">
-      <div className="module-header">
-        <div>
-          <span className="koob-badge">📱 IA</span>
-          <h1>Koob Assist</h1>
-          <p>{lang === 'fr' ? 'Conseiller IA pour entrepreneurs agricoles' : 'AI Advisor for Agricultural Entrepreneurs'}</p>
+      <div className="koob-sticky-header">
+        <div className="module-header" style={{ marginBottom: 0 }}>
+          <div>
+            <span className="koob-badge">📱 IA</span>
+            <h1>Koob Assist</h1>
+            <p>{lang === 'fr' ? 'Conseiller IA pour entrepreneurs agricoles' : 'AI Advisor for Agricultural Entrepreneurs'}</p>
+          </div>
         </div>
-      </div>
 
-      <div className="koob-tabs">
+        <div className="koob-tabs">
         <button className={`koob-tab ${tab === 'diagnostic' ? 'active' : ''}`} onClick={() => setTab('diagnostic')}>
           📋 {lang === 'fr' ? 'Diagnostic' : 'Assessment'}
         </button>
@@ -540,6 +541,7 @@ export default function KoobAssist() {
         <button className={`koob-tab ${tab === 'tracker' ? 'active' : ''}`} onClick={() => setTab('tracker')}>
           📊 {lang === 'fr' ? 'Suivi' : 'Tracker'}
         </button>
+        </div>
       </div>
 
       {/* ── Diagnostic tab ── */}
@@ -799,6 +801,24 @@ export default function KoobAssist() {
                 style={{ display: 'none' }}
                 onChange={e => handleImageFiles(e.target.files)}
               />
+              {/* Camera capture — opens rear camera directly on mobile */}
+              <input
+                id="plant-camera-input"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                style={{ display: 'none' }}
+                onChange={e => handleImageFiles(e.target.files)}
+              />
+              {plantImages.length < 4 && (
+                <button
+                  type="button"
+                  className="pa-camera-btn"
+                  onClick={() => document.getElementById('plant-camera-input').click()}
+                >
+                  📷 {lang === 'fr' ? 'Prendre une photo' : 'Take a photo'}
+                </button>
+              )}
             </div>
 
             {plantError && <div className="pa-error">{plantError}</div>}

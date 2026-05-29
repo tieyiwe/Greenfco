@@ -4,6 +4,25 @@
   gap: 1.5rem;
 }
 
+/* Sticky header — keeps title + tabs fixed while content scrolls */
+.koob-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #fff;
+  /* Bleed out of the dashboard padding so it covers full width */
+  margin: -1.5rem -1.5rem 0;
+  padding: 1.25rem 1.5rem 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+@media (max-width: 768px) {
+  .koob-sticky-header {
+    margin: -1rem -1rem 0;
+    padding: 1rem 1rem 0;
+  }
+}
+
 .koob-badge {
   display: inline-flex;
   align-items: center;
@@ -416,3 +435,34 @@
 .tracker-entry-meta { font-size: 0.8rem; color: var(--gray-mid); margin-top: 0.1rem; }
 .tracker-entry-amount { font-weight: 600; white-space: nowrap; font-size: 0.95rem; }
 .tracker-empty { text-align: center; padding: 2rem; color: var(--gray-mid); }
+
+/* Camera button for plant analyser */
+.pa-camera-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--green-deep);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.pa-camera-btn:hover { background: var(--green-mid); }
+
+/* On desktop, show camera btn only as secondary option */
+@media (min-width: 769px) {
+  .pa-camera-btn {
+    background: transparent;
+    color: var(--green-deep);
+    border: 2px solid var(--green-light);
+    font-size: 0.9rem;
+  }
+  .pa-camera-btn:hover { background: #f0fdf4; }
+}
