@@ -22,6 +22,14 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 
+// Admin
+import AdminLayout from './pages/admin/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminListings from './pages/admin/AdminListings';
+import AdminBlog from './pages/admin/AdminBlog';
+import AdminConsulting from './pages/admin/AdminConsulting';
+
 // Dashboard (lazy-loaded for code splitting)
 const DashboardLayout = lazy(() => import('./pages/dashboard/DashboardLayout'));
 const DashboardHome = lazy(() => import('./pages/dashboard/DashboardHome'));
@@ -145,6 +153,15 @@ export default function App() {
             </ProtectedRoute>
           }>
             <Route index element={<NetworkPage />} />
+          </Route>
+
+          {/* Admin */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="listings" element={<AdminListings />} />
+            <Route path="blog" element={<AdminBlog />} />
+            <Route path="consulting" element={<AdminConsulting />} />
           </Route>
 
           {/* Catch all */}

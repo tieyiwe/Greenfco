@@ -20,6 +20,7 @@ export default function Navbar() {
   const publicLinks = [
     { to: '/', icon: '🏠', label: t('nav.home'), exact: true },
     { to: '/services', icon: '🌿', label: t('nav.services') },
+    { to: '/consulting', icon: '🤝', label: lang === 'fr' ? 'Consultation' : 'Consulting' },
     { to: '/about', icon: '👥', label: t('nav.about') },
     { to: '/blog', icon: '📰', label: t('nav.blog') },
     { to: '/gallery', icon: '📷', label: t('nav.gallery') },
@@ -78,6 +79,14 @@ export default function Navbar() {
               )
             ))}
           </nav>
+
+          {/* Admin link — subtle, always visible for now */}
+          <Link
+            to="/admin"
+            style={{ fontSize: '0.75rem', color: 'var(--gray-mid)', marginRight: '0.5rem', textDecoration: 'none', letterSpacing: '0.02em', opacity: 0.7 }}
+          >
+            Admin
+          </Link>
 
           <div className="navbar-actions">
             <LanguageToggle />

@@ -12,6 +12,7 @@ import marketRoutes from './routes/market.js';
 import aiRoutes from './routes/ai.js';
 import contactRoutes from './routes/contact.js';
 import newsletterRoutes from './routes/newsletter.js';
+import consultingRoutes from './routes/consulting.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -33,6 +34,7 @@ app.use('/api/market',     marketRoutes);
 app.use('/api/ai',         aiRoutes);
 app.use('/api/contact',    contactRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/consulting', consultingRoutes);
 app.get('/api/health',     (_, res) => res.json({ status: 'GreenFCO API running 🌿' }));
 
 // Serve built React app

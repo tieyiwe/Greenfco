@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './Services.css';
 
@@ -178,7 +179,10 @@ export default function Services() {
                 : "Let's discuss your project. Our team is available to support you."}
             </p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <a href="/contact" className="btn btn-primary btn-lg">
+              <Link to="/consulting" className="btn btn-primary btn-lg">
+                {lang === 'fr' ? 'Réserver une consultation' : 'Book a consultation'}
+              </Link>
+              <a href="/contact" className="btn btn-secondary btn-lg">
                 {lang === 'fr' ? 'Contactez-nous' : 'Contact us'}
               </a>
               <a
@@ -213,9 +217,15 @@ function ServiceDetailCard({ service, index, t, lang }) {
             <span key={tag} className="badge badge-green">{tag}</span>
           ))}
         </div>
-        <a href="/contact" className="btn btn-secondary btn-sm" style={{ alignSelf: 'flex-start' }}>
-          {t(`services.${service.key}.cta`)} →
-        </a>
+        {service.key === 'conseil' ? (
+          <Link to="/consulting" className="btn btn-secondary btn-sm" style={{ alignSelf: 'flex-start' }}>
+            {t(`services.${service.key}.cta`)} →
+          </Link>
+        ) : (
+          <a href="/contact" className="btn btn-secondary btn-sm" style={{ alignSelf: 'flex-start' }}>
+            {t(`services.${service.key}.cta`)} →
+          </a>
+        )}
       </div>
     </div>
   );
