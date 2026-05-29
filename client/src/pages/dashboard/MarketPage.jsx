@@ -222,11 +222,19 @@ export default function MarketPage({ mode = 'marketplace' }) {
 
   // New listing form
   const [formLocLoading, setFormLocLoading] = useState(false);
+  const [differentLocation, setDifferentLocation] = useState(false);
   const [form, setForm] = useState({
     crop_name:'', category:'legumes', quantity_kg:'', price:'', currency:'FCFA',
     location:'', lat:null, lng:null, contact:'', description:'',
     min_order_kg:'', delivery:'pickup', certifications:[], harvest_date:'',
   });
+
+  // Auto-fill form location from seller profile when form opens
+  useEffect(() => {
+    if (showForm && sellerProfile?.location && !differentLocation) {
+      setForm(p => ({ ...p, location: sellerProfile.location }));
+    }
+  }, [showForm]);
 
   // Prices tab
   const [selectedPrice, setSelectedPrice] = useState(REGIONAL_PRICES[0]);
@@ -294,17 +302,21 @@ export default function MarketPage({ mode = 'marketplace' }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
+    // Use seller profile location as fallback
+    const resolvedLocation = (!differentLocation && sellerProfile?.location) ? sellerProfile.location : form.location;
+    const submitForm = { ...form, location: resolvedLocation };
     const newListing = {
-      id: Date.now(), ...form, user_name: sellerProfile?.farmName || user?.name || 'Vendeur',
+      id: Date.now(), ...submitForm, user_name: sellerProfile?.farmName || user?.name || 'Vendeur',
       user_id: user?.id || 'me', created_at: new Date().toISOString(),
       seller_rating: 0, seller_review_count: 0,
       seller_bio: sellerProfile?.bio || '',
       seller_since: sellerProfile?.memberSince || new Date().getFullYear().toString(),
       verified: false,
     };
-    try { const res = await api.post('/market', form); setListings(p => [res.data, ...p]); }
+    try { const res = await api.post('/market', submitForm); setListings(p => [res.data, ...p]); }
     catch { setListings(p => [newListing, ...p]); }
     setShowForm(false);
+    setDifferentLocation(false);
     setForm({ crop_name:'', category:'legumes', quantity_kg:'', price:'', currency:'FCFA', location:'', lat:null, lng:null, contact:'', description:'', min_order_kg:'', delivery:'pickup', certifications:[], harvest_date:'' });
     setLoading(false);
   }
@@ -638,10 +650,33 @@ export default function MarketPage({ mode = 'marketplace' }) {
                       {lang === 'fr' ? 'Localisation ferme/stockage' : 'Farm/storage location'}
                       {form.lat && <span className="loc-confirmed"> ✅</span>}
                     </label>
-                    <div className="loc-input-row">
-                      <input type="text" className="form-input" style={{ flex:1 }} value={form.location} onChange={e => setForm(p => ({ ...p, location: e.target.value, lat:null, lng:null }))} placeholder={lang === 'fr' ? 'Ville ou secteur' : 'City or area'} />
-                      <button type="button" className="btn btn-secondary btn-sm loc-btn" onClick={locateFarm} disabled={formLocLoading}>{formLocLoading ? '…' : '📍'}</button>
-                    </div>
+                    {sellerProfile?.location && (
+                      <label className="checkbox-item" style={{ marginBottom:'0.5rem', fontSize:'0.82rem', color:'var(--gray-mid)' }}>
+                        <input
+                          type="checkbox"
+                          checked={differentLocation}
+                          onChange={e => {
+                            setDifferentLocation(e.target.checked);
+                            if (!e.target.checked && sellerProfile?.location) {
+                              setForm(p => ({ ...p, location: sellerProfile.location, lat: null, lng: null }));
+                            }
+                          }}
+                        />
+                        {lang === 'fr'
+                          ? 'Ce produit est en stock à un emplacement différent de mon profil vendeur'
+                          : 'This product is stocked at a different location than my seller profile'}
+                      </label>
+                    )}
+                    {(!sellerProfile?.location || differentLocation) ? (
+                      <div className="loc-input-row">
+                        <input type="text" className="form-input" style={{ flex:1 }} value={form.location} onChange={e => setForm(p => ({ ...p, location: e.target.value, lat:null, lng:null }))} placeholder={lang === 'fr' ? 'Ville ou secteur' : 'City or area'} />
+                        <button type="button" className="btn btn-secondary btn-sm loc-btn" onClick={locateFarm} disabled={formLocLoading}>{formLocLoading ? '…' : '📍'}</button>
+                      </div>
+                    ) : (
+                      <div className="form-input" style={{ background:'var(--gray-light-2, #f3f4f6)', color:'var(--gray-mid)', cursor:'default', display:'flex', alignItems:'center', gap:'0.4rem' }}>
+                        📍 {sellerProfile.location}
+                      </div>
+                    )}
                   </div>
                   <div className="form-group">
                     <label className="form-label">{lang === 'fr' ? 'Numéro de contact *' : 'Contact number *'}</label>
