@@ -1,7 +1,93 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import './WeatherHub.css';
+
+/* ─── Preloaded city list ────────────────────────────────── */
+const PRESET_CITIES = [
+  // Burkina Faso
+  { name:'Ouagadougou',   country:'BF', lat:12.3647,  lng:-1.5337  },
+  { name:'Bobo-Dioulasso',country:'BF', lat:11.1771,  lng:-4.2979  },
+  { name:'Koudougou',     country:'BF', lat:12.2487,  lng:-2.3622  },
+  { name:"Fada N'Gourma", country:'BF', lat:12.0603,  lng:0.3464   },
+  { name:'Dédougou',      country:'BF', lat:12.4625,  lng:-3.4665  },
+  { name:'Dori',          country:'BF', lat:14.0329,  lng:-0.0356  },
+  { name:'Ouahigouya',    country:'BF', lat:13.5782,  lng:-2.4215  },
+  { name:'Banfora',       country:'BF', lat:10.6333,  lng:-4.7500  },
+  { name:'Tenkodogo',     country:'BF', lat:11.7833,  lng:-0.3667  },
+  // West Africa
+  { name:'Abidjan',       country:'CI', lat:5.3600,   lng:-4.0083  },
+  { name:'Accra',         country:'GH', lat:5.5500,   lng:-0.2167  },
+  { name:'Bamako',        country:'ML', lat:12.6500,  lng:-8.0000  },
+  { name:'Conakry',       country:'GN', lat:9.5370,   lng:-13.6773 },
+  { name:'Cotonou',       country:'BJ', lat:6.3654,   lng:2.4183   },
+  { name:'Dakar',         country:'SN', lat:14.7167,  lng:-17.4677 },
+  { name:'Lomé',          country:'TG', lat:6.1375,   lng:1.2123   },
+  { name:'Niamey',        country:'NE', lat:13.5137,  lng:2.1098   },
+  { name:'Nouakchott',    country:'MR', lat:18.0858,  lng:-15.9785 },
+  { name:'Ouagadougou',   country:'BF', lat:12.3647,  lng:-1.5337  },
+  { name:'Porto-Novo',    country:'BJ', lat:6.4969,   lng:2.6289   },
+  { name:'Yamoussoukro',  country:'CI', lat:6.8276,   lng:-5.2893  },
+  { name:'Kumasi',        country:'GH', lat:6.6885,   lng:-1.6244  },
+  { name:'Tamale',        country:'GH', lat:9.4008,   lng:-0.8393  },
+  { name:'Kankan',        country:'GN', lat:10.3833,  lng:-9.3000  },
+  { name:'Sikasso',       country:'ML', lat:11.3167,  lng:-5.6667  },
+  { name:'Ségou',         country:'ML', lat:13.4500,  lng:-6.2667  },
+  { name:'Kayes',         country:'ML', lat:14.4500,  lng:-11.4333 },
+  { name:'Zinder',        country:'NE', lat:13.8077,  lng:8.9881   },
+  { name:'Maradi',        country:'NE', lat:13.5000,  lng:7.1000   },
+  { name:'Parakou',       country:'BJ', lat:9.3500,   lng:2.6333   },
+  { name:'Kara',          country:'TG', lat:9.5511,   lng:1.1833   },
+  { name:'Saint-Louis',   country:'SN', lat:16.0167,  lng:-16.5000 },
+  { name:'Thiès',         country:'SN', lat:14.7833,  lng:-16.9167 },
+  { name:'Ziguinchor',    country:'SN', lat:12.5833,  lng:-16.2667 },
+  { name:'Agadez',        country:'NE', lat:16.9742,  lng:7.9989   },
+  { name:'Tahoua',        country:'NE', lat:14.8889,  lng:5.2675   },
+  // Central/East/Southern Africa
+  { name:'Nairobi',       country:'KE', lat:-1.2921,  lng:36.8219  },
+  { name:'Lagos',         country:'NG', lat:6.5244,   lng:3.3792   },
+  { name:'Abuja',         country:'NG', lat:9.0579,   lng:7.4951   },
+  { name:'Kano',          country:'NG', lat:12.0000,  lng:8.5167   },
+  { name:'Douala',        country:'CM', lat:4.0612,   lng:9.7761   },
+  { name:'Yaoundé',       country:'CM', lat:3.8480,   lng:11.5021  },
+  { name:'Kinshasa',      country:'CD', lat:-4.3276,  lng:15.3136  },
+  { name:'Addis-Abeba',   country:'ET', lat:9.0250,   lng:38.7469  },
+  { name:'Dar es Salaam', country:'TZ', lat:-6.7924,  lng:39.2083  },
+  { name:'Johannesburg',  country:'ZA', lat:-26.2041, lng:28.0473  },
+  { name:'Casablanca',    country:'MA', lat:33.5731,  lng:-7.5898  },
+  { name:'Alger',         country:'DZ', lat:36.7372,  lng:3.0865   },
+  { name:'Tunis',         country:'TN', lat:36.8190,  lng:10.1658  },
+  { name:'Le Caire',      country:'EG', lat:30.0444,  lng:31.2357  },
+  { name:'Kampala',       country:'UG', lat:0.3476,   lng:32.5825  },
+  { name:'Lusaka',        country:'ZM', lat:-15.4167, lng:28.2833  },
+  { name:'Harare',        country:'ZW', lat:-17.8292, lng:31.0522  },
+  { name:'Antananarivo',  country:'MG', lat:-18.9137, lng:47.5361  },
+  // World
+  { name:'Paris',         country:'FR', lat:48.8534,  lng:2.3488   },
+  { name:'London',        country:'GB', lat:51.5074,  lng:-0.1278  },
+  { name:'Berlin',        country:'DE', lat:52.5200,  lng:13.4050  },
+  { name:'Madrid',        country:'ES', lat:40.4168,  lng:-3.7038  },
+  { name:'Rome',          country:'IT', lat:41.8919,  lng:12.5113  },
+  { name:'Bruxelles',     country:'BE', lat:50.8503,  lng:4.3517   },
+  { name:'Amsterdam',     country:'NL', lat:52.3676,  lng:4.9041   },
+  { name:'New York',      country:'US', lat:40.7128,  lng:-74.0060 },
+  { name:'Washington',    country:'US', lat:38.9072,  lng:-77.0369 },
+  { name:'Los Angeles',   country:'US', lat:34.0522,  lng:-118.2437},
+  { name:'Toronto',       country:'CA', lat:43.6532,  lng:-79.3832 },
+  { name:'Montréal',      country:'CA', lat:45.5017,  lng:-73.5673 },
+  { name:'São Paulo',     country:'BR', lat:-23.5505, lng:-46.6333 },
+  { name:'Buenos Aires',  country:'AR', lat:-34.6037, lng:-58.3816 },
+  { name:'Mexico City',   country:'MX', lat:19.4326,  lng:-99.1332 },
+  { name:'Beijing',       country:'CN', lat:39.9042,  lng:116.4074 },
+  { name:'Shanghai',      country:'CN', lat:31.2304,  lng:121.4737 },
+  { name:'Tokyo',         country:'JP', lat:35.6762,  lng:139.6503 },
+  { name:'Mumbai',        country:'IN', lat:19.0760,  lng:72.8777  },
+  { name:'Dubai',         country:'AE', lat:25.2048,  lng:55.2708  },
+  { name:'Riyadh',        country:'SA', lat:24.6877,  lng:46.7219  },
+  { name:'Istanbul',      country:'TR', lat:41.0082,  lng:28.9784  },
+  { name:'Moscou',        country:'RU', lat:55.7558,  lng:37.6176  },
+  { name:'Sydney',        country:'AU', lat:-33.8688, lng:151.2093 },
+];
 
 /* ─── WMO code table ─────────────────────────────────────── */
 const WMO = {
@@ -177,6 +263,9 @@ export default function WeatherHub() {
   });
 
   const [cityInput, setCityInput] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const citySearchRef = useRef(null);
   const [forecast, setForecast] = useState(null);
   const [historical, setHistorical] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -261,18 +350,53 @@ export default function WeatherHub() {
     }
   }, []);
 
-  /* ── Manual location search ──────────────────────────────── */
+  /* ── City search — preset filter + API fallback ─────────── */
+  function handleCityInput(val) {
+    setCityInput(val);
+    if (!val.trim()) { setSuggestions([]); setShowSuggestions(false); return; }
+    const q = val.toLowerCase();
+    const local = PRESET_CITIES.filter(c => c.name.toLowerCase().includes(q)).slice(0, 8);
+    setSuggestions(local);
+    setShowSuggestions(true);
+    // Debounce API call for cities not found locally
+    clearTimeout(citySearchRef.current);
+    if (local.length < 3) {
+      citySearchRef.current = setTimeout(async () => {
+        try {
+          const res  = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=6&language=${lang}&format=json`);
+          const data = await res.json();
+          if (data.results?.length) {
+            const apiResults = data.results.map(r => ({ name: r.name, country: r.country_code, lat: r.latitude, lng: r.longitude }));
+            // merge: presets first, then API results not already in presets
+            const merged = [...local, ...apiResults.filter(a => !local.find(l => l.name === a.name))].slice(0, 8);
+            setSuggestions(merged);
+          }
+        } catch { /* silent */ }
+      }, 400);
+    }
+  }
+
+  function selectCity(city) {
+    fetchWeather(city.lat, city.lng, city.name);
+    setCityInput('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+  }
+
   async function searchCity(e) {
     e.preventDefault();
+    if (suggestions.length > 0) { selectCity(suggestions[0]); return; }
     if (!cityInput.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityInput)}&count=1&language=${lang}`);
+      const res  = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityInput)}&count=1&language=${lang}&format=json`);
       const data = await res.json();
       if (data.results?.length) {
         const { latitude, longitude, name } = data.results[0];
         fetchWeather(latitude, longitude, name);
         setCityInput('');
+        setSuggestions([]);
+        setShowSuggestions(false);
       } else {
         setError(lang === 'fr' ? 'Ville introuvable.' : 'City not found.');
         setLoading(false);
@@ -331,15 +455,32 @@ export default function WeatherHub() {
           </p>
         </div>
         <div className="weather-controls">
-          <form onSubmit={searchCity} className="city-search">
-            <input
-              className="form-input"
-              placeholder={lang === 'fr' ? 'Changer de ville…' : 'Change city…'}
-              value={cityInput}
-              onChange={e => setCityInput(e.target.value)}
-            />
-            <button type="submit" className="btn btn-primary btn-sm">→</button>
-          </form>
+          <div className="city-search-wrap">
+            <form onSubmit={searchCity} className="city-search">
+              <input
+                className="form-input"
+                placeholder={lang === 'fr' ? 'Rechercher une ville…' : 'Search a city…'}
+                value={cityInput}
+                onChange={e => handleCityInput(e.target.value)}
+                onFocus={() => cityInput && setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                autoComplete="off"
+              />
+              <button type="submit" className="btn btn-primary btn-sm">→</button>
+            </form>
+            {showSuggestions && suggestions.length > 0 && (
+              <ul className="city-suggestions">
+                {suggestions.map((c, i) => (
+                  <li key={i}>
+                    <button type="button" onMouseDown={() => selectCity(c)}>
+                      <span className="city-sug-name">{c.name}</span>
+                      <span className="city-sug-country">{c.country}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <button
             className={`btn btn-secondary btn-sm ${showProfileEditor ? 'active-btn' : ''}`}
             onClick={() => setShowProfileEditor(p => !p)}
@@ -347,6 +488,18 @@ export default function WeatherHub() {
             🌾 {lang === 'fr' ? 'Mon exploitation' : 'My farm'}
           </button>
         </div>
+      </div>
+
+      {/* Quick city chips */}
+      <div className="city-chips">
+        {['Ouagadougou','Bobo-Dioulasso','Abidjan','Dakar','Bamako','Accra','Niamey','Lagos','Nairobi','Paris'].map(name => {
+          const c = PRESET_CITIES.find(p => p.name === name);
+          return c ? (
+            <button key={name} className={`city-chip ${cityName === name ? 'active' : ''}`} onClick={() => selectCity(c)}>
+              {name}
+            </button>
+          ) : null;
+        })}
       </div>
 
       {/* Farm Profile Editor */}
