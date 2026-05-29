@@ -19,12 +19,10 @@
   position: absolute;
   inset: 0;
   background-image:
-    url('/hero-farm.jpg'),
-    radial-gradient(ellipse 120% 80% at 60% 110%, #2D6A4F 0%, transparent 60%),
-    radial-gradient(ellipse 100% 60% at 80% 90%, #52B788 0%, transparent 55%),
+    url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1600&q=80&auto=format&fit=crop'),
     linear-gradient(170deg, #060e09 0%, #0d2416 35%, #1a4030 60%, #2d6a4f 85%, #3d8b67 100%);
-  background-size: cover, auto, auto, auto;
-  background-position: center 40%, bottom, bottom right, center;
+  background-size: cover, auto;
+  background-position: center 40%, center;
   background-repeat: no-repeat;
 }
 
