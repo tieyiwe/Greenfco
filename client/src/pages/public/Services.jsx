@@ -1,5 +1,12 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import './Services.css';
+
+function setMeta(title, description) {
+  document.title = title;
+  const el = document.querySelector('meta[name="description"]');
+  if (el) el.setAttribute('content', description);
+}
 
 const SERVICES_DATA = [
   {
@@ -70,6 +77,20 @@ const SERVICES_DATA = [
 export default function Services() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.startsWith('fr') ? 'fr' : 'en';
+
+  useEffect(() => {
+    if (lang === 'fr') {
+      setMeta(
+        'Services | GreenFCO — 7 Lignes de Services Agro-Environnementaux',
+        "GreenFCO offre 7 services intégrés : conseil agricole, négoce de produits agricoles, formations certifiantes, études environnementales, aménagements hydro-agricoles, intrants bio et développement de projets. Burkina Faso, Afrique de l'Ouest."
+      );
+    } else {
+      setMeta(
+        'Services | GreenFCO — 7 Integrated Agro-Environmental Service Lines',
+        'GreenFCO offers 7 integrated services: agricultural advisory, commodity trading, certified training, environmental studies, hydro-agricultural development, bio-inputs, and project development. Burkina Faso, West Africa.'
+      );
+    }
+  }, [lang]);
 
   return (
     <main className="services-page">

@@ -86,7 +86,7 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        <div className="dashboard-content scroll-ios">
+        <div className="dashboard-content scroll-ios page-transition">
           <Outlet />
         </div>
       </div>

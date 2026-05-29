@@ -456,15 +456,19 @@ export default function MarketPage({ mode = 'marketplace' }) {
           {mode !== 'agropro' ? (
             <>
               <button className="btn btn-secondary btn-sm" onClick={() => setShowBuyerSetup(true)}>👤 {lang === 'fr' ? 'Mon profil' : 'My profile'}</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => navigate('/marketplace/profile')}>📋 {lang === 'fr' ? 'Profil acheteur' : 'Buyer profile'}</button>
               <button className="btn btn-secondary btn-sm inbox-btn" onClick={() => setShowInbox(true)}>
                 💬 {lang === 'fr' ? 'Messages' : 'Messages'}
                 {totalUnread > 0 && <span className="inbox-badge">{totalUnread}</span>}
               </button>
             </>
           ) : (
-            <button className="btn btn-primary" onClick={() => { setActiveTab('sell'); setShowForm(true); }}>
-              + {lang === 'fr' ? 'Publier une annonce' : 'Post a listing'}
-            </button>
+            <>
+              <button className="btn btn-secondary btn-sm" onClick={() => navigate('/agropro/profile')}>👤 {lang === 'fr' ? 'Mon profil vendeur' : 'My seller profile'}</button>
+              <button className="btn btn-primary" onClick={() => { setActiveTab('sell'); setShowForm(true); }}>
+                + {lang === 'fr' ? 'Publier une annonce' : 'Post a listing'}
+              </button>
+            </>
           )}
         </div>
       </div>

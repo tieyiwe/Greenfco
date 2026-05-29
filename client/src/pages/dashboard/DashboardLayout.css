@@ -71,6 +71,20 @@
 
 /* ─── Mobile ──────────────────────────────────────────────── */
 @media (max-width: 768px) {
+  .dashboard-sidebar { display: none; }
+  .dashboard-sidebar.mobile-open {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    width: 80vw;
+  }
+
+  .dashboard-content {
+    margin-left: 0 !important;
+    padding-bottom: 80px; /* space for bottom nav */
+  }
+
   .dashboard-topbar {
     height: 56px;
     padding: 0 1rem;
@@ -92,10 +106,5 @@
 
   .topbar-wa {
     display: none; /* hide on mobile — WhatsApp FAB used instead */
-  }
-
-  .dashboard-content {
-    padding: 1rem;
-    padding-bottom: calc(var(--bottom-nav-total) + 1rem);
   }
 }

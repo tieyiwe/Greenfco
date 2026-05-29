@@ -33,6 +33,8 @@ const GreenBot = lazy(() => import('./pages/dashboard/GreenBot'));
 const SoilAdvisor = lazy(() => import('./pages/dashboard/SoilAdvisor'));
 const KoobAssist = lazy(() => import('./pages/dashboard/KoobAssist'));
 const MarketPage = lazy(() => import('./pages/dashboard/MarketPage'));
+const SellerProfilePage = lazy(() => import('./pages/dashboard/SellerProfilePage'));
+const BuyerProfilePage = lazy(() => import('./pages/dashboard/BuyerProfilePage'));
 const NetworkPage = lazy(() => import('./pages/network/NetworkPage'));
 
 // Auth bypass for testing — re-enable before production
@@ -118,6 +120,7 @@ export default function App() {
             </ProtectedRoute>
           }>
             <Route index element={<MarketPage key="marketplace" mode="marketplace" />} />
+            <Route path="profile" element={<BuyerProfilePage />} />
           </Route>
 
           {/* AgroPro (prices & analytics) */}
@@ -127,6 +130,7 @@ export default function App() {
             </ProtectedRoute>
           }>
             <Route index element={<MarketPage key="agropro" mode="agropro" />} />
+            <Route path="profile" element={<SellerProfilePage />} />
           </Route>
 
           {/* Legacy redirect */}
