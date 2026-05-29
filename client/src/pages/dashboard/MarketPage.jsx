@@ -160,15 +160,15 @@ const CITIES = [
 
 // Enhanced listings with seller profiles, ratings, certifications
 const DEMO_LISTINGS = [
-  { id:1,  crop_name:'Oignons',         category:'legumes',  quantity_kg:500,  price:250,  currency:'FCFA', location:'Ouagadougou',   lat:12.3647,  lng:-1.5337, contact:'+22670000001', created_at:'2026-05-01', user_name:'Moussa Kaboré',     user_id:'u1', min_order_kg:20,  delivery:'both',     certifications:['organic','local'], harvest_date:'2026-04-28', seller_rating:4.8, seller_review_count:24, seller_bio:'Producteur maraîcher depuis 2010, spécialisé dans les oignons de qualité supérieure du Plateau Central.', seller_since:'2022', verified:true,  description:'Oignons frais de qualité supérieure, récoltés cette semaine.' },
-  { id:2,  crop_name:'Pommes de terre', category:'legumes',  quantity_kg:1000, price:150,  currency:'FCFA', location:'Bobo-Dioulasso', lat:11.1771,  lng:-4.2979, contact:'+22671000002', created_at:'2026-05-05', user_name:'Aminata Diallo',    user_id:'u2', min_order_kg:50,  delivery:'pickup',   certifications:['local'],           harvest_date:'2026-05-02', seller_rating:4.5, seller_review_count:18, seller_bio:'Agricultrice engagée dans la production locale et durable à Bobo-Dioulasso.',                         seller_since:'2023', verified:true,  description:'Grande variété locale. Prix négociable pour grosses quantités.' },
-  { id:3,  crop_name:'Tomates',         category:'legumes',  quantity_kg:200,  price:300,  currency:'FCFA', location:'Koudougou',      lat:12.2487,  lng:-2.3622, contact:'+22672000003', created_at:'2026-05-08', user_name:'Ibrahim Sawadogo',  user_id:'u3', min_order_kg:10,  delivery:'delivery', certifications:['organic'],         harvest_date:'2026-05-06', seller_rating:4.2, seller_review_count:9,  seller_bio:'Maraîcher certifié bio, culture sans pesticides chimiques depuis 5 ans.',                              seller_since:'2021', verified:false, description:'Tomates mûres. Livraison possible dans un rayon de 50 km.' },
-  { id:4,  crop_name:'Maïs',            category:'cereales', quantity_kg:2000, price:120,  currency:'FCFA', location:"Fada N'Gourma",  lat:12.0603,  lng:0.3464,  contact:'+22673000004', created_at:'2026-05-10', user_name:'Fatimata Ouédraogo',user_id:'u4', min_order_kg:100, delivery:'pickup',   certifications:['local'],           harvest_date:'2026-04-15', seller_rating:4.6, seller_review_count:31, seller_bio:'Grande exploitation céréalière de la région Est, production de maïs et de sorgho.',                    seller_since:'2020', verified:true,  description:'Maïs jaune séché. Idéal pour transformation.' },
-  { id:5,  crop_name:'Mil',             category:'cereales', quantity_kg:800,  price:140,  currency:'FCFA', location:'Dori',            lat:14.0329,  lng:-0.0356, contact:'+22674000005', created_at:'2026-05-12', user_name:'Hamidou Compaoré',  user_id:'u5', min_order_kg:50,  delivery:'both',     certifications:['local','organic'], harvest_date:'2026-04-20', seller_rating:4.4, seller_review_count:15, seller_bio:'Producteur du Sahel, spécialiste des céréales adaptées aux zones arides.',                             seller_since:'2022', verified:false, description:'Mil local de première qualité, récolte 2026.' },
-  { id:6,  crop_name:'Sésame',          category:'autres',   quantity_kg:300,  price:600,  currency:'FCFA', location:'Dédougou',        lat:12.4625,  lng:-3.4665, contact:'+22675000006', created_at:'2026-05-14', user_name:'Mariam Traoré',     user_id:'u6', min_order_kg:25,  delivery:'pickup',   certifications:['organic','premium'],harvest_date:'2026-04-25', seller_rating:4.9, seller_review_count:42, seller_bio:'Productrice de sésame certifié bio, export vers l\'Europe. Qualité premium garantie.',                 seller_since:'2019', verified:true,  description:'Sésame blanc certifié bio, qualité premium export.' },
-  { id:7,  crop_name:'Poulet (vif)',     category:'elevage',  quantity_kg:50,   price:1800, currency:'FCFA', location:'Ouahigouya',      lat:13.5782,  lng:-2.4215, contact:'+22676000007', created_at:'2026-05-15', user_name:'Salif Barro',       user_id:'u7', min_order_kg:5,   delivery:'pickup',   certifications:['local'],           harvest_date:null,         seller_rating:4.3, seller_review_count:11, seller_bio:'Éleveur avicole traditionnel, alimentation naturelle, sans hormones.',                                seller_since:'2023', verified:false, description:'Poulets de chair locaux, bien nourris, 1,8–2,2 kg/pièce.' },
-  { id:8,  crop_name:'Poisson fumé',     category:'poisson',  quantity_kg:80,   price:3000, currency:'FCFA', location:'Ouagadougou',     lat:12.3647,  lng:-1.5337, contact:'+22677000008', created_at:'2026-05-16', user_name:'Kadi Sawadogo',     user_id:'u8', min_order_kg:10,  delivery:'both',     certifications:['local'],           harvest_date:null,         seller_rating:4.7, seller_review_count:28, seller_bio:'Transformatrice de poisson, technique de fumage traditionnel pour longue conservation.',               seller_since:'2021', verified:true,  description:'Poisson fumé de qualité. Conditionnement soigné.' },
-  { id:9,  crop_name:'BioGrowth',        category:'intrants', quantity_kg:100,  price:2500, currency:'FCFA', location:'Ouagadougou',     lat:12.3647,  lng:-1.5337, contact:'+22678000009', created_at:'2026-05-17', user_name:'GreenFCO',          user_id:'u9', min_order_kg:5,   delivery:'delivery', certifications:['verified','premium'],harvest_date:null,        seller_rating:5.0, seller_review_count:67, seller_bio:'GreenFCO — plateforme officielle, bio-fertilisants et intrants naturels pour l\'Afrique de l\'Ouest.', seller_since:'2021', verified:true,  description:'Bio-fertilisant liquide innovant pour sols ouest-africains.' },
+  { id:1,  crop_name:'Oignons',         category:'legumes',  quantity_kg:500,  price:250,  currency:'FCFA', location:'Ouagadougou',   lat:12.3647,  lng:-1.5337, contact:'+22670000001', created_at:'2026-05-01', user_name:'Moussa Kaboré',     user_id:'u1', min_order_kg:20,  delivery:'both',     certifications:['organic','local'], harvest_date:'2026-04-28', seller_rating:4.8, seller_review_count:24, seller_bio:'Producteur maraîcher depuis 2010, spécialisé dans les oignons de qualité supérieure du Plateau Central.', seller_since:'2022', verified:true,  description:'Oignons frais de qualité supérieure, récoltés cette semaine.', images:['https://images.unsplash.com/photo-1508747703725-719777637510?w=400&q=80'], video:null },
+  { id:2,  crop_name:'Pommes de terre', category:'legumes',  quantity_kg:1000, price:150,  currency:'FCFA', location:'Bobo-Dioulasso', lat:11.1771,  lng:-4.2979, contact:'+22671000002', created_at:'2026-05-05', user_name:'Aminata Diallo',    user_id:'u2', min_order_kg:50,  delivery:'pickup',   certifications:['local'],           harvest_date:'2026-05-02', seller_rating:4.5, seller_review_count:18, seller_bio:'Agricultrice engagée dans la production locale et durable à Bobo-Dioulasso.',                         seller_since:'2023', verified:true,  description:'Grande variété locale. Prix négociable pour grosses quantités.', images:['https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&q=80'], video:null },
+  { id:3,  crop_name:'Tomates',         category:'legumes',  quantity_kg:200,  price:300,  currency:'FCFA', location:'Koudougou',      lat:12.2487,  lng:-2.3622, contact:'+22672000003', created_at:'2026-05-08', user_name:'Ibrahim Sawadogo',  user_id:'u3', min_order_kg:10,  delivery:'delivery', certifications:['organic'],         harvest_date:'2026-05-06', seller_rating:4.2, seller_review_count:9,  seller_bio:'Maraîcher certifié bio, culture sans pesticides chimiques depuis 5 ans.',                              seller_since:'2021', verified:false, description:'Tomates mûres. Livraison possible dans un rayon de 50 km.', images:['https://images.unsplash.com/photo-1546092530-4f8b1d64e7dc?w=400&q=80'], video:null },
+  { id:4,  crop_name:'Maïs',            category:'cereales', quantity_kg:2000, price:120,  currency:'FCFA', location:"Fada N'Gourma",  lat:12.0603,  lng:0.3464,  contact:'+22673000004', created_at:'2026-05-10', user_name:'Fatimata Ouédraogo',user_id:'u4', min_order_kg:100, delivery:'pickup',   certifications:['local'],           harvest_date:'2026-04-15', seller_rating:4.6, seller_review_count:31, seller_bio:'Grande exploitation céréalière de la région Est, production de maïs et de sorgho.',                    seller_since:'2020', verified:true,  description:'Maïs jaune séché. Idéal pour transformation.', images:['https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=400&q=80'], video:null },
+  { id:5,  crop_name:'Mil',             category:'cereales', quantity_kg:800,  price:140,  currency:'FCFA', location:'Dori',            lat:14.0329,  lng:-0.0356, contact:'+22674000005', created_at:'2026-05-12', user_name:'Hamidou Compaoré',  user_id:'u5', min_order_kg:50,  delivery:'both',     certifications:['local','organic'], harvest_date:'2026-04-20', seller_rating:4.4, seller_review_count:15, seller_bio:'Producteur du Sahel, spécialiste des céréales adaptées aux zones arides.',                             seller_since:'2022', verified:false, description:'Mil local de première qualité, récolte 2026.', images:['https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=400&q=80'], video:null },
+  { id:6,  crop_name:'Sésame',          category:'autres',   quantity_kg:300,  price:600,  currency:'FCFA', location:'Dédougou',        lat:12.4625,  lng:-3.4665, contact:'+22675000006', created_at:'2026-05-14', user_name:'Mariam Traoré',     user_id:'u6', min_order_kg:25,  delivery:'pickup',   certifications:['organic','premium'],harvest_date:'2026-04-25', seller_rating:4.9, seller_review_count:42, seller_bio:'Productrice de sésame certifié bio, export vers l\'Europe. Qualité premium garantie.',                 seller_since:'2019', verified:true,  description:'Sésame blanc certifié bio, qualité premium export.', images:['https://images.unsplash.com/photo-1625682028590-f3a88ded5977?w=400&q=80'], video:null },
+  { id:7,  crop_name:'Poulet (vif)',     category:'elevage',  quantity_kg:50,   price:1800, currency:'FCFA', location:'Ouahigouya',      lat:13.5782,  lng:-2.4215, contact:'+22676000007', created_at:'2026-05-15', user_name:'Salif Barro',       user_id:'u7', min_order_kg:5,   delivery:'pickup',   certifications:['local'],           harvest_date:null,         seller_rating:4.3, seller_review_count:11, seller_bio:'Éleveur avicole traditionnel, alimentation naturelle, sans hormones.',                                seller_since:'2023', verified:false, description:'Poulets de chair locaux, bien nourris, 1,8–2,2 kg/pièce.', images:['https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=400&q=80'], video:null },
+  { id:8,  crop_name:'Poisson fumé',     category:'poisson',  quantity_kg:80,   price:3000, currency:'FCFA', location:'Ouagadougou',     lat:12.3647,  lng:-1.5337, contact:'+22677000008', created_at:'2026-05-16', user_name:'Kadi Sawadogo',     user_id:'u8', min_order_kg:10,  delivery:'both',     certifications:['local'],           harvest_date:null,         seller_rating:4.7, seller_review_count:28, seller_bio:'Transformatrice de poisson, technique de fumage traditionnel pour longue conservation.',               seller_since:'2021', verified:true,  description:'Poisson fumé de qualité. Conditionnement soigné.', images:['https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400&q=80'], video:null },
+  { id:9,  crop_name:'BioGrowth',        category:'intrants', quantity_kg:100,  price:2500, currency:'FCFA', location:'Ouagadougou',     lat:12.3647,  lng:-1.5337, contact:'+22678000009', created_at:'2026-05-17', user_name:'GreenFCO',          user_id:'u9', min_order_kg:5,   delivery:'delivery', certifications:['verified','premium'],harvest_date:null,        seller_rating:5.0, seller_review_count:67, seller_bio:'GreenFCO — plateforme officielle, bio-fertilisants et intrants naturels pour l\'Afrique de l\'Ouest.', seller_since:'2021', verified:true,  description:'Bio-fertilisant liquide innovant pour sols ouest-africains.', images:['https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80'], video:null },
 ];
 
 const DEMO_REVIEWS = [
@@ -246,6 +246,10 @@ export default function MarketPage({ mode = 'marketplace' }) {
   // New listing form
   const [formLocLoading, setFormLocLoading] = useState(false);
   const [differentLocation, setDifferentLocation] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState([]); // [{dataUrl: string, file: File}]
+  const [uploadedVideo, setUploadedVideo] = useState(null); // {objectUrl: string, duration: number, file: File}
+  const [videoDurationError, setVideoDurationError] = useState('');
+  const [imageDragOver, setImageDragOver] = useState(false);
   const [form, setForm] = useState({
     crop_name:'', category:'legumes', quantity_kg:'', price:'', currency:'FCFA',
     location:'', lat:null, lng:null, contact:'', description:'',
@@ -321,9 +325,42 @@ export default function MarketPage({ mode = 'marketplace' }) {
     }
   }
 
+  /* ── Image upload handler ────────────────────────────────*/
+  async function handleImageUpload(files) {
+    const remaining = 5 - uploadedImages.length;
+    const toProcess = Array.from(files).slice(0, remaining).filter(f => f.type.startsWith('image/'));
+    for (const file of toProcess) {
+      const dataUrl = await compressImage(file);
+      setUploadedImages(prev => [...prev, { dataUrl, file }].slice(0, 5));
+    }
+  }
+
+  /* ── Video upload handler ────────────────────────────────*/
+  function handleVideoUpload(file) {
+    if (!file || !file.type.startsWith('video/')) return;
+    setVideoDurationError('');
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    const url = URL.createObjectURL(file);
+    video.src = url;
+    video.onloadedmetadata = () => {
+      const dur = video.duration;
+      if (dur > 16) {
+        setVideoDurationError(lang === 'fr' ? `Vidéo trop longue (${Math.round(dur)}s). Maximum 16 secondes.` : `Video too long (${Math.round(dur)}s). Maximum 16 seconds.`);
+        URL.revokeObjectURL(url);
+      } else {
+        setUploadedVideo({ objectUrl: url, duration: Math.round(dur), file });
+      }
+    };
+  }
+
   /* ── Submit listing ──────────────────────────────────────*/
   async function handleSubmit(e) {
     e.preventDefault();
+    if (uploadedImages.length === 0) {
+      alert(lang === 'fr' ? 'Veuillez ajouter au moins une photo du produit.' : 'Please add at least one product photo.');
+      return;
+    }
     setLoading(true);
     // Use seller profile location as fallback
     const resolvedLocation = (!differentLocation && sellerProfile?.location) ? sellerProfile.location : form.location;
@@ -335,10 +372,15 @@ export default function MarketPage({ mode = 'marketplace' }) {
       seller_bio: sellerProfile?.bio || '',
       seller_since: sellerProfile?.memberSince || new Date().getFullYear().toString(),
       verified: false,
+      images: uploadedImages.map(i => i.dataUrl),
+      video: uploadedVideo?.objectUrl || null,
     };
-    try { const res = await api.post('/market', submitForm); setListings(p => [res.data, ...p]); }
+    try { const res = await api.post('/market', submitForm); setListings(p => [{ ...res.data, images: newListing.images, video: newListing.video }, ...p]); }
     catch { setListings(p => [newListing, ...p]); }
     setShowForm(false);
+    setUploadedImages([]);
+    setUploadedVideo(null);
+    setVideoDurationError('');
     setDifferentLocation(false);
     setForm({ crop_name:'', category:'legumes', quantity_kg:'', price:'', currency:'FCFA', location:'', lat:null, lng:null, contact:'', description:'', min_order_kg:'', delivery:'pickup', certifications:[], harvest_date:'' });
     setLoading(false);
@@ -654,7 +696,7 @@ export default function MarketPage({ mode = 'marketplace' }) {
 
           {/* New listing form toggle */}
           <div style={{ display:'flex', justifyContent:'flex-end' }}>
-            <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>
+            <button className="btn btn-primary" onClick={() => { if (showForm) { setUploadedImages([]); setUploadedVideo(null); setVideoDurationError(''); } setShowForm(s => !s); }}>
               {showForm ? '✕ ' : '+ '}{lang === 'fr' ? 'Nouvelle annonce' : 'New listing'}
             </button>
           </div>
@@ -769,10 +811,68 @@ export default function MarketPage({ mode = 'marketplace' }) {
                     <label className="form-label">{lang === 'fr' ? 'Description' : 'Description'}</label>
                     <textarea className="form-input" rows="2" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder={lang === 'fr' ? 'Qualité, conditions de vente…' : 'Quality, sale terms…'} />
                   </div>
+
+                  {/* Image Upload — MANDATORY */}
+                  <div className="form-group" style={{ gridColumn:'1 / -1' }}>
+                    <label className="form-label">
+                      📸 {lang === 'fr' ? `Photos du produit (${uploadedImages.length}/5) *` : `Product photos (${uploadedImages.length}/5) *`}
+                    </label>
+                    <div
+                      className={`product-upload-zone ${imageDragOver ? 'drag-over' : ''} ${uploadedImages.length >= 5 ? 'full' : ''}`}
+                      onDragOver={e => { e.preventDefault(); setImageDragOver(true); }}
+                      onDragLeave={() => setImageDragOver(false)}
+                      onDrop={e => { e.preventDefault(); setImageDragOver(false); handleImageUpload(e.dataTransfer.files); }}
+                      onClick={() => uploadedImages.length < 5 && document.getElementById('product-img-upload').click()}
+                    >
+                      {uploadedImages.length === 0 ? (
+                        <div className="upload-zone-empty">
+                          <span style={{ fontSize: '2rem' }}>📷</span>
+                          <p>{lang === 'fr' ? 'Cliquez ou glissez vos photos ici' : 'Click or drag photos here'}</p>
+                          <p style={{ fontSize: '0.8rem', color: 'var(--gray-mid)' }}>{lang === 'fr' ? 'JPG, PNG — 5 photos max (obligatoire)' : 'JPG, PNG — 5 photos max (required)'}</p>
+                        </div>
+                      ) : (
+                        <div className="upload-thumbs">
+                          {uploadedImages.map((img, i) => (
+                            <div key={i} className="upload-thumb">
+                              <img src={img.dataUrl} alt={`product-${i}`} />
+                              <button type="button" className="upload-thumb-remove" onClick={e => { e.stopPropagation(); setUploadedImages(prev => prev.filter((_, idx) => idx !== i)); }}>×</button>
+                            </div>
+                          ))}
+                          {uploadedImages.length < 5 && <div className="upload-thumb upload-thumb-add">+</div>}
+                        </div>
+                      )}
+                    </div>
+                    <input id="product-img-upload" type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => handleImageUpload(e.target.files)} />
+                  </div>
+
+                  {/* Video Upload — OPTIONAL */}
+                  <div className="form-group" style={{ gridColumn:'1 / -1' }}>
+                    <label className="form-label">
+                      🎬 {lang === 'fr' ? 'Vidéo du produit (optionnel, max 16s)' : 'Product video (optional, max 16s)'}
+                    </label>
+                    {uploadedVideo ? (
+                      <div className="video-preview">
+                        <video src={uploadedVideo.objectUrl} controls style={{ width: '100%', maxHeight: '200px', borderRadius: '8px' }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--gray-mid)' }}>⏱ {uploadedVideo.duration}s</span>
+                          <button type="button" className="btn btn-secondary btn-sm" onClick={() => { URL.revokeObjectURL(uploadedVideo.objectUrl); setUploadedVideo(null); }}>
+                            🗑 {lang === 'fr' ? 'Supprimer' : 'Remove'}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="video-upload-area" onClick={() => document.getElementById('product-video-upload').click()}>
+                        <span style={{ fontSize: '1.5rem' }}>🎬</span>
+                        <p>{lang === 'fr' ? 'Cliquez pour ajouter une vidéo (max 16s)' : 'Click to add a video (max 16s)'}</p>
+                      </div>
+                    )}
+                    {videoDurationError && <p style={{ color: '#EF4444', fontSize: '0.85rem', marginTop: '0.25rem' }}>{videoDurationError}</p>}
+                    <input id="product-video-upload" type="file" accept="video/*" style={{ display: 'none' }} onChange={e => e.target.files[0] && handleVideoUpload(e.target.files[0])} />
+                  </div>
                 </div>
                 <div style={{ display:'flex', gap:'0.75rem', marginTop:'0.5rem' }}>
                   <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? '…' : lang === 'fr' ? 'Publier' : 'Publish'}</button>
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>{lang === 'fr' ? 'Annuler' : 'Cancel'}</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => { setShowForm(false); setUploadedImages([]); setUploadedVideo(null); setVideoDurationError(''); }}>{lang === 'fr' ? 'Annuler' : 'Cancel'}</button>
                 </div>
               </form>
             </div>
@@ -1286,6 +1386,15 @@ function ListingCard({ listing, lang, categories, buyerLoc, isSaved, onToggleSav
           {isSaved ? '❤️' : '🤍'}
         </button>
       </div>
+
+      {/* Product image */}
+      {listing.images?.length > 0 && (
+        <div className="lc-image">
+          <img src={listing.images[0]} alt={listing.crop_name} loading="lazy" />
+          {listing.images.length > 1 && <span className="lc-image-count">+{listing.images.length - 1}</span>}
+          {listing.video && <span className="lc-video-badge">🎬</span>}
+        </div>
+      )}
 
       {/* Product header */}
       <div className="lc-header">

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import './AdminLayout.css';
+import { ROLE_BASE_PERMISSIONS } from './AdminSettings';
 
 const ADMIN_ROLES = {
   super_admin: { label: 'Super Admin', color: '#EF4444', canManageUsers: true, canDeleteContent: true, canInvite: true, canAccessSettings: true },
@@ -11,15 +12,25 @@ const ADMIN_ROLES = {
 const DEFAULT_ADMIN = { name: 'Admin GreenFCO', email: 'admin@greenfco.com', role: 'super_admin' };
 
 const NAV_LINKS = [
-  { to: '/admin', icon: '📊', label: 'Dashboard', end: true },
-  { to: '/admin/users', icon: '👥', label: 'Users' },
-  { to: '/admin/listings', icon: '📦', label: 'Listings' },
-  { to: '/admin/blog', icon: '📰', label: 'Blog' },
-  { to: '/admin/consulting', icon: '🗓️', label: 'Consulting' },
-  { to: '/admin/transactions', icon: '🔗', label: 'Transactions' },
-  { to: '/admin/messages', icon: '✉️', label: 'Messages' },
-  { to: '/admin/settings', icon: '⚙️', label: 'Settings' },
+  { to: '/admin',              icon: '📊', label: 'Dashboard',    end: true,  permission: null },
+  { to: '/admin/users',        icon: '👥', label: 'Users',                    permission: 'view_users' },
+  { to: '/admin/listings',     icon: '📦', label: 'Listings',                 permission: 'view_listings' },
+  { to: '/admin/transactions', icon: '🔗', label: 'Transactions',             permission: 'view_transactions' },
+  { to: '/admin/blog',         icon: '📰', label: 'Blog',                     permission: 'view_blog' },
+  { to: '/admin/consulting',   icon: '🗓️', label: 'Consulting',               permission: 'view_consulting' },
+  { to: '/admin/projects',     icon: '📋', label: 'Projets',                  permission: 'view_projects' },
+  { to: '/admin/activity',     icon: '📜', label: 'Activité',                 permission: 'view_activity' },
+  { to: '/admin/messages',     icon: '💬', label: 'Messages',                 permission: null },
+  { to: '/admin/settings',     icon: '⚙️', label: 'Settings',                 permission: 'view_settings' },
 ];
+
+function hasPermission(adminUser, collaborators, permKey) {
+  if (!adminUser || adminUser.role === 'super_admin') return true;
+  const collab = collaborators.find(c => c.email === adminUser.email);
+  if (!collab) return ROLE_BASE_PERMISSIONS[adminUser.role]?.includes(permKey) ?? false;
+  const perms = collab.customPermissions ?? ROLE_BASE_PERMISSIONS[collab.role] ?? [];
+  return perms.includes(permKey);
+}
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -50,6 +61,23 @@ export default function AdminLayout() {
 
   const roleInfo = ADMIN_ROLES[adminUser?.role] || ADMIN_ROLES.analyst;
 
+  const collaborators = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('greenfco_admin_collaborators')) || [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const visibleLinks = NAV_LINKS.filter(
+    link => !link.permission || hasPermission(adminUser, collaborators, link.permission)
+  );
+
+  // Split visible links into "Main" (first 8 nav items max) and "System" (remainder)
+  // We keep the original split point: links before messages/settings are "Main", the rest "System"
+  const mainLinks   = visibleLinks.filter(l => !['💬', '⚙️'].includes(l.icon));
+  const systemLinks = visibleLinks.filter(l => ['💬', '⚙️'].includes(l.icon));
+
   return (
     <div className="admin-layout">
       {/* Sidebar */}
@@ -63,7 +91,7 @@ export default function AdminLayout() {
         <nav className="admin-nav">
           <div className="admin-nav-section">
             <span className="admin-nav-label">Main</span>
-            {NAV_LINKS.slice(0, 5).map((link) => (
+            {mainLinks.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
@@ -80,7 +108,7 @@ export default function AdminLayout() {
 
           <div className="admin-nav-section">
             <span className="admin-nav-label">System</span>
-            {NAV_LINKS.slice(5).map((link) => (
+            {systemLinks.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}

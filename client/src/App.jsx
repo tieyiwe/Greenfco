@@ -48,6 +48,9 @@ const NetworkPage = lazy(() => import('./pages/network/NetworkPage'));
 const VerifyTransaction = lazy(() => import('./pages/dashboard/VerifyTransaction'));
 const AdminTransactions = lazy(() => import('./pages/admin/AdminTransactions'));
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
+const AdminProjects = lazy(() => import('./pages/admin/AdminProjects'));
+const AdminActivity = lazy(() => import('./pages/admin/AdminActivity'));
+const AdminTeamChat = lazy(() => import('./pages/admin/AdminTeamChat'));
 
 // Auth bypass for testing — re-enable before production
 function ProtectedRoute({ children }) {
@@ -170,6 +173,9 @@ export default function App() {
             <Route path="consulting" element={<AdminConsulting />} />
             <Route path="transactions" element={<AdminTransactions />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="projects" element={<AdminProjects />} />
+            <Route path="activity" element={<AdminActivity />} />
+            <Route path="messages" element={<AdminTeamChat />} />
           </Route>
 
           {/* Catch all */}

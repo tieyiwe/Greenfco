@@ -6,10 +6,52 @@ const ADMIN_ROLES = {
   analyst:     { label: 'Analyst',     color: '#3B82F6' },
 };
 
+export const ALL_PERMISSIONS = [
+  { key: 'view_users',           label: 'Voir les utilisateurs',                  category: 'Users' },
+  { key: 'manage_users',         label: 'Gérer les utilisateurs (suspendre/supprimer)', category: 'Users' },
+  { key: 'view_listings',        label: 'Voir les annonces',                       category: 'Listings' },
+  { key: 'manage_listings',      label: 'Approuver/Retirer les annonces',          category: 'Listings' },
+  { key: 'view_transactions',    label: 'Voir les transactions',                   category: 'Transactions' },
+  { key: 'manage_transactions',  label: 'Modifier les transactions',               category: 'Transactions' },
+  { key: 'view_blog',            label: 'Voir le blog',                            category: 'Blog' },
+  { key: 'manage_blog',          label: 'Gérer les articles',                      category: 'Blog' },
+  { key: 'view_consulting',      label: 'Voir les consultations',                  category: 'Consulting' },
+  { key: 'manage_consulting',    label: 'Confirmer/Annuler les RDV',               category: 'Consulting' },
+  { key: 'view_projects',        label: 'Voir les projets',                        category: 'Projects' },
+  { key: 'manage_projects',      label: 'Créer/Modifier des projets',              category: 'Projects' },
+  { key: 'view_activity',        label: "Voir le journal d'activité",              category: 'Activity' },
+  { key: 'view_settings',        label: 'Accéder aux paramètres admin',            category: 'Settings' },
+  { key: 'manage_team',          label: "Gérer l'équipe et les rôles",             category: 'Settings' },
+];
+
+export const ROLE_BASE_PERMISSIONS = {
+  super_admin: ALL_PERMISSIONS.map(p => p.key),
+  manager: [
+    'view_users', 'manage_users',
+    'view_listings', 'manage_listings',
+    'view_transactions',
+    'view_blog', 'manage_blog',
+    'view_consulting', 'manage_consulting',
+    'view_projects', 'manage_projects',
+    'view_activity',
+  ],
+  analyst: [
+    'view_users',
+    'view_listings',
+    'view_transactions',
+    'view_blog',
+    'view_consulting',
+    'view_projects',
+    'view_activity',
+  ],
+};
+
+const PERM_CATEGORIES = ['Users', 'Listings', 'Transactions', 'Blog', 'Consulting', 'Projects', 'Activity', 'Settings'];
+
 const DEFAULT_COLLABORATORS = [
-  { id: '1', name: 'Aïssata Kaboré',  email: 'akabore@greenfco.com', role: 'manager', status: 'active',  invitedAt: '2026-01-15' },
-  { id: '2', name: 'Moussa Traoré',   email: 'mtraore@greenfco.com', role: 'analyst', status: 'active',  invitedAt: '2026-02-20' },
-  { id: '3', name: 'Fatou Diallo',    email: 'fdiallo@greenfco.com', role: 'analyst', status: 'pending', invitedAt: '2026-05-01' },
+  { id: '1', name: 'Aïssata Kaboré',  email: 'akabore@greenfco.com', role: 'manager', status: 'active',  invitedAt: '2026-01-15', customPermissions: null },
+  { id: '2', name: 'Moussa Traoré',   email: 'mtraore@greenfco.com', role: 'analyst', status: 'active',  invitedAt: '2026-02-20', customPermissions: null },
+  { id: '3', name: 'Fatou Diallo',    email: 'fdiallo@greenfco.com', role: 'analyst', status: 'pending', invitedAt: '2026-05-01', customPermissions: null },
 ];
 
 function getAdminUser() {
@@ -51,6 +93,9 @@ export default function AdminSettings() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole,  setInviteRole]  = useState('manager');
   const [inviteSuccess, setInviteSuccess] = useState(false);
+
+  // Permissions modal state
+  const [permModal, setPermModal] = useState(null);
 
   // Sync admin user from localStorage when component mounts
   useEffect(() => {
@@ -107,6 +152,7 @@ export default function AdminSettings() {
       role: inviteRole,
       status: 'pending',
       invitedAt: today(),
+      customPermissions: null,
     };
     const updated = [...collaborators, newCollab];
     saveCollaborators(updated);
@@ -201,6 +247,7 @@ export default function AdminSettings() {
               <tbody>
                 {collaborators.map((collab) => {
                   const cr = ADMIN_ROLES[collab.role] || ADMIN_ROLES.analyst;
+                  const hasCustomPerms = collab.customPermissions !== null && collab.customPermissions !== undefined;
                   return (
                     <tr key={collab.id}>
                       <td style={{ fontWeight: 500, color: '#1A1A14' }}>{collab.name}</td>
@@ -212,6 +259,9 @@ export default function AdminSettings() {
                         >
                           {cr.label}
                         </span>
+                        {hasCustomPerms && (
+                          <span className="perm-custom-tag">custom</span>
+                        )}
                       </td>
                       <td>
                         <span className={`collab-status-badge ${collab.status === 'active' ? 'status-active' : 'status-pending'}`}>
@@ -233,6 +283,13 @@ export default function AdminSettings() {
                               <option value="manager">Manager</option>
                               <option value="analyst">Analyst</option>
                             </select>
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => setPermModal(collab)}
+                              title="Gérer les permissions"
+                            >
+                              🔐
+                            </button>
                             <button
                               className="btn-revoke"
                               onClick={() => handleRevoke(collab.id)}
@@ -319,6 +376,75 @@ export default function AdminSettings() {
 
       {/* Toast notification */}
       {toast && <div className="admin-toast">{toast}</div>}
+
+      {/* ── Permissions Modal ── */}
+      {permModal && (
+        <div
+          className="modal-overlay"
+          onClick={e => { if (e.target === e.currentTarget) setPermModal(null); }}
+        >
+          <div className="perm-modal card">
+            <div className="perm-modal-header">
+              <h3>🔐 Permissions — {permModal.name}</h3>
+              <button onClick={() => setPermModal(null)}>✕</button>
+            </div>
+            <p className="perm-modal-role">
+              Rôle de base: <strong>{permModal.role}</strong> (permissions par défaut chargées)
+            </p>
+
+            {PERM_CATEGORIES.map(cat => (
+              <div key={cat} className="perm-category">
+                <h4 className="perm-cat-title">{cat}</h4>
+                {ALL_PERMISSIONS.filter(p => p.category === cat).map(perm => {
+                  const currentPerms = permModal.customPermissions ?? ROLE_BASE_PERMISSIONS[permModal.role] ?? [];
+                  const isChecked = currentPerms.includes(perm.key);
+                  const isBaseRole = (ROLE_BASE_PERMISSIONS[permModal.role] ?? []).includes(perm.key);
+                  return (
+                    <label key={perm.key} className="perm-checkbox-row">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={e => {
+                          const base = permModal.customPermissions ?? [...(ROLE_BASE_PERMISSIONS[permModal.role] ?? [])];
+                          const updated = e.target.checked
+                            ? [...base, perm.key]
+                            : base.filter(k => k !== perm.key);
+                          setPermModal(prev => ({ ...prev, customPermissions: updated }));
+                        }}
+                      />
+                      <span>{perm.label}</span>
+                      {isBaseRole && <span className="perm-base-tag">défaut</span>}
+                    </label>
+                  );
+                })}
+              </div>
+            ))}
+
+            <div className="perm-modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setPermModal(prev => ({ ...prev, customPermissions: null }))}
+              >
+                🔄 Réinitialiser aux défauts
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  const updated = collaborators.map(c =>
+                    c.id === permModal.id ? { ...c, customPermissions: permModal.customPermissions } : c
+                  );
+                  setCollaborators(updated);
+                  localStorage.setItem('greenfco_admin_collaborators', JSON.stringify(updated));
+                  showToast('Permissions enregistrées ! / Permissions saved!');
+                  setPermModal(null);
+                }}
+              >
+                💾 Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
