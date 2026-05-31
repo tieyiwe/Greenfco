@@ -1,13 +1,15 @@
 /* GreenFCO Design System — Organic Luxury + Native Mobile */
 
-/* Allow scrolling — do NOT set overflow on html or body (breaks iOS/WebKit) */
-html, body {
-  height: auto;
-  overflow: visible;
+/*
+ * overflow-x: clip on html clips horizontal overflow WITHOUT creating a scroll
+ * container (unlike overflow-x: hidden which forces overflow-y: auto and breaks
+ * page-level vertical scrolling). Never set overflow on body.
+ */
+html {
+  overflow-x: clip;
 }
-/* Clip horizontal overflow at the app wrapper level only */
+
 #root {
-  overflow-x: hidden;
   width: 100%;
 }
 
@@ -842,7 +844,7 @@ a, button { -webkit-tap-highlight-color: rgba(82, 183, 136, 0.15); }
   .container {
     padding: 0 1rem;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   .section {
