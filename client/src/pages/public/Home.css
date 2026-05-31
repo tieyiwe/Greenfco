@@ -5,7 +5,8 @@
   display: flex;
   align-items: center;
   overflow: hidden;
-  background: #0a1c10;
+  /* Solid fallback — always visible */
+  background: linear-gradient(160deg, #0a1f12 0%, #1a5a35 50%, #0f2a1a 100%);
 }
 
 .hero-bg {
@@ -14,27 +15,39 @@
   z-index: 0;
 }
 
-/* Farm photo — drop hero-farm.jpg into client/public/ to replace the gradient */
+/* Lush African farmland — CSS landscape, no external image needed */
 .hero-photo {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 120% 80% at 70% 60%, rgba(45,106,79,0.55) 0%, transparent 60%),
-    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(27,67,50,0.6) 0%, transparent 55%),
-    linear-gradient(170deg, #060e09 0%, #0d2416 25%, #14352a 45%, #1a4030 60%, #2d6a4f 80%, #3d8b67 100%);
-  background-size: cover;
+    /* Sunlit field, upper-right */
+    radial-gradient(ellipse 75% 55% at 88% 12%, rgba(90,175,60,0.45) 0%, transparent 58%),
+    /* Bright crop mid-zone */
+    radial-gradient(ellipse 110% 65% at 62% 58%, rgba(55,155,75,0.55) 0%, transparent 56%),
+    /* Deep tree line, lower-left */
+    radial-gradient(ellipse 65% 85% at 2% 65%, rgba(8,35,18,0.75) 0%, transparent 50%),
+    /* Base landscape gradient */
+    linear-gradient(165deg,
+      #060f08 0%,
+      #0d2218 18%,
+      #174530 38%,
+      #2a7a48 58%,
+      #3d9a62 73%,
+      #2d6a4f 85%,
+      #1a4530 100%
+    );
 }
 
-/* Dark gradient overlay so text stays readable */
+/* Text-readability scrim — left side only, right side opens up */
 .hero-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
-    105deg,
-    rgba(6,14,7,0.82) 0%,
-    rgba(15,35,24,0.72) 40%,
-    rgba(27,67,50,0.45) 70%,
-    rgba(27,67,50,0.15) 100%
+    100deg,
+    rgba(5,12,7,0.68) 0%,
+    rgba(8,20,12,0.50) 35%,
+    rgba(15,40,25,0.18) 62%,
+    transparent 100%
   );
 }
 
