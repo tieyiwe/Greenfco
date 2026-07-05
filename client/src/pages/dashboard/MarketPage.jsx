@@ -346,6 +346,13 @@ export default function MarketPage({ mode = 'marketplace' }) {
 
   // Listings
   const [listings, setListings]   = useState(DEMO_LISTINGS);
+
+  useEffect(() => {
+    api.get('/market')
+      .then(res => { if (res.data?.length > 0) setListings(res.data); })
+      .catch(() => {});
+  }, []);
+
   const [search, setSearch]       = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [sort, setSort]           = useState('newest');
@@ -1048,7 +1055,10 @@ export default function MarketPage({ mode = 'marketplace' }) {
                     </div>
                     <div className="my-listing-actions">
                       <button className="btn btn-secondary btn-sm" onClick={() => openChat(l)}>💬</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => setListings(p => p.filter(x => x.id !== l.id))}>🗑</button>
+                      <button className="btn btn-danger btn-sm" onClick={async () => {
+                        try { await api.delete(`/market/${l.id}`); } catch {}
+                        setListings(p => p.filter(x => x.id !== l.id));
+                      }}>🗑</button>
                     </div>
                   </div>
                 ))}

@@ -6,9 +6,10 @@ const store = {
   market: [],
   newsletter: [],
   contact: [],
+  consulting: [],
 };
 
-let ids = { users: 1, crops: 1, finance: 1, market: 1, newsletter: 1, contact: 1 };
+let ids = { users: 1, crops: 1, finance: 1, market: 1, newsletter: 1, contact: 1, consulting: 1 };
 
 export function getAll(table) {
   return store[table] || [];

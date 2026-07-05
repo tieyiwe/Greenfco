@@ -38,19 +38,14 @@ export default function AdminLayout() {
   const [adminUser, setAdminUser] = useState(() => {
     try {
       const stored = JSON.parse(localStorage.getItem('greenfco_admin_session'));
-      if (stored && stored.role) return stored;
-    } catch {
-      // fall through to default
-    }
-    // No valid session — create default super_admin session
-    const def = DEFAULT_ADMIN;
-    localStorage.setItem('greenfco_admin_session', JSON.stringify(def));
-    return def;
+      if (stored && stored.role && stored.verified) return stored;
+    } catch {}
+    return DEFAULT_ADMIN;
   });
 
   function handleLogout() {
-    localStorage.removeItem('user');
-    navigate('/');
+    localStorage.removeItem('greenfco_admin_session');
+    navigate('/admin/login');
   }
 
   function handleRoleSwitch(e) {

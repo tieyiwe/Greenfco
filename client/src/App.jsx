@@ -52,9 +52,23 @@ const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
 const AdminProjects = lazy(() => import('./pages/admin/AdminProjects'));
 const AdminActivity = lazy(() => import('./pages/admin/AdminActivity'));
 const AdminTeamChat = lazy(() => import('./pages/admin/AdminTeamChat'));
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
 
-// Auth bypass for testing — re-enable before production
 function ProtectedRoute({ children }) {
+  const { isAuthenticated } = useAuthStore();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const session = (() => {
+    try { return JSON.parse(localStorage.getItem('greenfco_admin_session')); } catch { return null; }
+  })();
+  if (!session?.verified) {
+    return <Navigate to="/admin/login" replace />;
+  }
   return children;
 }
 
@@ -166,7 +180,8 @@ export default function App() {
           </Route>
 
           {/* Admin */}
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="listings" element={<AdminListings />} />

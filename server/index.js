@@ -15,6 +15,7 @@ import aiRoutes from './routes/ai.js';
 import contactRoutes from './routes/contact.js';
 import newsletterRoutes from './routes/newsletter.js';
 import consultingRoutes from './routes/consulting.js';
+import adminAuthRoutes from './routes/adminAuth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -27,9 +28,10 @@ app.use(helmet({
 }));
 app.use(compression());
 
+const isDev = process.env.NODE_ENV !== 'production';
 const allowedOrigins = process.env.CLIENT_URL
   ? process.env.CLIENT_URL.split(',').map(s => s.trim())
-  : true;
+  : isDev ? true : false;
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: '10mb' })); // plant analyser sends base64 images
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -43,6 +45,7 @@ app.use('/api/ai',         aiRoutes);
 app.use('/api/contact',    contactRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/consulting', consultingRoutes);
+app.use('/api/admin',      adminAuthRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), env: process.env.NODE_ENV || 'development' });
 });

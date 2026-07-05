@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { insert, getAll, remove } from '../db/store.js';
+import { insert, getById, getAll, remove } from '../db/store.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
@@ -15,6 +15,9 @@ router.post('/', authMiddleware, (req, res) => {
 });
 
 router.delete('/:id', authMiddleware, (req, res) => {
+  const existing = getById('market', parseInt(req.params.id));
+  if (!existing) return res.status(404).json({ message: 'Not found' });
+  if (existing.user_id !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
   remove('market', parseInt(req.params.id));
   res.json({ success: true });
 });

@@ -1,9 +1,19 @@
 import { Router } from 'express';
 import Anthropic from '@anthropic-ai/sdk';
+import rateLimit from 'express-rate-limit';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 router.use(authMiddleware);
+
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { message: 'Trop de requêtes IA. Veuillez patienter une minute.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+router.use(aiLimiter);
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
