@@ -13,14 +13,14 @@ export default function AdminLogin() {
     setLoading(true);
     setError('');
     try {
-      await api.post('/admin/auth', { password });
-      const session = {
+      const res = await api.post('/admin/auth', { password });
+      localStorage.setItem('greenfco_admin_token', res.data.token);
+      localStorage.setItem('greenfco_admin_session', JSON.stringify({
         name: 'Admin GreenFCO',
         email: 'admin@greenfco.com',
         role: 'super_admin',
         verified: true,
-      };
-      localStorage.setItem('greenfco_admin_session', JSON.stringify(session));
+      }));
       navigate('/admin');
     } catch {
       setError('Mot de passe incorrect.');
@@ -35,23 +35,23 @@ export default function AdminLogin() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: '#f0f4f0',
+      background: 'linear-gradient(135deg, #0a1f12 0%, #1a5a35 100%)',
     }}>
       <div style={{
         background: 'white',
         padding: '2.5rem',
-        borderRadius: '12px',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+        borderRadius: '16px',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.25)',
         width: '100%',
-        maxWidth: '360px',
+        maxWidth: '380px',
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{ fontSize: '2.5rem' }}>🌿</div>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, marginTop: '0.75rem', color: '#1B4332' }}>
+          <h1 style={{ fontSize: '1.35rem', fontWeight: 700, marginTop: '0.75rem', color: '#1B4332', fontFamily: 'var(--font-display)' }}>
             GreenFCO Admin
           </h1>
           <p style={{ color: '#6c757d', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Accès restreint au personnel autorisé
+            Panneau d'administration — accès restreint
           </p>
         </div>
         <form onSubmit={handleSubmit}>
@@ -78,9 +78,12 @@ export default function AdminLogin() {
             style={{ width: '100%' }}
             disabled={loading}
           >
-            {loading ? 'Vérification...' : 'Accéder au panneau'}
+            {loading ? 'Vérification…' : 'Accéder au panneau'}
           </button>
         </form>
+        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.8rem', color: '#9ca3af' }}>
+          Mot de passe par défaut défini via la variable d'env <code>ADMIN_PASSWORD</code>
+        </p>
       </div>
     </div>
   );

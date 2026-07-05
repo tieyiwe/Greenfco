@@ -1,8 +1,10 @@
 import { Router } from 'express';
+import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
 
 const router = Router();
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'greenfco_admin_2024';
+const JWT_SECRET = process.env.JWT_SECRET || 'greenfco_secret_key_2024';
 
 if (!process.env.ADMIN_PASSWORD) {
   console.warn('⚠️  ADMIN_PASSWORD not set — using insecure default. Set ADMIN_PASSWORD in .env before production.');
@@ -21,7 +23,8 @@ router.post('/auth', adminAuthLimiter, (req, res) => {
   if (!password || password !== ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Mot de passe incorrect.' });
   }
-  res.json({ success: true });
+  const token = jwt.sign({ role: 'admin' }, JWT_SECRET, { expiresIn: '24h' });
+  res.json({ success: true, token });
 });
 
 export default router;

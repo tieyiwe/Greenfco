@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ALL_PERMISSIONS, ROLE_BASE_PERMISSIONS } from './adminPermissions';
+import adminClient from '../../api/adminClient';
 
 export { ALL_PERMISSIONS, ROLE_BASE_PERMISSIONS };
 
@@ -60,12 +61,33 @@ export default function AdminSettings() {
   // Permissions modal state
   const [permModal, setPermModal] = useState(null);
 
+  // Platform settings state
+  const [platformSettings, setPlatformSettings] = useState(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+
   // Sync admin user from localStorage when component mounts
   useEffect(() => {
     const user = getAdminUser();
     setAdminUser(user);
     setEditName(user.name || '');
+    // Load platform settings
+    adminClient.get('/settings')
+      .then(r => setPlatformSettings(r.data))
+      .catch(() => {});
   }, []);
+
+  async function handleSavePlatformSettings(e) {
+    e.preventDefault();
+    setSavingSettings(true);
+    try {
+      const res = await adminClient.put('/settings', platformSettings);
+      setPlatformSettings(res.data);
+      showToast('Paramètres plateforme enregistrés !');
+    } catch { showToast('Erreur lors de l\'enregistrement.'); }
+    finally { setSavingSettings(false); }
+  }
+
+  function setPlatField(k, v) { setPlatformSettings(prev => ({ ...prev, [k]: v })); }
 
   function showToast(msg) {
     setToast(msg);
@@ -317,6 +339,57 @@ export default function AdminSettings() {
           </div>
         )}
       </section>
+
+      {/* ── Section 3b: Platform Settings ── */}
+      {adminRole === 'super_admin' && (
+        <section className="settings-section">
+          <h2>Paramètres plateforme / Platform Settings</h2>
+          {platformSettings === null ? (
+            <p style={{ color: 'var(--gray-mid)', fontSize: '0.875rem' }}>Chargement…</p>
+          ) : (
+            <form onSubmit={handleSavePlatformSettings}>
+              <div className="settings-form">
+                <div>
+                  <label>Nom de la plateforme</label>
+                  <input type="text" value={platformSettings.platform_name || ''} onChange={e => setPlatField('platform_name', e.target.value)} />
+                </div>
+                <div>
+                  <label>Email support</label>
+                  <input type="email" value={platformSettings.support_email || ''} onChange={e => setPlatField('support_email', e.target.value)} />
+                </div>
+                <div>
+                  <label>WhatsApp</label>
+                  <input type="text" value={platformSettings.whatsapp || ''} onChange={e => setPlatField('whatsapp', e.target.value)} placeholder="+226 XX XX XX XX" />
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', margin: '1rem 0' }}>
+                {[
+                  { key: 'allow_new_registrations', label: 'Autoriser les nouvelles inscriptions' },
+                  { key: 'ai_features_enabled', label: 'Fonctionnalités IA activées' },
+                  { key: 'marketplace_enabled', label: 'Marketplace activée' },
+                  { key: 'network_enabled', label: 'Réseau professionnel activé' },
+                  { key: 'maintenance_mode', label: '⚠ Mode maintenance' },
+                ].map(({ key, label }) => (
+                  <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={!!platformSettings[key]}
+                      onChange={e => setPlatField(key, e.target.checked)}
+                      style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+              <div className="btn-row">
+                <button type="submit" className="btn btn-primary" disabled={savingSettings}>
+                  {savingSettings ? 'Enregistrement…' : '💾 Enregistrer les paramètres'}
+                </button>
+              </div>
+            </form>
+          )}
+        </section>
+      )}
 
       {/* ── Section 4: Danger Zone (super_admin only) ── */}
       {adminRole === 'super_admin' && (

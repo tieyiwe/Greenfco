@@ -30,6 +30,7 @@ const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'));
 const AdminListings = lazy(() => import('./pages/admin/AdminListings'));
 const AdminBlog = lazy(() => import('./pages/admin/AdminBlog'));
 const AdminConsulting = lazy(() => import('./pages/admin/AdminConsulting'));
+const AdminGallery = lazy(() => import('./pages/admin/AdminGallery'));
 
 // Dashboard (lazy-loaded for code splitting)
 const DashboardLayout = lazy(() => import('./pages/dashboard/DashboardLayout'));
@@ -187,6 +188,7 @@ export default function App() {
             <Route path="listings" element={<AdminListings />} />
             <Route path="blog" element={<AdminBlog />} />
             <Route path="consulting" element={<AdminConsulting />} />
+            <Route path="gallery" element={<AdminGallery />} />
             <Route path="transactions" element={<AdminTransactions />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="projects" element={<AdminProjects />} />

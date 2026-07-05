@@ -18,6 +18,7 @@ const NAV_LINKS = [
   { to: '/admin/transactions', icon: '🔗', label: 'Transactions',             permission: 'view_transactions' },
   { to: '/admin/blog',         icon: '📰', label: 'Blog',                     permission: 'view_blog' },
   { to: '/admin/consulting',   icon: '🗓️', label: 'Consulting',               permission: 'view_consulting' },
+  { to: '/admin/gallery',      icon: '🖼️', label: 'Galerie',                  permission: null },
   { to: '/admin/projects',     icon: '📋', label: 'Projets',                  permission: 'view_projects' },
   { to: '/admin/activity',     icon: '📜', label: 'Activité',                 permission: 'view_activity' },
   { to: '/admin/messages',     icon: '💬', label: 'Messages',                 permission: null },
@@ -45,6 +46,7 @@ export default function AdminLayout() {
 
   function handleLogout() {
     localStorage.removeItem('greenfco_admin_session');
+    localStorage.removeItem('greenfco_admin_token');
     navigate('/admin/login');
   }
 

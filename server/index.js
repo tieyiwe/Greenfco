@@ -16,6 +16,8 @@ import contactRoutes from './routes/contact.js';
 import newsletterRoutes from './routes/newsletter.js';
 import consultingRoutes from './routes/consulting.js';
 import adminAuthRoutes from './routes/adminAuth.js';
+import adminApiRoutes from './routes/adminApi.js';
+import { getAll } from './db/store.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -23,7 +25,7 @@ const PORT = process.env.PORT || 5000;
 const publicDir = path.join(__dirname, 'public');
 
 app.use(helmet({
-  contentSecurityPolicy: false, // disable CSP to allow Vite assets
+  contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
 }));
 app.use(compression());
@@ -33,19 +35,26 @@ const allowedOrigins = process.env.CLIENT_URL
   ? process.env.CLIENT_URL.split(',').map(s => s.trim())
   : isDev ? true : false;
 app.use(cors({ origin: allowedOrigins, credentials: true }));
-app.use(express.json({ limit: '10mb' })); // plant analyser sends base64 images
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // API routes
-app.use('/api/auth',       authRoutes);
-app.use('/api/crops',      cropsRoutes);
-app.use('/api/finance',    financeRoutes);
-app.use('/api/market',     marketRoutes);
-app.use('/api/ai',         aiRoutes);
-app.use('/api/contact',    contactRoutes);
-app.use('/api/newsletter', newsletterRoutes);
-app.use('/api/consulting', consultingRoutes);
-app.use('/api/admin',      adminAuthRoutes);
+app.use('/api/auth',        authRoutes);
+app.use('/api/crops',       cropsRoutes);
+app.use('/api/finance',     financeRoutes);
+app.use('/api/market',      marketRoutes);
+app.use('/api/ai',          aiRoutes);
+app.use('/api/contact',     contactRoutes);
+app.use('/api/newsletter',  newsletterRoutes);
+app.use('/api/consulting',  consultingRoutes);
+app.use('/api/admin',       adminAuthRoutes);
+app.use('/api/admin/data',  adminApiRoutes);
+
+// Public gallery endpoint (no auth required — used by public Gallery page)
+app.get('/api/gallery', (req, res) => {
+  res.json(getAll('gallery').reverse());
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), env: process.env.NODE_ENV || 'development' });
 });
