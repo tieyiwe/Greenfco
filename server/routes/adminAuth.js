@@ -2,7 +2,26 @@ import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import rateLimit from 'express-rate-limit';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { getAll, getOneWhere, insert, update, remove } from '../db/store.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const CREDS_FILE = path.join(__dirname, '..', 'data', 'admin_creds.json');
+
+// Read / write the git-tracked admin_creds.json which persists password hashes
+// across Replit deployments without requiring Secrets for every admin.
+function readAdminCreds() {
+  try { return JSON.parse(fs.readFileSync(CREDS_FILE, 'utf-8')); } catch { return {}; }
+}
+function writeAdminCreds(email, hash) {
+  const creds = readAdminCreds();
+  creds[email] = hash;
+  try { fs.writeFileSync(CREDS_FILE, JSON.stringify(creds, null, 2)); } catch (e) {
+    console.error('[Auth] Could not write admin_creds.json:', e.message);
+  }
+}
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'greenfco_secret_key_2024';
@@ -28,63 +47,70 @@ async function seedAdminUsers() {
   const superFromEnv  = !!process.env.ADMIN_SUPER_PASSWORD;
   const secondFromEnv = !!process.env.ADMIN_SECOND_PASSWORD;
 
-  const existing  = getAll('admin_users');
+  const creds = readAdminCreds(); // hashes persisted to git across deploys
+  const existing   = getAll('admin_users');
   const superAdmin = existing.find(u => u.email === superEmail);
 
+  // ── Super Admin ──
   if (!superAdmin) {
-    const hash = await bcrypt.hash(superPassword, 10);
+    // Priority: env var > creds file > temp password
+    const persistedHash = !superFromEnv && creds[superEmail];
+    const hash = persistedHash || await bcrypt.hash(superPassword, 10);
     insert('admin_users', {
       email: superEmail,
       name: 'Super Admin',
       role: 'super_admin',
       password_hash: hash,
-      must_change_password: !superFromEnv,
+      must_change_password: !superFromEnv && !persistedHash,
       active: true,
     });
-    console.log(`[Admin] Created super admin: ${superEmail}${superFromEnv ? ' (password from env)' : ` — temp: ${superPassword}`}`);
+    const src = superFromEnv ? 'env var' : persistedHash ? 'saved credentials' : `temp: ${superPassword}`;
+    console.log(`[Admin] Created super admin: ${superEmail} — ${src}`);
   } else if (superFromEnv) {
-    // Env var is set — sync stored password to env var so it survives deploys.
-    // Only rehash if it doesn't already match (avoids bcrypt overhead on every boot).
+    // Env var takes precedence — sync if hash differs
     const match = await bcrypt.compare(superPassword, superAdmin.password_hash);
     if (!match) {
       const hash = await bcrypt.hash(superPassword, 10);
-      update('admin_users', superAdmin.id, {
-        password_hash: hash,
-        must_change_password: false,
-        password_changed_at: new Date().toISOString(),
-      });
-      console.log(`[Admin] Synced super admin password from ADMIN_SUPER_PASSWORD env var`);
+      update('admin_users', superAdmin.id, { password_hash: hash, must_change_password: false, password_changed_at: new Date().toISOString() });
+      console.log(`[Admin] Synced super admin password from ADMIN_SUPER_PASSWORD`);
     }
+  } else if (!superFromEnv && creds[superEmail] && superAdmin.must_change_password) {
+    // Creds file has a saved hash from a previous session — restore it
+    update('admin_users', superAdmin.id, { password_hash: creds[superEmail], must_change_password: false });
+    console.log(`[Admin] Restored super admin password from admin_creds.json`);
   }
-  // NOTE: No migration branch — we never reset a password that was already set.
+  // NOTE: No migration branch that resets passwords.
 
-  // Remove old email if it exists (migration from previous email)
+  // Remove old email if it exists
   const oldEntry = existing.find(u => u.email === 'dipamawenmanelie@gmail.com');
   if (oldEntry) remove('admin_users', oldEntry.id);
 
+  // ── Second Admin ──
   const secondAdmin = existing.find(u => u.email === secondEmail);
   if (!secondAdmin) {
-    const hash = await bcrypt.hash(secondPassword, 10);
+    const persistedHash = !secondFromEnv && creds[secondEmail];
+    const hash = persistedHash || await bcrypt.hash(secondPassword, 10);
     insert('admin_users', {
       email: secondEmail,
       name: 'Wenmane',
       role: 'manager',
       password_hash: hash,
-      must_change_password: !secondFromEnv,
+      must_change_password: !secondFromEnv && !persistedHash,
       active: true,
     });
-    console.log(`[Admin] Created admin account: ${secondEmail}${secondFromEnv ? ' (password from env)' : ` — temp: ${secondPassword}`}`);
+    const src = secondFromEnv ? 'env var' : persistedHash ? 'saved credentials' : `temp: ${secondPassword}`;
+    console.log(`[Admin] Created admin account: ${secondEmail} — ${src}`);
   } else if (secondFromEnv) {
     const match = await bcrypt.compare(secondPassword, secondAdmin.password_hash);
     if (!match) {
       const hash = await bcrypt.hash(secondPassword, 10);
-      update('admin_users', secondAdmin.id, {
-        password_hash: hash,
-        must_change_password: false,
-        password_changed_at: new Date().toISOString(),
-      });
-      console.log(`[Admin] Synced second admin password from ADMIN_SECOND_PASSWORD env var`);
+      update('admin_users', secondAdmin.id, { password_hash: hash, must_change_password: false, password_changed_at: new Date().toISOString() });
+      console.log(`[Admin] Synced second admin password from ADMIN_SECOND_PASSWORD`);
     }
+  } else if (!secondFromEnv && creds[secondEmail] && secondAdmin.must_change_password) {
+    // Restore from creds file
+    update('admin_users', secondAdmin.id, { password_hash: creds[secondEmail], must_change_password: false });
+    console.log(`[Admin] Restored second admin password from admin_creds.json`);
   }
 }
 
@@ -174,6 +200,8 @@ router.post('/auth/change-password', adminAuthLimiter, async (req, res) => {
       must_change_password: false,
       password_changed_at: new Date().toISOString(),
     });
+    // Persist hash to git-tracked file so it survives deploys without needing Secrets
+    writeAdminCreds(adminUser.email, newHash);
 
     // Sync user account so admin can log into the user dashboard with the same password
     const existingUser = getOneWhere('users', 'email', adminUser.email);

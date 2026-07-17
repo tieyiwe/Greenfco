@@ -30,7 +30,7 @@ import newsletterRoutes from './routes/newsletter.js';
 import consultingRoutes from './routes/consulting.js';
 import adminAuthRoutes from './routes/adminAuth.js';
 import adminApiRoutes from './routes/adminApi.js';
-import { getAll } from './db/store.js';
+import { getAll, initPersistence } from './db/store.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -120,10 +120,21 @@ if (fs.existsSync(publicDir)) {
   app.get('/', (_, res) => res.send('GreenFCO API is running. Frontend not built yet.'));
 }
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🌿 GreenFCO Server on port ${PORT}`);
-  console.log(`   Frontend dir : ${publicDir}`);
-  console.log(`   index.html   : ${fs.existsSync(path.join(publicDir, 'index.html')) ? '✅ found' : '❌ MISSING — run: cd client && npm install && npm run build'}`);
+// Load persisted data (Replit DB or local file) before accepting requests
+initPersistence().then(() => {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🌿 GreenFCO Server on port ${PORT}`);
+    console.log(`   Frontend dir : ${publicDir}`);
+    console.log(`   index.html   : ${fs.existsSync(path.join(publicDir, 'index.html')) ? '✅ found' : '❌ MISSING — run: cd client && npm install && npm run build'}`);
+    if (process.env.REPLIT_DB_URL) {
+      console.log('   Persistence  : ✅ Replit Database (survives deployments)');
+    } else {
+      console.log('   Persistence  : ⚠️  Local db.json only (set REPLIT_DB_URL for deploy persistence)');
+    }
+  });
+}).catch(err => {
+  console.error('[Server] Failed to initialise persistence:', err.message);
+  process.exit(1);
 });
 
 process.on('SIGTERM', () => {
