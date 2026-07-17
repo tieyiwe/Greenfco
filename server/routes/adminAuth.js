@@ -5,12 +5,10 @@ import rateLimit from 'express-rate-limit';
 import { getAll, getOneWhere, insert, update, remove } from '../db/store.js';
 
 const router = Router();
-const JWT_SECRET     = process.env.JWT_SECRET     || 'greenfco_secret_key_2024';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD  || 'greenfco_admin_2024';
+const JWT_SECRET = process.env.JWT_SECRET || 'greenfco_secret_key_2024';
 
-if (!process.env.ADMIN_PASSWORD) {
-  console.warn('⚠️  ADMIN_PASSWORD not set — using insecure default.');
-}
+const SUPER_TEMP_PASS  = 'GreenFCO@Super24';
+const SECOND_TEMP_PASS = 'GreenFCO@Admin24';
 
 // ── Seed admin users on first start ───────────────────────────
 let seeded = false;
@@ -20,21 +18,26 @@ async function seedAdminUsers() {
 
   const superEmail  = 'tieyiwebass@gmail.com';
   const secondEmail = 'wenmaneg20@gmail.com';
-  const TEMP_PASS   = 'GreenFCO@Admin24';
 
   const existing = getAll('admin_users');
+  const superAdmin = existing.find(u => u.email === superEmail);
 
-  if (!existing.find(u => u.email === superEmail)) {
-    const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+  if (!superAdmin) {
+    const hash = await bcrypt.hash(SUPER_TEMP_PASS, 10);
     insert('admin_users', {
       email: superEmail,
       name: 'Super Admin',
       role: 'super_admin',
       password_hash: hash,
-      must_change_password: false,
+      must_change_password: true,
       active: true,
     });
-    console.log('[Admin] Created super admin:', superEmail);
+    console.log(`[Admin] Created super admin: ${superEmail} — temp password: ${SUPER_TEMP_PASS}`);
+  } else if (!superAdmin.must_change_password && !superAdmin.password_changed_at) {
+    // Migrate old seed: was created without temp-password requirement
+    const hash = await bcrypt.hash(SUPER_TEMP_PASS, 10);
+    update('admin_users', superAdmin.id, { password_hash: hash, must_change_password: true });
+    console.log(`[Admin] Migrated super admin to require password change — temp: ${SUPER_TEMP_PASS}`);
   }
 
   // Remove old email if it exists (migration)
@@ -42,7 +45,7 @@ async function seedAdminUsers() {
   if (oldEntry) remove('admin_users', oldEntry.id);
 
   if (!existing.find(u => u.email === secondEmail)) {
-    const hash = await bcrypt.hash(TEMP_PASS, 10);
+    const hash = await bcrypt.hash(SECOND_TEMP_PASS, 10);
     insert('admin_users', {
       email: secondEmail,
       name: 'Wenmane',
@@ -51,7 +54,7 @@ async function seedAdminUsers() {
       must_change_password: true,
       active: true,
     });
-    console.log('[Admin] Created admin account:', secondEmail, '(temp password)');
+    console.log(`[Admin] Created admin account: ${secondEmail} — temp password: ${SECOND_TEMP_PASS}`);
   }
 }
 
@@ -124,7 +127,11 @@ router.post('/auth/change-password', adminAuthLimiter, async (req, res) => {
   if (!valid) return res.status(401).json({ error: 'Mot de passe actuel incorrect.' });
 
   const newHash = await bcrypt.hash(new_password, 10);
-  update('admin_users', adminUser.id, { password_hash: newHash, must_change_password: false });
+  update('admin_users', adminUser.id, {
+    password_hash: newHash,
+    must_change_password: false,
+    password_changed_at: new Date().toISOString(),
+  });
 
   const token = jwt.sign(
     { role: 'admin', adminRole: adminUser.role, email: adminUser.email, adminId: adminUser.id },
