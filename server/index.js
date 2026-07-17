@@ -30,7 +30,7 @@ import newsletterRoutes from './routes/newsletter.js';
 import consultingRoutes from './routes/consulting.js';
 import adminAuthRoutes from './routes/adminAuth.js';
 import adminApiRoutes from './routes/adminApi.js';
-import { getAll } from './db/store.js';
+import { getAll, initPersistence } from './db/store.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -38,7 +38,19 @@ const PORT = process.env.PORT || 3001;
 const publicDir = path.join(__dirname, 'public');
 
 app.use(helmet({
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https:"],
+      fontSrc: ["'self'", "data:"],
+      frameAncestors: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+    },
+  },
   crossOriginEmbedderPolicy: false,
 }));
 app.use(compression());
@@ -48,8 +60,8 @@ const allowedOrigins = process.env.CLIENT_URL
   ? process.env.CLIENT_URL.split(',').map(s => s.trim())
   : isDev ? true : false;
 app.use(cors({ origin: allowedOrigins, credentials: true }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // ── Request logger ────────────────────────────────────────────
 app.use((req, _res, next) => {
@@ -68,7 +80,7 @@ app.use('/api/auth',        authRoutes);
 app.use('/api/crops',       cropsRoutes);
 app.use('/api/finance',     financeRoutes);
 app.use('/api/market',      marketRoutes);
-app.use('/api/ai',          aiRoutes);
+app.use('/api/ai', express.json({ limit: '8mb' }), aiRoutes);
 app.use('/api/contact',     contactRoutes);
 app.use('/api/newsletter',  newsletterRoutes);
 app.use('/api/consulting',  consultingRoutes);
@@ -108,10 +120,21 @@ if (fs.existsSync(publicDir)) {
   app.get('/', (_, res) => res.send('GreenFCO API is running. Frontend not built yet.'));
 }
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🌿 GreenFCO Server on port ${PORT}`);
-  console.log(`   Frontend dir : ${publicDir}`);
-  console.log(`   index.html   : ${fs.existsSync(path.join(publicDir, 'index.html')) ? '✅ found' : '❌ MISSING — run: cd client && npm install && npm run build'}`);
+// Load persisted data (Replit DB or local file) before accepting requests
+initPersistence().then(() => {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🌿 GreenFCO Server on port ${PORT}`);
+    console.log(`   Frontend dir : ${publicDir}`);
+    console.log(`   index.html   : ${fs.existsSync(path.join(publicDir, 'index.html')) ? '✅ found' : '❌ MISSING — run: cd client && npm install && npm run build'}`);
+    if (process.env.REPLIT_DB_URL) {
+      console.log('   Persistence  : ✅ Replit Database (survives deployments)');
+    } else {
+      console.log('   Persistence  : ⚠️  Local db.json only (set REPLIT_DB_URL for deploy persistence)');
+    }
+  });
+}).catch(err => {
+  console.error('[Server] Failed to initialise persistence:', err.message);
+  process.exit(1);
 });
 
 process.on('SIGTERM', () => {
