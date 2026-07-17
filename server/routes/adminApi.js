@@ -232,8 +232,23 @@ router.delete('/collaborators/:id', (req, res) => {
 // ── Switch to user ────────────────────────────────────────────
 router.post('/switch-to-user', (req, res) => {
   const JWT_SECRET_KEY = process.env.JWT_SECRET || 'greenfco_secret_key_2024';
-  const user = getOneWhere('users', 'email', req.adminUser.email);
-  if (!user) return res.status(404).json({ error: 'No user account found. Set your admin password first so a user account is created.' });
+  let user = getOneWhere('users', 'email', req.adminUser.email);
+
+  if (!user) {
+    // Auto-create a linked user account from the admin record
+    const adminRecord = getOneWhere('admin_users', 'email', req.adminUser.email);
+    user = insert('users', {
+      name: adminRecord?.name || req.adminUser.email.split('@')[0],
+      email: req.adminUser.email,
+      password_hash: adminRecord?.password_hash || '',
+      user_type: 'expert',
+      language: 'fr',
+      country: '',
+      status: 'active',
+      is_admin: true,
+    });
+  }
+
   const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET_KEY, { expiresIn: '7d' });
   const { password_hash, ...safe } = user;
   res.json({ token, user: safe });
