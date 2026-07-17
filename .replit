@@ -1,4 +1,4 @@
-run = "npm install && npm run dev"
+run = "cd server && npm install && node index.js"
 
 [nix]
 channel = "stable-24_05"
