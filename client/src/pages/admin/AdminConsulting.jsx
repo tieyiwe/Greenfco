@@ -125,8 +125,8 @@ export default function AdminConsulting() {
                         <td style={s.td}>{item.phone || '—'}</td>
                         <td style={s.td}>{item.service || item.subject || '—'}</td>
                         <td style={{ ...s.td, fontSize: '0.8rem' }}>
-                          {item.preferred_date ? new Date(item.preferred_date).toLocaleDateString('fr-FR') : '—'}
-                          {item.preferred_time ? ` ${item.preferred_time}` : ''}
+                          {(item.preferred_date || item.date) ? new Date(item.preferred_date || item.date).toLocaleDateString('fr-FR') : '—'}
+                          {(item.preferred_time || item.time) ? ` ${item.preferred_time || item.time}` : ''}
                         </td>
                         <td style={{ ...s.td, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.8rem', color: 'var(--gray-mid)' }}>
                           {item.message || '—'}
@@ -173,7 +173,7 @@ export default function AdminConsulting() {
                 <>
                   <div key={`t-${hour}`} style={{ fontSize: '0.7rem', color: 'var(--gray-mid)', padding: '0.4rem 0.5rem', textAlign: 'right', borderBottom: '1px solid #f5f5f0', borderRight: '1px solid var(--gray-light)', lineHeight: 1 }}>{hour}</div>
                   {days.map(d => {
-                    const appts = consulting.filter(c => c.preferred_date === d.dateStr && (c.preferred_time || '').startsWith(hour.slice(0, 2)));
+                    const appts = consulting.filter(c => (c.preferred_date || c.date) === d.dateStr && (c.preferred_time || c.time || '').startsWith(hour.slice(0, 2)));
                     return (
                       <div key={`c-${hour}-${d.dateStr}`} style={{ borderBottom: '1px solid #f5f5f0', borderRight: '1px solid #f0f0ed', minHeight: '38px', padding: '2px' }}>
                         {appts.map(a => (

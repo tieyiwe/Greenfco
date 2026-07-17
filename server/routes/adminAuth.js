@@ -90,7 +90,7 @@ router.post('/auth', adminAuthLimiter, async (req, res) => {
   if (!valid) return res.status(401).json({ error: 'Identifiants incorrects.' });
 
   const token = jwt.sign(
-    { role: adminUser.role === 'super_admin' ? 'admin' : adminUser.role, email: adminUser.email, adminId: adminUser.id },
+    { role: 'admin', adminRole: adminUser.role, email: adminUser.email, adminId: adminUser.id },
     JWT_SECRET,
     { expiresIn: '24h' }
   );
@@ -127,7 +127,7 @@ router.post('/auth/change-password', adminAuthLimiter, async (req, res) => {
   update('admin_users', adminUser.id, { password_hash: newHash, must_change_password: false });
 
   const token = jwt.sign(
-    { role: adminUser.role === 'super_admin' ? 'admin' : adminUser.role, email: adminUser.email, adminId: adminUser.id },
+    { role: 'admin', adminRole: adminUser.role, email: adminUser.email, adminId: adminUser.id },
     JWT_SECRET,
     { expiresIn: '24h' }
   );

@@ -8,7 +8,7 @@ router.post('/', (req, res) => {
   if (!name || !email || !service || !date) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
-  insert('consulting', { name, email, phone, service, date, time, message, language, country });
+  insert('consulting', { name, email, phone, service, preferred_date: date, preferred_time: time, message, language, country });
   res.json({ success: true, message: 'Appointment request received' });
 });
 
