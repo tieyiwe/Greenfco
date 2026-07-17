@@ -1,53 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import adminClient from '../../api/adminClient';
 
 // ─── logActivity helper (exported for use by other admin pages) ──────────────
 export function logActivity(type, actor, action, target, severity = 'info') {
-  try {
-    const existing = JSON.parse(localStorage.getItem('greenfco_activity_log')) || [];
-    const entry = {
-      id: crypto.randomUUID(),
-      type,
-      actor,
-      action,
-      target,
-      createdAt: new Date().toISOString(),
-      severity,
-    };
-    localStorage.setItem('greenfco_activity_log', JSON.stringify([entry, ...existing]));
-  } catch {}
+  adminClient.post('/activity', { type, actor, action, target, severity }).catch(() => {});
 }
 
-// ─── Default 20 activity entries ────────────────────────────────────────────
-const DEFAULT_ACTIVITY = [
-  { id: 'a1',  type: 'project',     actor: 'Admin GreenFCO',   action: 'a créé le projet',             target: 'Lancement GreenFCO v2',          createdAt: '2026-05-28T08:00:00Z', severity: 'info' },
-  { id: 'a2',  type: 'user_action', actor: 'Système',           action: 'a enregistré un nouvel utilisateur', target: 'Amadou Traoré (Agriculteur)',   createdAt: '2026-05-28T08:15:00Z', severity: 'success' },
-  { id: 'a3',  type: 'listing',     actor: 'Aïssata Kaboré',   action: 'a approuvé une annonce',       target: 'Tomates fraîches #224 — Ouagadougou', createdAt: '2026-05-28T09:00:00Z', severity: 'success' },
-  { id: 'a4',  type: 'consulting',  actor: 'Moussa Traoré',    action: 'a confirmé une demande de conseil', target: 'Fatima Diallo — Irrigation avancée', createdAt: '2026-05-28T09:30:00Z', severity: 'success' },
-  { id: 'a5',  type: 'transaction', actor: 'Système',           action: 'a traité une transaction',     target: 'TXN-20260528-0042 — 85 000 FCFA', createdAt: '2026-05-28T10:00:00Z', severity: 'success' },
-  { id: 'a6',  type: 'user_action', actor: 'Admin GreenFCO',   action: 'a suspendu un compte',         target: 'Marie Koné (Acheteur)',           createdAt: '2026-05-28T10:20:00Z', severity: 'warning' },
-  { id: 'a7',  type: 'user_action', actor: 'Aïssata Kaboré',   action: 'a invité un collaborateur',    target: 'souleymane.barry@greenfco.com',   createdAt: '2026-05-28T10:45:00Z', severity: 'info' },
-  { id: 'a8',  type: 'listing',     actor: 'Moussa Traoré',    action: 'a rejeté une annonce',         target: 'Engrais non certifié #115 — Bobo', createdAt: '2026-05-28T11:00:00Z', severity: 'error' },
-  { id: 'a9',  type: 'project',     actor: 'Aïssata Kaboré',   action: 'a mis à jour le statut du projet', target: 'Formation équipe terrain → Actif', createdAt: '2026-05-28T11:30:00Z', severity: 'info' },
-  { id: 'a10', type: 'system',      actor: 'Système',           action: 'a effectué une sauvegarde automatique', target: 'Base de données — 09:00 UTC',  createdAt: '2026-05-28T11:45:00Z', severity: 'info' },
-  { id: 'a11', type: 'transaction', actor: 'Système',           action: 'a signalé un paiement échoué', target: 'TXN-20260527-0039 — Kofi Mensah', createdAt: '2026-05-27T16:00:00Z', severity: 'error' },
-  { id: 'a12', type: 'user_action', actor: 'Système',           action: 'a enregistré un nouvel utilisateur', target: 'Seydou Ouédraogo (Acheteur)',  createdAt: '2026-05-27T14:20:00Z', severity: 'success' },
-  { id: 'a13', type: 'listing',     actor: 'Admin GreenFCO',   action: 'a approuvé une annonce',       target: 'Sésame bio 50kg #220 — Koudougou',createdAt: '2026-05-27T13:00:00Z', severity: 'success' },
-  { id: 'a14', type: 'consulting',  actor: 'Aïssata Kaboré',   action: 'a annulé une demande de conseil', target: 'Ibrahim Coulibaly — Maraîchage', createdAt: '2026-05-27T11:15:00Z', severity: 'warning' },
-  { id: 'a15', type: 'project',     actor: 'Moussa Traoré',    action: 'a ajouté une tâche au projet', target: 'Campagne Marketplace Q2 — Contacter coopératives', createdAt: '2026-05-27T10:00:00Z', severity: 'info' },
-  { id: 'a16', type: 'system',      actor: 'Système',           action: 'a détecté une activité suspecte', target: 'Tentatives de connexion multiples — IP 41.82.x.x', createdAt: '2026-05-27T03:00:00Z', severity: 'error' },
-  { id: 'a17', type: 'user_action', actor: 'Admin GreenFCO',   action: 'a modifié le rôle d\'un collaborateur', target: 'Moussa Traoré → Analyst',   createdAt: '2026-05-26T15:30:00Z', severity: 'info' },
-  { id: 'a18', type: 'transaction', actor: 'Système',           action: 'a validé une transaction',     target: 'TXN-20260526-0031 — 120 000 FCFA',createdAt: '2026-05-26T12:00:00Z', severity: 'success' },
-  { id: 'a19', type: 'listing',     actor: 'Aïssata Kaboré',   action: 'a mis en avant une annonce',   target: 'Ignames fraîches #198 — Gaoua',   createdAt: '2026-05-26T09:45:00Z', severity: 'info' },
-  { id: 'a20', type: 'project',     actor: 'Admin GreenFCO',   action: 'a créé le projet',             target: 'Campagne Marketplace Q2',         createdAt: '2026-05-25T08:00:00Z', severity: 'info' },
-];
-
-function loadActivity() {
-  try {
-    const stored = JSON.parse(localStorage.getItem('greenfco_activity_log'));
-    if (Array.isArray(stored) && stored.length > 0) return stored;
-  } catch {}
-  return DEFAULT_ACTIVITY;
+export function getAdminName() {
+  try { return JSON.parse(localStorage.getItem('greenfco_admin_session'))?.name || 'Admin'; } catch { return 'Admin'; }
 }
+
 
 const TYPE_ICONS = {
   user_action: '👤',
@@ -108,10 +70,18 @@ function exportCSV(entries) {
 }
 
 export default function AdminActivity() {
-  const [log] = useState(loadActivity);
+  const [log, setLog] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('all');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    adminClient.get('/activity')
+      .then(r => setLog(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setLog([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = log.filter((entry) => {
     if (typeFilter !== 'all' && entry.type !== typeFilter) return false;
@@ -219,10 +189,12 @@ export default function AdminActivity() {
 
       {/* Timeline */}
       <div style={{ background: 'white', border: '1px solid var(--gray-light)', borderRadius: '10px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--gray-mid)' }}>Chargement…</div>
+        ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--gray-mid)' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🔍</div>
-            <p>Aucune entrée correspondant aux filtres.</p>
+            <p>{log.length === 0 ? 'Aucune activité enregistrée.' : 'Aucune entrée correspondant aux filtres.'}</p>
           </div>
         ) : (
           filtered.map((entry, idx) => {
@@ -253,7 +225,7 @@ export default function AdminActivity() {
                     <span style={{ color: '#6B7280', fontStyle: 'italic' }}>{entry.target}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.2rem' }}>
-                    <span style={{ fontSize: '0.72rem', color: '#9CA3AF' }}>{formatDateTime(entry.createdAt)}</span>
+                    <span style={{ fontSize: '0.72rem', color: '#9CA3AF' }}>{formatDateTime(entry.created_at || entry.createdAt)}</span>
                     <span style={{ fontSize: '0.65rem', color: '#9CA3AF' }}>·</span>
                     <span style={{ fontSize: '0.68rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{TYPE_LABELS[entry.type]}</span>
                   </div>

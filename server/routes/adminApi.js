@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
-import { getAll, getById, insert, update, remove } from '../db/store.js';
+import { getAll, getById, getOneWhere, insert, update, remove } from '../db/store.js';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'greenfco_secret_key_2024';
@@ -37,10 +37,13 @@ router.get('/stats', (req, res) => {
   const finance = getAll('finance');
   const collaborators = getAll('collaborators');
 
+  const access_requests = getAll('access_requests');
+  const projects = getAll('projects');
   res.json({
     users: users.length,
     listings: listings.length,
     active_listings: listings.filter(l => l.active !== false).length,
+    flagged_listings: listings.filter(l => l.flagged).length,
     crops: crops.length,
     finance: finance.length,
     consulting: consulting.length,
@@ -50,6 +53,8 @@ router.get('/stats', (req, res) => {
     unread_contacts: contacts.filter(c => !c.read).length,
     gallery: gallery.length,
     collaborators: collaborators.length,
+    projects: projects.length,
+    pending_access_requests: access_requests.filter(r => r.status === 'pending').length,
   });
 });
 
@@ -221,6 +226,154 @@ router.delete('/collaborators/:id', (req, res) => {
   if (!id) return res.status(400).json({ error: 'Invalid id' });
   if (!getById('collaborators', id)) return res.status(404).json({ error: 'Not found' });
   remove('collaborators', id);
+  res.json({ success: true });
+});
+
+// ── Switch to user ────────────────────────────────────────────
+router.post('/switch-to-user', (req, res) => {
+  const JWT_SECRET_KEY = process.env.JWT_SECRET || 'greenfco_secret_key_2024';
+  const user = getOneWhere('users', 'email', req.adminUser.email);
+  if (!user) return res.status(404).json({ error: 'No user account found. Set your admin password first so a user account is created.' });
+  const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET_KEY, { expiresIn: '7d' });
+  const { password_hash, ...safe } = user;
+  res.json({ token, user: safe });
+});
+
+// ── Admin users (super_admin only) ────────────────────────────
+router.get('/admin-users', (req, res) => {
+  if (req.adminUser.adminRole !== 'super_admin') return res.status(403).json({ error: 'Super admin only' });
+  const users = getAll('admin_users').map(({ password_hash, ...u }) => u);
+  res.json(users.reverse());
+});
+
+router.put('/admin-users/:id', (req, res) => {
+  if (req.adminUser.adminRole !== 'super_admin') return res.status(403).json({ error: 'Super admin only' });
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const result = update('admin_users', id, req.body);
+  if (!result) return res.status(404).json({ error: 'Not found' });
+  const { password_hash, ...safe } = result;
+  res.json(safe);
+});
+
+// ── Access requests ───────────────────────────────────────────
+router.get('/access-requests', (req, res) => {
+  res.json(getAll('access_requests').reverse());
+});
+
+router.post('/access-requests', (req, res) => {
+  const { feature, reason } = req.body;
+  if (!feature) return res.status(400).json({ error: 'feature required' });
+  const entry = insert('access_requests', {
+    feature,
+    reason: reason || '',
+    requester_email: req.adminUser.email,
+    requester_name: req.adminUser.name || req.adminUser.email,
+    status: 'pending',
+  });
+  res.status(201).json(entry);
+});
+
+router.put('/access-requests/:id', (req, res) => {
+  if (req.adminUser.adminRole !== 'super_admin') return res.status(403).json({ error: 'Super admin only' });
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const result = update('access_requests', id, req.body);
+  if (!result) return res.status(404).json({ error: 'Not found' });
+  res.json(result);
+});
+
+router.delete('/access-requests/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('access_requests', id)) return res.status(404).json({ error: 'Not found' });
+  remove('access_requests', id);
+  res.json({ success: true });
+});
+
+// ── Projects ──────────────────────────────────────────────────
+router.get('/projects', (req, res) => {
+  res.json(getAll('projects').reverse());
+});
+
+router.post('/projects', (req, res) => {
+  const { title } = req.body;
+  if (!title) return res.status(400).json({ error: 'title required' });
+  const project = insert('projects', { ...req.body, created_by: req.adminUser.email });
+  res.status(201).json(project);
+});
+
+router.put('/projects/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const result = update('projects', id, req.body);
+  if (!result) return res.status(404).json({ error: 'Not found' });
+  res.json(result);
+});
+
+router.delete('/projects/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('projects', id)) return res.status(404).json({ error: 'Not found' });
+  remove('projects', id);
+  res.json({ success: true });
+});
+
+// ── Team Chat: Channels & Messages ────────────────────────────
+router.get('/channels', (req, res) => {
+  const channels = getAll('channels');
+  if (channels.length === 0) {
+    const general = insert('channels', { name: 'Général', description: 'Canal principal', created_by: 'system' });
+    const annonces = insert('channels', { name: 'Annonces', description: 'Annonces officielles', created_by: 'system' });
+    return res.json([general, annonces]);
+  }
+  res.json(channels);
+});
+
+router.post('/channels', (req, res) => {
+  const { name, description } = req.body;
+  if (!name?.trim()) return res.status(400).json({ error: 'name required' });
+  const existing = getAll('channels').find(c => c.name.toLowerCase() === name.trim().toLowerCase());
+  if (existing) return res.status(409).json({ error: 'Channel already exists' });
+  const channel = insert('channels', { name: name.trim(), description: description || '', created_by: req.adminUser.email });
+  res.status(201).json(channel);
+});
+
+router.delete('/channels/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('channels', id)) return res.status(404).json({ error: 'Not found' });
+  remove('channels', id);
+  res.json({ success: true });
+});
+
+router.get('/channels/:id/messages', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const messages = getAll('team_messages').filter(m => m.channel_id === id);
+  res.json(messages.slice(-100));
+});
+
+router.post('/channels/:id/messages', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const { text } = req.body;
+  if (!text?.trim()) return res.status(400).json({ error: 'text required' });
+  const msg = insert('team_messages', {
+    channel_id: id,
+    text: text.trim(),
+    sender_name: req.adminUser.name || req.adminUser.email,
+    sender_email: req.adminUser.email,
+  });
+  res.status(201).json(msg);
+});
+
+router.delete('/channels/:channelId/messages/:msgId', (req, res) => {
+  if (req.adminUser.adminRole !== 'super_admin') return res.status(403).json({ error: 'Super admin only' });
+  const msgId = parseId(req.params.msgId);
+  if (!msgId) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('team_messages', msgId)) return res.status(404).json({ error: 'Not found' });
+  remove('team_messages', msgId);
   res.json({ success: true });
 });
 

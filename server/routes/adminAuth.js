@@ -95,6 +95,14 @@ router.post('/auth', adminAuthLimiter, async (req, res) => {
       { expiresIn: '24h' }
     );
 
+    insert('activity', {
+      type: 'system',
+      actor: adminUser.name || adminUser.email,
+      action: "s'est connecté au panneau admin",
+      target: adminUser.email,
+      severity: 'info',
+    });
+
     res.json({
       success: true,
       token,

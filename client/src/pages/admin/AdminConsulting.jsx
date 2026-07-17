@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import adminClient from '../../api/adminClient';
+import { logActivity, getAdminName } from './AdminActivity';
 
 const STATUS_STYLES = {
   pending:   { bg: '#fef9c3', color: '#854d0e', label: 'En attente' },
@@ -74,6 +75,10 @@ export default function AdminConsulting() {
     try {
       const res = await adminClient.put(`/consulting/${item.id}`, { status: newStatus });
       setConsulting(prev => prev.map(c => c.id === item.id ? { ...c, ...res.data } : c));
+      const actionLabel = newStatus === 'confirmed' ? 'a confirmé une demande de conseil' : 'a annulé une demande de conseil';
+      logActivity('consulting', getAdminName(), actionLabel,
+        `${item.name || item.full_name || ''} — ${item.service || ''}`,
+        newStatus === 'confirmed' ? 'success' : 'warning');
       showToast(`Statut mis à jour : ${STATUS_STYLES[newStatus]?.label || newStatus}`);
     } catch { showToast('Erreur.'); }
   }
@@ -83,6 +88,8 @@ export default function AdminConsulting() {
     try {
       await adminClient.delete(`/consulting/${item.id}`);
       setConsulting(prev => prev.filter(c => c.id !== item.id));
+      logActivity('consulting', getAdminName(), 'a supprimé une demande de conseil',
+        `${item.name || item.full_name || ''} — ${item.service || ''}`, 'error');
       showToast('Demande supprimée.');
     } catch { showToast('Erreur.'); }
   }
