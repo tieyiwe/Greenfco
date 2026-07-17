@@ -133,6 +133,23 @@ router.post('/auth/change-password', adminAuthLimiter, async (req, res) => {
     password_changed_at: new Date().toISOString(),
   });
 
+  // Sync user account so admin can log into the user dashboard with the same password
+  const existingUser = getOneWhere('users', 'email', adminUser.email);
+  if (existingUser) {
+    update('users', existingUser.id, { password_hash: newHash });
+  } else {
+    insert('users', {
+      name: adminUser.name,
+      email: adminUser.email,
+      password_hash: newHash,
+      user_type: 'expert',
+      language: 'fr',
+      country: '',
+      status: 'active',
+      is_admin: true,
+    });
+  }
+
   const token = jwt.sign(
     { role: 'admin', adminRole: adminUser.role, email: adminUser.email, adminId: adminUser.id },
     JWT_SECRET,

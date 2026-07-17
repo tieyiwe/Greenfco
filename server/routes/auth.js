@@ -32,6 +32,9 @@ router.post('/register', async (req, res) => {
     if (existing) {
       return res.status(409).json({ message: 'Un compte avec cet e-mail existe déjà.' });
     }
+    if (getOneWhere('admin_users', 'email', normalizedEmail)) {
+      return res.status(409).json({ message: 'Un compte avec cet e-mail existe déjà.' });
+    }
     const password_hash = await bcrypt.hash(password, 10);
     const user = insert('users', {
       name: name.trim(),
@@ -57,10 +60,30 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Email et mot de passe requis.' });
     }
     const normalizedEmail = email.trim().toLowerCase();
-    const user = getOneWhere('users', 'email', normalizedEmail);
+    let user = getOneWhere('users', 'email', normalizedEmail);
+
     if (!user) {
-      return res.status(401).json({ message: 'Identifiants incorrects.' });
+      // Fallback: check if this is an admin logging in as a user
+      const adminUser = getOneWhere('admin_users', 'email', normalizedEmail);
+      if (adminUser && adminUser.active && !adminUser.must_change_password) {
+        const valid = await bcrypt.compare(password, adminUser.password_hash);
+        if (!valid) return res.status(401).json({ message: 'Identifiants incorrects.' });
+        // Create a linked user account so dashboard data persists
+        user = insert('users', {
+          name: adminUser.name,
+          email: adminUser.email,
+          password_hash: adminUser.password_hash,
+          user_type: 'expert',
+          language: 'fr',
+          country: '',
+          status: 'active',
+          is_admin: true,
+        });
+      } else {
+        return res.status(401).json({ message: 'Identifiants incorrects.' });
+      }
     }
+
     if (user.status === 'suspended') {
       return res.status(403).json({ message: 'Votre compte a été suspendu. Contactez le support.' });
     }
