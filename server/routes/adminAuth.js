@@ -72,52 +72,56 @@ const adminAuthLimiter = rateLimit({
 
 // ── POST /admin/auth — login ──────────────────────────────────
 router.post('/auth', adminAuthLimiter, async (req, res) => {
-  const { email, password } = req.body;
-  if (!password) return res.status(400).json({ error: 'Mot de passe requis.' });
+  try {
+    const { email, password } = req.body;
+    if (!email?.trim() || !password) {
+      return res.status(400).json({ error: 'Email et mot de passe requis.' });
+    }
 
-  // Ensure seed has run
-  await seedAdminUsers();
+    await seedAdminUsers();
 
-  let adminUser = email ? getOneWhere('admin_users', 'email', email.toLowerCase().trim()) : null;
+    const adminUser = getOneWhere('admin_users', 'email', email.toLowerCase().trim());
 
-  // Fallback: no email provided — match by global password (super admin)
-  if (!adminUser && !email) {
-    adminUser = getOneWhere('admin_users', 'email', 'tieyiwebass@gmail.com');
+    if (!adminUser || !adminUser.active) {
+      return res.status(401).json({ error: 'Identifiants incorrects.' });
+    }
+
+    const valid = await bcrypt.compare(password, adminUser.password_hash);
+    if (!valid) return res.status(401).json({ error: 'Identifiants incorrects.' });
+
+    const token = jwt.sign(
+      { role: 'admin', adminRole: adminUser.role, email: adminUser.email, adminId: adminUser.id },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      success: true,
+      token,
+      must_change_password: !!adminUser.must_change_password,
+      user: {
+        name: adminUser.name,
+        email: adminUser.email,
+        role: adminUser.role,
+      },
+    });
+  } catch {
+    res.status(500).json({ error: 'Erreur serveur.' });
   }
-
-  if (!adminUser || !adminUser.active) {
-    return res.status(401).json({ error: 'Identifiants incorrects.' });
-  }
-
-  const valid = await bcrypt.compare(password, adminUser.password_hash);
-  if (!valid) return res.status(401).json({ error: 'Identifiants incorrects.' });
-
-  const token = jwt.sign(
-    { role: 'admin', adminRole: adminUser.role, email: adminUser.email, adminId: adminUser.id },
-    JWT_SECRET,
-    { expiresIn: '24h' }
-  );
-
-  res.json({
-    success: true,
-    token,
-    must_change_password: !!adminUser.must_change_password,
-    user: {
-      name: adminUser.name,
-      email: adminUser.email,
-      role: adminUser.role,
-    },
-  });
 });
 
 // ── POST /admin/auth/change-password ─────────────────────────
 router.post('/auth/change-password', adminAuthLimiter, async (req, res) => {
+  try {
   const { email, current_password, new_password } = req.body;
   if (!email || !current_password || !new_password) {
     return res.status(400).json({ error: 'Tous les champs sont requis.' });
   }
   if (new_password.length < 8) {
     return res.status(400).json({ error: 'Le nouveau mot de passe doit contenir au moins 8 caractères.' });
+  }
+  if (new_password === current_password) {
+    return res.status(400).json({ error: 'Le nouveau mot de passe doit être différent de l\'actuel.' });
   }
 
   const adminUser = getOneWhere('admin_users', 'email', email.toLowerCase().trim());
@@ -157,6 +161,9 @@ router.post('/auth/change-password', adminAuthLimiter, async (req, res) => {
   );
 
   res.json({ success: true, token, user: { name: adminUser.name, email: adminUser.email, role: adminUser.role } });
+  } catch {
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
 });
 
 export default router;

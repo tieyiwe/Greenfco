@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../api/client';
+import axios from 'axios';
+const plainApi = axios.create({ baseURL: '/api' });
 
 const card = {
   background: 'white',
@@ -52,8 +53,8 @@ export default function AdminLogin() {
     setLoading(true);
     setError('');
     try {
-      const res = await api.post('/admin/auth', {
-        email: email.trim() || undefined,
+      const res = await plainApi.post('/admin/auth', {
+        email: email.trim(),
         password,
       });
       if (res.data.must_change_password) {
@@ -78,7 +79,7 @@ export default function AdminLogin() {
     if (newPass.length < 8) { setError('Minimum 8 caractères requis.'); return; }
     setLoading(true);
     try {
-      const res = await api.post('/admin/auth/change-password', {
+      const res = await plainApi.post('/admin/auth/change-password', {
         email: pendingEmail,
         current_password: currentPass,
         new_password: newPass,
@@ -161,6 +162,7 @@ export default function AdminLogin() {
               placeholder="Email administrateur"
               value={email}
               onChange={e => setEmail(e.target.value)}
+              required
               className="form-input"
               style={{ width: '100%' }}
               autoFocus

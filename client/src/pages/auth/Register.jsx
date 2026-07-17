@@ -34,15 +34,12 @@ export default function Register() {
     setLoading(true);
     setError('');
 
-    // Save seller location to localStorage if role = seller
-    if (marketRole === 'seller') {
-      const existing = (() => { try { return JSON.parse(localStorage.getItem('greenfco_seller_profile')) || {}; } catch { return {}; } })();
-      const sellerProfile = { ...existing, location: sellerLocation, memberSince: new Date().getFullYear().toString() };
-      localStorage.setItem('greenfco_seller_profile', JSON.stringify(sellerProfile));
-    }
-
     try {
       const res = await register({ ...form, market_role: marketRole });
+      if (marketRole === 'seller') {
+        const existing = (() => { try { return JSON.parse(localStorage.getItem('greenfco_seller_profile')) || {}; } catch { return {}; } })();
+        localStorage.setItem('greenfco_seller_profile', JSON.stringify({ ...existing, location: sellerLocation, memberSince: new Date().getFullYear().toString() }));
+      }
       setAuth(res.data.user, res.data.token);
       navigate('/dashboard');
     } catch (err) {

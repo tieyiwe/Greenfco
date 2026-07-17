@@ -10,7 +10,7 @@ import 'dotenv/config';
 // ── Startup checks ────────────────────────────────────────────
 const isProd = process.env.NODE_ENV === 'production';
 if (isProd) {
-  const required = ['JWT_SECRET', 'ADMIN_PASSWORD'];
+  const required = ['JWT_SECRET'];
   const missing = required.filter(k => !process.env[k]);
   if (missing.length) {
     console.error(`❌ Missing required env vars in production: ${missing.join(', ')}`);
@@ -18,8 +18,7 @@ if (isProd) {
     process.exit(1);
   }
 }
-if (!process.env.JWT_SECRET)      console.warn('⚠️  JWT_SECRET not set — using insecure default.');
-if (!process.env.ADMIN_PASSWORD)  console.warn('⚠️  ADMIN_PASSWORD not set — using insecure default.');
+if (!process.env.JWT_SECRET) console.warn('⚠️  JWT_SECRET not set — using insecure default.');
 
 import authRoutes from './routes/auth.js';
 import cropsRoutes from './routes/crops.js';
