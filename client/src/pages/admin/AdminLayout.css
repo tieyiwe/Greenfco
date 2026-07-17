@@ -169,6 +169,22 @@
   font-size: 0.875rem;
 }
 
+.admin-switch-user-btn {
+  background: none;
+  border: 1px solid #1B4332;
+  color: #1B4332;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-weight: 600;
+}
+.admin-switch-user-btn:hover {
+  background: #1B4332;
+  color: white;
+}
+
 .admin-logout-btn {
   background: none;
   border: 1px solid var(--gray-light);

@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import adminClient from '../../api/adminClient';
+import { logActivity, getAdminName } from './AdminActivity';
 
 const ROLE_COLORS = {
-  farmer: { bg: '#d1fae5', color: '#065f46' },
-  buyer:  { bg: '#dbeafe', color: '#1e40af' },
-  seller: { bg: '#ffedd5', color: '#9a3412' },
+  farmer:       { bg: '#d1fae5', color: '#065f46' },
+  buyer:        { bg: '#dbeafe', color: '#1e40af' },
+  seller:       { bg: '#ffedd5', color: '#9a3412' },
+  expert:       { bg: '#ede9fe', color: '#5b21b6' },
+  investor:     { bg: '#fef9c3', color: '#854d0e' },
+  organization: { bg: '#f0fdf4', color: '#166534' },
 };
 const STATUS_COLORS = {
   active:    { bg: '#d1fae5', color: '#065f46' },
@@ -52,6 +56,9 @@ export default function AdminUsers() {
     try {
       const res = await adminClient.put(`/users/${user.id}`, { status: newStatus });
       setUsers(prev => prev.map(u => u.id === user.id ? { ...u, ...res.data } : u));
+      logActivity('user_action', getAdminName(),
+        newStatus === 'suspended' ? 'a suspendu un compte utilisateur' : 'a réactivé un compte utilisateur',
+        `${user.name} (${user.email})`, newStatus === 'suspended' ? 'warning' : 'success');
       showToast(`Utilisateur ${newStatus === 'suspended' ? 'suspendu' : 'réactivé'}.`);
     } catch { showToast('Erreur lors de la mise à jour.'); }
   }
@@ -61,8 +68,14 @@ export default function AdminUsers() {
     try {
       await adminClient.delete(`/users/${user.id}`);
       setUsers(prev => prev.filter(u => u.id !== user.id));
+      logActivity('user_action', getAdminName(), 'a supprimé un compte utilisateur',
+        `${user.name} (${user.email})`, 'error');
       showToast('Utilisateur supprimé.');
     } catch { showToast('Erreur lors de la suppression.'); }
+  }
+
+  function handleContact(user) {
+    window.open(`mailto:${user.email}?subject=${encodeURIComponent('[GreenFCO] Message de l\'équipe admin')}`, '_blank');
   }
 
   const filtered = users.filter(u =>
@@ -119,10 +132,10 @@ export default function AdminUsers() {
                               {user.status === 'suspended' ? '✅ Réactiver' : '⚠ Suspendre'}
                             </button>
                           )}
+                          <button style={s.btn('#dbeafe', '#1e40af')} onClick={() => handleContact(user)} title="Contacter par email">✉</button>
                           {adminRole === 'super_admin' && (
-                            <button style={s.btn('#fee2e2', '#991b1b')} onClick={() => handleDelete(user)}>🗑 Supprimer</button>
+                            <button style={s.btn('#fee2e2', '#991b1b')} onClick={() => handleDelete(user)}>🗑</button>
                           )}
-                          {adminRole === 'analyst' && <span style={{ fontSize: '0.75rem', color: 'var(--gray-mid)', fontStyle: 'italic' }}>Lecture seule</span>}
                         </div>
                       </td>
                     </tr>

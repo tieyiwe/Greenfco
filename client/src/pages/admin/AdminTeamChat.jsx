@@ -1,364 +1,328 @@
 import { useState, useEffect, useRef } from 'react';
-
-const DEFAULT_TEAM = [
-  { id: '1', name: 'Aïssata Kaboré', email: 'akabore@greenfco.com', role: 'manager' },
-  { id: '2', name: 'Moussa Traoré', email: 'mtraore@greenfco.com', role: 'analyst' },
-  { id: '3', name: 'Admin GreenFCO', email: 'admin@greenfco.com', role: 'super_admin' },
-];
-
-const DEFAULT_MESSAGES = [
-  { id: 'm1', from: { id: '3', name: 'Admin GreenFCO', role: 'super_admin' }, to: 'all', text: "Bonjour l'équipe ! La v2 de la plateforme est presque prête. Bravo à tous 🎉", createdAt: '2026-05-28T09:00:00Z', read: true },
-  { id: 'm2', from: { id: '1', name: 'Aïssata Kaboré', role: 'manager' }, to: 'all', text: 'Super ! Les tests ont bien avancé hier. Quelques bugs mineurs à corriger côté mobile.', createdAt: '2026-05-28T09:15:00Z', read: true },
-  { id: 'm3', from: { id: '2', name: 'Moussa Traoré', role: 'analyst' }, to: 'all', text: "J'ai contacté 12 nouvelles coopératives cette semaine. 8 sont intéressées par la marketplace.", createdAt: '2026-05-28T10:30:00Z', read: true },
-  { id: 'm4', from: { id: '3', name: 'Admin GreenFCO', role: 'super_admin' }, to: 'all', text: 'Excellent travail Moussa ! On planifie une démo pour eux la semaine prochaine ?', createdAt: '2026-05-28T10:45:00Z', read: true },
-  { id: 'm5', from: { id: '1', name: 'Aïssata Kaboré', role: 'manager' }, to: 'all', text: 'Je peux préparer la présentation. Je vous envoie un draft ce soir.', createdAt: '2026-05-28T11:00:00Z', read: false },
-  // Direct conversation between Admin (id:3) and Aïssata (id:1)
-  { id: 'm6', from: { id: '3', name: 'Admin GreenFCO', role: 'super_admin' }, to: { id: '1', name: 'Aïssata Kaboré' }, text: "Aïssata, tu peux me faire un point rapide sur les tests de régression ?", createdAt: '2026-05-28T14:00:00Z', read: true },
-  { id: 'm7', from: { id: '1', name: 'Aïssata Kaboré', role: 'manager' }, to: { id: '3', name: 'Admin GreenFCO' }, text: "Bien sûr ! On est à 85% — reste 3 cas de test côté mobile. Je finis ça demain matin.", createdAt: '2026-05-28T14:12:00Z', read: false },
-];
+import adminClient from '../../api/adminClient';
 
 const AVATAR_COLORS = ['#2D6A4F', '#52B788', '#1B4332', '#8B5E3C', '#6366f1', '#ec4899'];
 
-function getInitials(name) {
-  return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+function getInitials(name = '') {
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?';
 }
 
-function getAvatarColor(name) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+function getAvatarColor(name = '') {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 }
 
 function formatTime(iso) {
-  try {
-    return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  } catch { return ''; }
+  try { return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); }
+  catch { return ''; }
 }
 
-function formatDate(iso) {
+function formatDateLabel(iso) {
   try {
     const d = new Date(iso);
     const today = new Date();
     if (d.toDateString() === today.toDateString()) return "Aujourd'hui";
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    if (d.toDateString() === yesterday.toDateString()) return 'Hier';
-    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+    const yest = new Date(today); yest.setDate(today.getDate() - 1);
+    if (d.toDateString() === yest.toDateString()) return 'Hier';
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   } catch { return ''; }
 }
 
-function loadMessages() {
+function getCurrentUser() {
   try {
-    const stored = JSON.parse(localStorage.getItem('greenfco_team_messages'));
-    if (Array.isArray(stored) && stored.length > 0) return stored;
+    const s = JSON.parse(localStorage.getItem('greenfco_admin_session'));
+    if (s?.name) return s;
   } catch {}
-  return DEFAULT_MESSAGES;
+  return { name: 'Admin', email: 'admin@greenfco.com', role: 'super_admin' };
 }
 
-function saveMessages(messages) {
-  localStorage.setItem('greenfco_team_messages', JSON.stringify(messages));
-}
-
-function loadTeam() {
-  try {
-    const stored = JSON.parse(localStorage.getItem('greenfco_admin_collaborators'));
-    if (Array.isArray(stored) && stored.length > 0) return stored;
-  } catch {}
-  return DEFAULT_TEAM;
-}
-
-function loadCurrentUser() {
-  try {
-    const stored = JSON.parse(localStorage.getItem('greenfco_admin_session'));
-    if (stored && stored.name) return stored;
-  } catch {}
-  return { name: 'Admin GreenFCO', email: 'admin@greenfco.com', role: 'super_admin', id: '3' };
-}
-
-// Get conversation key for a conversation (null = general, member.id = direct)
-function getConvKey(conv) {
-  return conv === 'general' ? 'general' : conv.id;
-}
-
-// Filter messages for the current conversation
-function filterMessages(messages, conv, currentUserId) {
-  if (conv === 'general') {
-    return messages.filter((m) => m.to === 'all');
-  }
-  // Direct message: between currentUser and conv.id
-  return messages.filter((m) => {
-    if (m.to === 'all') return false;
-    const fromMe = m.from.id === currentUserId;
-    const toThem = typeof m.to === 'object' && m.to.id === conv.id;
-    const fromThem = m.from.id === conv.id;
-    const toMe = typeof m.to === 'object' && m.to.id === currentUserId;
-    return (fromMe && toThem) || (fromThem && toMe);
-  });
-}
-
-function countUnread(messages, conv, currentUserId) {
-  return filterMessages(messages, conv, currentUserId).filter((m) => !m.read && m.from.id !== currentUserId).length;
-}
+const styles = {
+  wrap: { display: 'flex', height: 'calc(100vh - 130px)', minHeight: 500, background: 'white', border: '1px solid var(--gray-light)', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' },
+  sidebar: { width: 240, borderRight: '1px solid var(--gray-light)', display: 'flex', flexDirection: 'column', background: '#1B4332', color: 'white', flexShrink: 0 },
+  sidebarHead: { padding: '1.1rem 1rem 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.1)' },
+  sidebarTitle: { fontSize: '1rem', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' },
+  sidebarSub: { fontSize: '0.72rem', opacity: 0.6, marginTop: '0.15rem' },
+  channelList: { flex: 1, overflowY: 'auto', padding: '0.5rem 0' },
+  channelItem: (active) => ({
+    display: 'flex', alignItems: 'center', gap: '0.5rem',
+    padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.875rem',
+    background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
+    borderRadius: active ? '6px' : 0,
+    margin: active ? '0 0.5rem' : 0,
+    transition: 'all 0.12s',
+  }),
+  channelHash: { opacity: 0.5, fontSize: '1rem', lineHeight: 1 },
+  addChannelBtn: {
+    margin: '0.5rem', padding: '0.45rem 0.75rem', background: 'rgba(255,255,255,0.1)',
+    border: '1px dashed rgba(255,255,255,0.3)', borderRadius: '6px', color: 'white',
+    fontSize: '0.78rem', cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s',
+  },
+  main: { flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 },
+  chatHead: { padding: '0.9rem 1.25rem', borderBottom: '1px solid var(--gray-light)', display: 'flex', alignItems: 'center', gap: '0.5rem' },
+  chatHeadName: { fontWeight: 700, fontSize: '0.95rem', color: '#1A1A14' },
+  chatHeadDesc: { fontSize: '0.78rem', color: 'var(--gray-mid)' },
+  messages: { flex: 1, overflowY: 'auto', padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.1rem' },
+  dateLabel: { textAlign: 'center', fontSize: '0.72rem', color: '#9CA3AF', padding: '0.5rem 0', fontWeight: 600, letterSpacing: '0.04em' },
+  msgRow: (isMine) => ({
+    display: 'flex', gap: '0.6rem', alignItems: 'flex-start',
+    flexDirection: isMine ? 'row-reverse' : 'row',
+    marginBottom: '0.5rem',
+  }),
+  avatar: (name) => ({
+    width: 30, height: 30, borderRadius: '50%', background: getAvatarColor(name),
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: '0.68rem', fontWeight: 700, color: 'white', flexShrink: 0, marginTop: 2,
+  }),
+  bubble: (isMine) => ({
+    maxWidth: '70%', padding: '0.55rem 0.85rem', borderRadius: isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+    background: isMine ? '#1B4332' : '#f3f4f6', color: isMine ? 'white' : '#1A1A14',
+    fontSize: '0.875rem', lineHeight: 1.5, wordBreak: 'break-word',
+  }),
+  sender: { fontSize: '0.7rem', fontWeight: 700, color: 'var(--gray-mid)', marginBottom: '0.2rem' },
+  time: (isMine) => ({ fontSize: '0.65rem', color: isMine ? 'rgba(255,255,255,0.55)' : '#9CA3AF', marginTop: '0.2rem', textAlign: isMine ? 'right' : 'left' }),
+  inputBar: { borderTop: '1px solid var(--gray-light)', padding: '0.75rem 1.25rem', display: 'flex', gap: '0.5rem', background: 'white' },
+  input: { flex: 1, padding: '0.6rem 1rem', border: '1px solid var(--gray-light)', borderRadius: '999px', fontSize: '0.875rem', outline: 'none', fontFamily: 'var(--font-body)', background: '#fafafa' },
+  sendBtn: { background: '#1B4332', color: 'white', border: 'none', borderRadius: '999px', padding: '0.6rem 1.2rem', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' },
+  noChannel: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gray-mid)', flexDirection: 'column', gap: '0.5rem' },
+};
 
 export default function AdminTeamChat() {
-  const [messages, setMessages] = useState(loadMessages);
-  const [team] = useState(loadTeam);
-  const [currentUser] = useState(() => {
-    const u = loadCurrentUser();
-    // Make sure we have an id on currentUser
-    if (!u.id) {
-      const found = DEFAULT_TEAM.find((m) => m.email === u.email);
-      return found ? { ...u, id: found.id } : { ...u, id: '3' };
-    }
-    return u;
-  });
-  const [activeConv, setActiveConv] = useState('general');
-  const [inputText, setInputText] = useState('');
+  const currentUser = getCurrentUser();
+  const adminRole = currentUser.role;
+
+  const [channels, setChannels] = useState([]);
+  const [activeChannel, setActiveChannel] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [newMsg, setNewMsg] = useState('');
+  const [showCreate, setShowCreate] = useState(false);
+  const [newChanName, setNewChanName] = useState('');
+  const [newChanDesc, setNewChanDesc] = useState('');
+  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
+  const pollRef = useRef(null);
 
+  // Load channels on mount
   useEffect(() => {
-    saveMessages(messages);
-  }, [messages]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, activeConv]);
-
-  // Mark messages as read when switching conversation
-  useEffect(() => {
-    setMessages((prev) =>
-      prev.map((m) => {
-        if (m.read) return m;
-        if (activeConv === 'general' && m.to === 'all' && m.from.id !== currentUser.id) return { ...m, read: true };
-        if (activeConv !== 'general' && typeof activeConv === 'object') {
-          if (m.from.id === activeConv.id && typeof m.to === 'object' && m.to.id === currentUser.id) return { ...m, read: true };
-        }
-        return m;
+    adminClient.get('/channels')
+      .then(r => {
+        const chans = Array.isArray(r.data) ? r.data : [];
+        setChannels(chans);
+        if (chans.length > 0) setActiveChannel(chans[0]);
       })
-    );
-  }, [activeConv, currentUser.id]);
+      .catch(() => {});
+  }, []);
 
-  function sendMessage(e) {
-    e.preventDefault();
-    if (!inputText.trim()) return;
-    const msg = {
-      id: crypto.randomUUID(),
-      from: { id: currentUser.id, name: currentUser.name, role: currentUser.role || 'super_admin' },
-      to: activeConv === 'general' ? 'all' : { id: activeConv.id, name: activeConv.name },
-      text: inputText.trim(),
-      createdAt: new Date().toISOString(),
-      read: false,
-    };
-    setMessages((prev) => [...prev, msg]);
-    setInputText('');
+  // Load messages when channel changes
+  useEffect(() => {
+    if (!activeChannel) return;
+    loadMessages(activeChannel.id);
+    // Poll every 5 seconds
+    clearInterval(pollRef.current);
+    pollRef.current = setInterval(() => loadMessages(activeChannel.id), 5000);
+    return () => clearInterval(pollRef.current);
+  }, [activeChannel?.id]);
+
+  function loadMessages(channelId) {
+    adminClient.get(`/channels/${channelId}/messages`)
+      .then(r => {
+        setMessages(Array.isArray(r.data) ? r.data : []);
+        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+      })
+      .catch(() => {});
   }
 
-  function handleKeyDown(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage(e);
+  async function handleSend(e) {
+    e.preventDefault();
+    if (!newMsg.trim() || !activeChannel || sending) return;
+    setSending(true);
+    try {
+      const res = await adminClient.post(`/channels/${activeChannel.id}/messages`, { text: newMsg.trim() });
+      setMessages(prev => [...prev, res.data]);
+      setNewMsg('');
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+    } catch {}
+    finally { setSending(false); }
+  }
+
+  async function handleCreateChannel(e) {
+    e.preventDefault();
+    if (!newChanName.trim()) return;
+    try {
+      const res = await adminClient.post('/channels', { name: newChanName.trim(), description: newChanDesc.trim() });
+      setChannels(prev => [...prev, res.data]);
+      setActiveChannel(res.data);
+      setNewChanName('');
+      setNewChanDesc('');
+      setShowCreate(false);
+    } catch (err) {
+      alert(err.response?.data?.error || 'Erreur lors de la création du canal.');
     }
   }
 
-  const convMessages = filterMessages(messages, activeConv, currentUser.id);
+  async function handleDeleteChannel(ch) {
+    if (!window.confirm(`Supprimer le canal #${ch.name} et tous ses messages ?`)) return;
+    try {
+      await adminClient.delete(`/channels/${ch.id}`);
+      const remaining = channels.filter(c => c.id !== ch.id);
+      setChannels(remaining);
+      if (activeChannel?.id === ch.id) {
+        setActiveChannel(remaining[0] || null);
+        setMessages([]);
+      }
+    } catch {}
+  }
 
   // Group messages by date
-  function groupByDate(msgs) {
-    const groups = [];
-    let lastDate = null;
-    msgs.forEach((m) => {
-      const d = formatDate(m.createdAt);
-      if (d !== lastDate) { groups.push({ type: 'date', label: d }); lastDate = d; }
-      groups.push({ type: 'msg', msg: m });
-    });
-    return groups;
+  const grouped = [];
+  let lastDate = null;
+  for (const msg of messages) {
+    const dateLabel = formatDateLabel(msg.created_at);
+    if (dateLabel !== lastDate) {
+      grouped.push({ type: 'date', label: dateLabel });
+      lastDate = dateLabel;
+    }
+    grouped.push({ type: 'msg', msg });
   }
 
-  const grouped = groupByDate(convMessages);
-
-  const convHeader = activeConv === 'general' ? '📢 Général' : activeConv.name;
-
-  // Other team members (exclude current user for DM list)
-  const otherMembers = team.filter((m) => m.id !== currentUser.id);
-
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 130px)', minHeight: '500px', background: 'white', border: '1px solid var(--gray-light)', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
-      {/* Sidebar */}
-      <aside style={{ width: 220, minWidth: 220, background: '#f9fafb', borderRight: '1px solid var(--gray-light)', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-        <div style={{ padding: '1rem 0.75rem 0.5rem', borderBottom: '1px solid var(--gray-light)' }}>
-          <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#1B4332', fontFamily: 'var(--font-display)' }}>Messages</h3>
-        </div>
+    <div>
+      <div style={{ marginBottom: '1rem' }}>
+        <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 700, color: '#1B4332', fontFamily: 'var(--font-display)' }}>
+          Chat d'équipe
+        </h2>
+        <p style={{ margin: '0.15rem 0 0', fontSize: '0.85rem', color: 'var(--gray-mid)' }}>
+          Communication interne — canaux par projet ou sujet
+        </p>
+      </div>
 
-        {/* General channel */}
-        <div style={{ padding: '0.5rem 0.5rem 0.25rem' }}>
-          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 0.25rem' }}>Canaux</span>
-        </div>
-        <button
-          onClick={() => setActiveConv('general')}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '0.5rem',
-            padding: '0.55rem 0.75rem', margin: '0 0.5rem 0.25rem',
-            borderRadius: '8px', border: 'none', cursor: 'pointer',
-            background: activeConv === 'general' ? 'var(--green-light)' : 'transparent',
-            color: activeConv === 'general' ? 'white' : '#374151',
-            fontFamily: 'var(--font-body)', fontSize: '0.875rem', fontWeight: activeConv === 'general' ? 700 : 500,
-            textAlign: 'left', width: 'calc(100% - 1rem)',
-          }}
-        >
-          <span>📢</span>
-          <span style={{ flex: 1 }}>Général</span>
-          {countUnread(messages, 'general', currentUser.id) > 0 && (
-            <span style={{ background: '#EF4444', color: 'white', borderRadius: '99px', fontSize: '0.65rem', fontWeight: 700, padding: '0.1rem 0.4rem', minWidth: 16, textAlign: 'center' }}>
-              {countUnread(messages, 'general', currentUser.id)}
-            </span>
-          )}
-        </button>
+      <div style={styles.wrap}>
+        {/* Sidebar */}
+        <aside style={styles.sidebar}>
+          <div style={styles.sidebarHead}>
+            <p style={styles.sidebarTitle}>🌿 GreenFCO</p>
+            <p style={styles.sidebarSub}>{channels.length} canal{channels.length !== 1 ? 'x' : ''}</p>
+          </div>
 
-        {/* Team DMs */}
-        {otherMembers.length > 0 && (
-          <>
-            <div style={{ padding: '0.5rem 0.5rem 0.25rem', marginTop: '0.25rem' }}>
-              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 0.25rem' }}>👥 Équipe</span>
-            </div>
-            {otherMembers.map((member) => {
-              const isActive = typeof activeConv === 'object' && activeConv.id === member.id;
-              const unread = countUnread(messages, member, currentUser.id);
-              return (
-                <button
-                  key={member.id}
-                  onClick={() => setActiveConv(member)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '0.5rem',
-                    padding: '0.5rem 0.75rem', margin: '0 0.5rem 0.2rem',
-                    borderRadius: '8px', border: 'none', cursor: 'pointer',
-                    background: isActive ? 'var(--green-light)' : 'transparent',
-                    color: isActive ? 'white' : '#374151',
-                    fontFamily: 'var(--font-body)', fontSize: '0.85rem', fontWeight: isActive ? 700 : 400,
-                    textAlign: 'left', width: 'calc(100% - 1rem)',
-                  }}
-                >
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: isActive ? 'rgba(255,255,255,0.3)' : getAvatarColor(member.name), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0 }}>
-                    {getInitials(member.name)}
-                  </div>
-                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{member.name}</span>
-                  {unread > 0 && (
-                    <span style={{ background: '#EF4444', color: 'white', borderRadius: '99px', fontSize: '0.65rem', fontWeight: 700, padding: '0.1rem 0.4rem', minWidth: 16, textAlign: 'center' }}>
-                      {unread}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </>
-        )}
-      </aside>
+          <div style={styles.channelList}>
+            <p style={{ fontSize: '0.65rem', fontWeight: 700, opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0.75rem 1rem 0.25rem' }}>
+              Canaux
+            </p>
+            {channels.map(ch => (
+              <div key={ch.id} style={styles.channelItem(activeChannel?.id === ch.id)} onClick={() => setActiveChannel(ch)}>
+                <span style={styles.channelHash}>#</span>
+                <span style={{ flex: 1 }}>{ch.name}</span>
+                {adminRole === 'super_admin' && ch.name !== 'Général' && (
+                  <button
+                    onClick={e => { e.stopPropagation(); handleDeleteChannel(ch); }}
+                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}
+                    title="Supprimer le canal"
+                  >✕</button>
+                )}
+              </div>
+            ))}
+          </div>
 
-      {/* Chat Panel */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* Chat Header */}
-        <div style={{ padding: '0.85rem 1.25rem', borderBottom: '1px solid var(--gray-light)', background: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1rem' }}>{activeConv === 'general' ? '📢' : '💬'}</span>
-          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1B4332', fontFamily: 'var(--font-display)' }}>
-            {convHeader}
-          </h3>
-          <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#9CA3AF' }}>
-            {convMessages.length} message{convMessages.length !== 1 ? 's' : ''}
-          </span>
-        </div>
-
-        {/* Messages */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-          {convMessages.length === 0 ? (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#9CA3AF' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>💬</div>
-              <p style={{ fontSize: '0.875rem' }}>Aucun message pour l'instant. Commencez la conversation !</p>
-            </div>
-          ) : (
-            grouped.map((item, idx) => {
-              if (item.type === 'date') {
-                return (
-                  <div key={`date-${idx}`} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '0.75rem 0' }}>
-                    <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
-                    <span style={{ fontSize: '0.72rem', color: '#9CA3AF', fontWeight: 600, whiteSpace: 'nowrap' }}>{item.label}</span>
-                    <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
-                  </div>
-                );
-              }
-
-              const { msg } = item;
-              const isSelf = msg.from.id === currentUser.id;
-
-              return (
-                <div
-                  key={msg.id}
-                  style={{
-                    display: 'flex', flexDirection: isSelf ? 'row-reverse' : 'row',
-                    alignItems: 'flex-end', gap: '0.5rem', marginBottom: '0.5rem',
-                  }}
-                >
-                  {!isSelf && (
-                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: getAvatarColor(msg.from.name), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0 }}>
-                      {getInitials(msg.from.name)}
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: isSelf ? 'flex-end' : 'flex-start', maxWidth: '70%' }}>
-                    {!isSelf && (
-                      <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#6B7280', marginBottom: '0.2rem', paddingLeft: '0.2rem' }}>
-                        {msg.from.name}
-                      </span>
-                    )}
-                    <div style={{
-                      background: isSelf ? 'var(--green-light)' : '#f3f4f6',
-                      color: isSelf ? 'white' : '#1A1A14',
-                      borderRadius: '12px',
-                      borderBottomRightRadius: isSelf ? '4px' : '12px',
-                      borderBottomLeftRadius: isSelf ? '12px' : '4px',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      lineHeight: 1.45,
-                      wordBreak: 'break-word',
-                    }}>
-                      {msg.text}
-                    </div>
-                    <span style={{ fontSize: '0.68rem', color: '#9CA3AF', marginTop: '0.15rem', paddingLeft: '0.2rem', paddingRight: '0.2rem' }}>
-                      {formatTime(msg.createdAt)}
-                    </span>
-                  </div>
+          {(adminRole === 'super_admin' || adminRole === 'manager') && (
+            showCreate ? (
+              <form onSubmit={handleCreateChannel} style={{ padding: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <input
+                  autoFocus
+                  placeholder="Nom du canal"
+                  value={newChanName}
+                  onChange={e => setNewChanName(e.target.value)}
+                  style={{ width: '100%', marginBottom: '0.4rem', padding: '0.4rem 0.6rem', borderRadius: '6px', border: 'none', fontSize: '0.8rem', boxSizing: 'border-box' }}
+                />
+                <input
+                  placeholder="Description (optionnel)"
+                  value={newChanDesc}
+                  onChange={e => setNewChanDesc(e.target.value)}
+                  style={{ width: '100%', marginBottom: '0.4rem', padding: '0.4rem 0.6rem', borderRadius: '6px', border: 'none', fontSize: '0.8rem', boxSizing: 'border-box' }}
+                />
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  <button type="submit" style={{ flex: 1, background: '#52B788', color: 'white', border: 'none', borderRadius: '6px', padding: '0.4rem', fontSize: '0.78rem', cursor: 'pointer', fontWeight: 600 }}>Créer</button>
+                  <button type="button" onClick={() => setShowCreate(false)} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', borderRadius: '6px', padding: '0.4rem 0.6rem', fontSize: '0.78rem', cursor: 'pointer' }}>✕</button>
                 </div>
-              );
-            })
+              </form>
+            ) : (
+              <button style={styles.addChannelBtn} onClick={() => setShowCreate(true)}>
+                + Nouveau canal
+              </button>
+            )
           )}
-          <div ref={messagesEndRef} />
-        </div>
 
-        {/* Input */}
-        <form onSubmit={sendMessage} style={{ display: 'flex', gap: '0.5rem', padding: '0.85rem 1.25rem', borderTop: '1px solid var(--gray-light)', background: 'white', alignItems: 'flex-end' }}>
-          <textarea
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={`Message ${activeConv === 'general' ? 'à l\'équipe' : `à ${activeConv.name}`}...`}
-            rows={1}
-            style={{
-              flex: 1, padding: '0.6rem 0.9rem', border: '1px solid var(--gray-light)',
-              borderRadius: '8px', fontSize: '0.875rem', fontFamily: 'var(--font-body)',
-              outline: 'none', resize: 'none', color: '#3D3D35', lineHeight: 1.4,
-            }}
-          />
-          <button
-            type="submit"
-            disabled={!inputText.trim()}
-            style={{
-              background: inputText.trim() ? 'var(--green-mid)' : '#e5e7eb',
-              color: inputText.trim() ? 'white' : '#9CA3AF',
-              border: 'none', borderRadius: '8px', padding: '0.6rem 1rem',
-              fontSize: '0.875rem', fontWeight: 600, cursor: inputText.trim() ? 'pointer' : 'default',
-              fontFamily: 'var(--font-body)', transition: 'all 0.15s', flexShrink: 0,
-            }}
-          >
-            Envoyer
-          </button>
-        </form>
+          <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ ...styles.avatar(currentUser.name), width: 24, height: 24, fontSize: '0.6rem' }}>
+              {getInitials(currentUser.name)}
+            </div>
+            <div style={{ overflow: 'hidden' }}>
+              <div style={{ fontWeight: 600, fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentUser.name}</div>
+              <div style={{ opacity: 0.5, fontSize: '0.65rem' }}>{currentUser.role?.replace('_', ' ')}</div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Chat */}
+        <div style={styles.main}>
+          {activeChannel ? (
+            <>
+              <div style={styles.chatHead}>
+                <span style={{ fontSize: '1.1rem', color: '#1B4332', fontWeight: 700 }}>#</span>
+                <div>
+                  <div style={styles.chatHeadName}>{activeChannel.name}</div>
+                  {activeChannel.description && <div style={styles.chatHeadDesc}>{activeChannel.description}</div>}
+                </div>
+              </div>
+
+              <div style={styles.messages}>
+                {messages.length === 0 && (
+                  <div style={{ textAlign: 'center', color: 'var(--gray-mid)', marginTop: 'auto', paddingTop: '3rem' }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💬</div>
+                    <p>Aucun message. Soyez le premier à écrire !</p>
+                  </div>
+                )}
+                {grouped.map((item, i) => {
+                  if (item.type === 'date') {
+                    return <div key={`date-${i}`} style={styles.dateLabel}>{item.label}</div>;
+                  }
+                  const { msg } = item;
+                  const isMine = msg.sender_email === currentUser.email;
+                  return (
+                    <div key={msg.id} style={styles.msgRow(isMine)}>
+                      <div style={styles.avatar(msg.sender_name)}>
+                        {getInitials(msg.sender_name)}
+                      </div>
+                      <div style={{ maxWidth: '70%' }}>
+                        {!isMine && <div style={styles.sender}>{msg.sender_name}</div>}
+                        <div style={styles.bubble(isMine)}>{msg.text}</div>
+                        <div style={styles.time(isMine)}>{formatTime(msg.created_at)}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+
+              <form onSubmit={handleSend} style={styles.inputBar}>
+                <input
+                  style={styles.input}
+                  placeholder={`Message #${activeChannel.name}…`}
+                  value={newMsg}
+                  onChange={e => setNewMsg(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e); } }}
+                />
+                <button type="submit" style={styles.sendBtn} disabled={sending || !newMsg.trim()}>
+                  Envoyer
+                </button>
+              </form>
+            </>
+          ) : (
+            <div style={styles.noChannel}>
+              <span style={{ fontSize: '2.5rem' }}>💬</span>
+              <p>Sélectionnez ou créez un canal pour commencer.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

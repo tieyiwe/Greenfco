@@ -1,14 +1,33 @@
 import { useState, useEffect } from 'react';
-import { ALL_PERMISSIONS, ROLE_BASE_PERMISSIONS } from './adminPermissions';
+import { ALL_PERMISSIONS, ROLE_BASE_PERMISSIONS, ADMIN_ROLE_DEFINITIONS } from './adminPermissions';
 import adminClient from '../../api/adminClient';
+import { logActivity, getAdminName } from './AdminActivity';
 
 export { ALL_PERMISSIONS, ROLE_BASE_PERMISSIONS };
 
-const ADMIN_ROLES = {
-  super_admin: { label: 'Super Admin', color: '#EF4444' },
-  manager:     { label: 'Manager',     color: '#F59E0B' },
-  analyst:     { label: 'Analyst',     color: '#3B82F6' },
-};
+const ADMIN_ROLES = ADMIN_ROLE_DEFINITIONS;
+
+const INVITABLE_ROLES = [
+  { value: 'manager',         label: 'Manager' },
+  { value: 'analyst',         label: 'Analyst' },
+  { value: 'staff',           label: 'Staff' },
+  { value: 'assistant',       label: 'Assistant' },
+  { value: 'technician',      label: 'Technicien' },
+  { value: 'secretary',       label: 'Secrétaire' },
+  { value: 'marketing_agent', label: 'Agent Marketing' },
+];
+
+const FEATURE_OPTIONS = [
+  'Gestion des utilisateurs',
+  'Gestion des annonces',
+  'Gestion des transactions',
+  'Gestion du blog',
+  'Gestion des consultations',
+  'Gestion des projets',
+  'Journal d\'activité',
+  'Paramètres plateforme',
+  'Gestion de l\'équipe',
+];
 
 const PERM_CATEGORIES = ['Users', 'Listings', 'Transactions', 'Blog', 'Consulting', 'Projects', 'Activity', 'Settings'];
 
@@ -50,6 +69,15 @@ export default function AdminSettings() {
   const [platformSettings, setPlatformSettings] = useState(null);
   const [savingSettings, setSavingSettings] = useState(false);
 
+  // Admin users state (super_admin only)
+  const [adminUsers, setAdminUsers] = useState([]);
+
+  // Access requests state
+  const [accessRequests, setAccessRequests] = useState([]);
+  const [reqFeature, setReqFeature] = useState(FEATURE_OPTIONS[0]);
+  const [reqReason, setReqReason] = useState('');
+  const [reqSuccess, setReqSuccess] = useState(false);
+
   // Sync admin user from localStorage when component mounts
   useEffect(() => {
     const user = getAdminUser();
@@ -63,6 +91,14 @@ export default function AdminSettings() {
     adminClient.get('/collaborators')
       .then(r => setCollaborators(Array.isArray(r.data) ? r.data : []))
       .catch(() => setCollabError('Impossible de charger les collaborateurs.'));
+    // Load admin users (super_admin only)
+    adminClient.get('/admin-users')
+      .then(r => setAdminUsers(Array.isArray(r.data) ? r.data : []))
+      .catch(() => {});
+    // Load access requests
+    adminClient.get('/access-requests')
+      .then(r => setAccessRequests(Array.isArray(r.data) ? r.data : []))
+      .catch(() => {});
   }, []);
 
   async function handleSavePlatformSettings(e) {
@@ -123,6 +159,8 @@ export default function AdminSettings() {
         role: inviteRole,
       });
       setCollaborators(prev => [...prev, res.data]);
+      logActivity('user_action', getAdminName(), 'a invité un collaborateur',
+        `${inviteName.trim()} (${inviteEmail.trim()}) — rôle : ${inviteRole}`, 'info');
       setInviteName('');
       setInviteEmail('');
       setInviteRole('manager');
@@ -131,6 +169,42 @@ export default function AdminSettings() {
     } catch (err) {
       showToast(err.response?.data?.error || 'Erreur lors de l\'invitation.');
     }
+  }
+
+  async function handleToggleAdminUser(adminUser) {
+    const newActive = !adminUser.active;
+    try {
+      const res = await adminClient.put(`/admin-users/${adminUser.id}`, { active: newActive });
+      setAdminUsers(prev => prev.map(u => u.id === adminUser.id ? res.data : u));
+      logActivity('user_action', getAdminName(),
+        newActive ? 'a réactivé un compte admin' : 'a désactivé un compte admin',
+        `${adminUser.name} (${adminUser.email})`, newActive ? 'success' : 'warning');
+      showToast(`Compte ${newActive ? 'réactivé' : 'désactivé'}.`);
+    } catch { showToast('Erreur.'); }
+  }
+
+  async function handleAccessRequest(e) {
+    e.preventDefault();
+    try {
+      const res = await adminClient.post('/access-requests', { feature: reqFeature, reason: reqReason.trim() });
+      setAccessRequests(prev => [res.data, ...prev]);
+      setReqReason('');
+      setReqSuccess(true);
+      setTimeout(() => setReqSuccess(false), 4000);
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Erreur lors de la demande.');
+    }
+  }
+
+  async function handleAccessDecision(req, status) {
+    try {
+      const res = await adminClient.put(`/access-requests/${req.id}`, { status });
+      setAccessRequests(prev => prev.map(r => r.id === req.id ? res.data : r));
+      logActivity('user_action', getAdminName(),
+        status === 'approved' ? 'a approuvé une demande d\'accès' : 'a refusé une demande d\'accès',
+        `${req.requester_name} — ${req.feature}`, status === 'approved' ? 'success' : 'warning');
+      showToast(status === 'approved' ? 'Accès approuvé.' : 'Demande refusée.');
+    } catch { showToast('Erreur.'); }
   }
 
   return (
@@ -250,9 +324,7 @@ export default function AdminSettings() {
                               value={collab.role}
                               onChange={(e) => handleRoleChange(collab.id, e.target.value)}
                             >
-                              <option value="super_admin">Super Admin</option>
-                              <option value="manager">Manager</option>
-                              <option value="analyst">Analyst</option>
+                              {INVITABLE_ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                             </select>
                             <button
                               className="btn btn-secondary btn-sm"
@@ -302,12 +374,8 @@ export default function AdminSettings() {
                 onChange={(e) => setInviteEmail(e.target.value)}
                 required
               />
-              <select
-                value={inviteRole}
-                onChange={(e) => setInviteRole(e.target.value)}
-              >
-                <option value="manager">Manager</option>
-                <option value="analyst">Analyst</option>
+              <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
+                {INVITABLE_ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
               </select>
               <button type="submit" className="btn btn-primary">
                 Inviter / Invite
@@ -376,6 +444,139 @@ export default function AdminSettings() {
           )}
         </section>
       )}
+
+      {/* ── Section 3c: Admin Users (super_admin only) ── */}
+      {adminRole === 'super_admin' && (
+        <section className="settings-section">
+          <h2>Comptes Admin</h2>
+          <p style={{ fontSize: '0.85rem', color: 'var(--gray-mid)', marginBottom: '1rem' }}>
+            Gérez les comptes ayant accès au panneau d'administration.
+          </p>
+          {adminUsers.length === 0 ? (
+            <p style={{ color: 'var(--gray-mid)', fontStyle: 'italic' }}>Chargement…</p>
+          ) : (
+            <div className="collab-table-wrap">
+              <table className="collab-table">
+                <thead><tr>{['Nom', 'Email', 'Rôle', 'Statut', 'Actions'].map(h => <th key={h}>{h}</th>)}</tr></thead>
+                <tbody>
+                  {adminUsers.map(u => {
+                    const rdef = ADMIN_ROLES[u.role] || { label: u.role, color: '#9CA3AF' };
+                    return (
+                      <tr key={u.id}>
+                        <td style={{ fontWeight: 500, color: '#1A1A14' }}>{u.name}</td>
+                        <td style={{ color: 'var(--gray-mid)' }}>{u.email}</td>
+                        <td><span className="admin-role-badge" style={{ background: rdef.color }}>{rdef.label}</span></td>
+                        <td>
+                          <span className={`collab-status-badge ${u.active ? 'status-active' : 'status-pending'}`}>
+                            {u.active ? 'Actif' : 'Inactif'}
+                          </span>
+                        </td>
+                        <td>
+                          {u.email !== adminUser?.email && (
+                            <button
+                              className={u.active ? 'btn-revoke' : 'btn btn-primary btn-sm'}
+                              onClick={() => handleToggleAdminUser(u)}
+                            >
+                              {u.active ? 'Désactiver' : 'Réactiver'}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ── Section 3d: Access Requests ── */}
+      <section className="settings-section">
+        <h2>Demandes d'accès</h2>
+
+        {/* Super admin: view and approve/deny requests */}
+        {adminRole === 'super_admin' ? (
+          <>
+            <p style={{ fontSize: '0.85rem', color: 'var(--gray-mid)', marginBottom: '1rem' }}>
+              {accessRequests.filter(r => r.status === 'pending').length} demande(s) en attente.
+            </p>
+            {accessRequests.length === 0 ? (
+              <p style={{ color: 'var(--gray-mid)', fontStyle: 'italic' }}>Aucune demande.</p>
+            ) : (
+              <div className="collab-table-wrap">
+                <table className="collab-table">
+                  <thead><tr>{['Demandeur', 'Fonctionnalité', 'Raison', 'Statut', 'Actions'].map(h => <th key={h}>{h}</th>)}</tr></thead>
+                  <tbody>
+                    {accessRequests.map(req => (
+                      <tr key={req.id} style={{ background: req.status === 'pending' ? 'rgba(254,249,195,0.3)' : 'transparent' }}>
+                        <td style={{ fontWeight: 500 }}>{req.requester_name}<br /><span style={{ fontSize: '0.75rem', color: 'var(--gray-mid)' }}>{req.requester_email}</span></td>
+                        <td>{req.feature}</td>
+                        <td style={{ color: 'var(--gray-mid)', fontSize: '0.85rem' }}>{req.reason || '—'}</td>
+                        <td>
+                          <span style={{
+                            display: 'inline-block', padding: '0.15rem 0.5rem', borderRadius: '99px', fontSize: '0.72rem', fontWeight: 600,
+                            background: req.status === 'approved' ? '#d1fae5' : req.status === 'denied' ? '#fee2e2' : '#fef9c3',
+                            color: req.status === 'approved' ? '#065f46' : req.status === 'denied' ? '#991b1b' : '#854d0e',
+                          }}>
+                            {req.status === 'approved' ? 'Approuvé' : req.status === 'denied' ? 'Refusé' : 'En attente'}
+                          </span>
+                        </td>
+                        <td>
+                          {req.status === 'pending' && (
+                            <div style={{ display: 'flex', gap: '0.4rem' }}>
+                              <button className="btn btn-primary btn-sm" onClick={() => handleAccessDecision(req, 'approved')}>✅ Approuver</button>
+                              <button className="btn-revoke" onClick={() => handleAccessDecision(req, 'denied')}>✗ Refuser</button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        ) : (
+          /* Non-super-admin: submit a request */
+          <form onSubmit={handleAccessRequest}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--gray-mid)', marginBottom: '1rem' }}>
+              Demandez l'accès à une fonctionnalité. Le Super Admin sera notifié.
+            </p>
+            <div className="invite-form-row">
+              <select value={reqFeature} onChange={e => setReqFeature(e.target.value)}>
+                {FEATURE_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
+              </select>
+              <input
+                type="text"
+                placeholder="Raison de la demande (optionnel)"
+                value={reqReason}
+                onChange={e => setReqReason(e.target.value)}
+                style={{ flex: 2 }}
+              />
+              <button type="submit" className="btn btn-primary">Envoyer la demande</button>
+            </div>
+            {reqSuccess && <div className="invite-success">Demande envoyée ! Le Super Admin la traitera bientôt.</div>}
+            {accessRequests.filter(r => r.requester_email === adminUser?.email).length > 0 && (
+              <div style={{ marginTop: '1rem' }}>
+                <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-mid)', marginBottom: '0.5rem' }}>Mes demandes précédentes</p>
+                {accessRequests.filter(r => r.requester_email === adminUser?.email).map(req => (
+                  <div key={req.id} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', fontSize: '0.85rem', padding: '0.4rem 0', borderBottom: '1px solid var(--gray-light)' }}>
+                    <span style={{ flex: 1 }}>{req.feature}</span>
+                    <span style={{
+                      padding: '0.1rem 0.5rem', borderRadius: '99px', fontSize: '0.7rem', fontWeight: 600,
+                      background: req.status === 'approved' ? '#d1fae5' : req.status === 'denied' ? '#fee2e2' : '#fef9c3',
+                      color: req.status === 'approved' ? '#065f46' : req.status === 'denied' ? '#991b1b' : '#854d0e',
+                    }}>
+                      {req.status === 'approved' ? 'Approuvé' : req.status === 'denied' ? 'Refusé' : 'En attente'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </form>
+        )}
+      </section>
 
       {/* ── Section 4: Danger Zone (super_admin only) ── */}
       {adminRole === 'super_admin' && (
