@@ -68,8 +68,9 @@ router.post('/login', async (req, res) => {
       if (adminUser && adminUser.active && !adminUser.must_change_password) {
         const valid = await bcrypt.compare(password, adminUser.password_hash);
         if (!valid) return res.status(401).json({ message: 'Identifiants incorrects.' });
-        // Create a linked user account so dashboard data persists
-        user = insert('users', {
+        // Create linked user account if it doesn't exist yet (safety net —
+        // change-password normally creates it, but guard against edge cases)
+        user = getOneWhere('users', 'email', normalizedEmail) || insert('users', {
           name: adminUser.name,
           email: adminUser.email,
           password_hash: adminUser.password_hash,
@@ -79,9 +80,12 @@ router.post('/login', async (req, res) => {
           status: 'active',
           is_admin: true,
         });
-      } else {
-        return res.status(401).json({ message: 'Identifiants incorrects.' });
+        // Password already verified above — issue token directly
+        const { password_hash: _, ...safeUser } = user;
+        const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+        return res.json({ user: safeUser, token });
       }
+      return res.status(401).json({ message: 'Identifiants incorrects.' });
     }
 
     if (user.status === 'suspended') {

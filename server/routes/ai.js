@@ -60,8 +60,20 @@ router.post('/greenbot', async (req, res) => {
   if (!message) return res.status(400).json({ message: 'Message required' });
 
   try {
+    // Sanitize history: only user/assistant roles, alternating, no trailing user turn
+    const validHistory = Array.isArray(history)
+      ? history.filter(m => m.role === 'user' || m.role === 'assistant').slice(-10)
+      : [];
+    const deduped = [];
+    for (const m of validHistory) {
+      if (!deduped.length || deduped[deduped.length - 1].role !== m.role) {
+        deduped.push({ role: m.role, content: String(m.content || '') });
+      }
+    }
+    while (deduped.length && deduped[deduped.length - 1].role === 'user') deduped.pop();
+
     const messages = [
-      ...history.slice(-10).map(m => ({ role: m.role, content: m.content })),
+      ...deduped,
       { role: 'user', content: message },
     ];
 

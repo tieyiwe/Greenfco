@@ -12,28 +12,12 @@ const ADMIN_ROLES = {
 
 const PERM_CATEGORIES = ['Users', 'Listings', 'Transactions', 'Blog', 'Consulting', 'Projects', 'Activity', 'Settings'];
 
-const DEFAULT_COLLABORATORS = [
-  { id: '1', name: 'Aïssata Kaboré',  email: 'akabore@greenfco.com', role: 'manager', status: 'active',  invitedAt: '2026-01-15', customPermissions: null },
-  { id: '2', name: 'Moussa Traoré',   email: 'mtraore@greenfco.com', role: 'analyst', status: 'active',  invitedAt: '2026-02-20', customPermissions: null },
-  { id: '3', name: 'Fatou Diallo',    email: 'fdiallo@greenfco.com', role: 'analyst', status: 'pending', invitedAt: '2026-05-01', customPermissions: null },
-];
-
 function getAdminUser() {
   try {
     const stored = JSON.parse(localStorage.getItem('greenfco_admin_session'));
     if (stored && stored.role) return stored;
   } catch { /* ignore */ }
   return { name: 'Super Admin', email: 'tieyiwebass@gmail.com', role: 'super_admin' };
-}
-
-function getCollaborators() {
-  try {
-    const stored = JSON.parse(localStorage.getItem('greenfco_admin_collaborators'));
-    if (Array.isArray(stored) && stored.length > 0) return stored;
-  } catch { /* ignore */ }
-  // Seed defaults
-  localStorage.setItem('greenfco_admin_collaborators', JSON.stringify(DEFAULT_COLLABORATORS));
-  return DEFAULT_COLLABORATORS;
 }
 
 function today() {
@@ -50,7 +34,8 @@ export default function AdminSettings() {
   const [toast, setToast] = useState('');
 
   // Collaborators state
-  const [collaborators, setCollaborators] = useState(getCollaborators);
+  const [collaborators, setCollaborators] = useState([]);
+  const [collabError, setCollabError] = useState('');
 
   // Invite form state
   const [inviteName,  setInviteName]  = useState('');
@@ -74,6 +59,10 @@ export default function AdminSettings() {
     adminClient.get('/settings')
       .then(r => setPlatformSettings(r.data))
       .catch(() => {});
+    // Load collaborators from server
+    adminClient.get('/collaborators')
+      .then(r => setCollaborators(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setCollabError('Impossible de charger les collaborateurs.'));
   }, []);
 
   async function handleSavePlatformSettings(e) {
@@ -107,45 +96,41 @@ export default function AdminSettings() {
     showToast('Feature coming soon / Fonctionnalité à venir');
   }
 
-  function saveCollaborators(list) {
-    setCollaborators(list);
-    localStorage.setItem('greenfco_admin_collaborators', JSON.stringify(list));
+  async function handleRoleChange(id, newRole) {
+    try {
+      const res = await adminClient.put(`/collaborators/${id}`, { role: newRole });
+      setCollaborators(prev => prev.map(c => c.id === id ? res.data : c));
+      showToast('Rôle mis à jour ! / Role updated!');
+    } catch { showToast('Erreur lors de la mise à jour du rôle.'); }
   }
 
-  function handleRoleChange(id, newRole) {
-    const updated = collaborators.map((c) =>
-      c.id === id ? { ...c, role: newRole } : c
-    );
-    saveCollaborators(updated);
-    showToast('Rôle mis à jour ! / Role updated!');
-  }
-
-  function handleRevoke(id) {
+  async function handleRevoke(id) {
     if (!window.confirm('Révoquer l\'accès de ce collaborateur ? / Revoke this collaborator\'s access?')) return;
-    const updated = collaborators.filter((c) => c.id !== id);
-    saveCollaborators(updated);
-    showToast('Accès révoqué. / Access revoked.');
+    try {
+      await adminClient.delete(`/collaborators/${id}`);
+      setCollaborators(prev => prev.filter(c => c.id !== id));
+      showToast('Accès révoqué. / Access revoked.');
+    } catch { showToast('Erreur lors de la révocation.'); }
   }
 
-  function handleInvite(e) {
+  async function handleInvite(e) {
     e.preventDefault();
     if (!inviteName.trim() || !inviteEmail.trim()) return;
-    const newCollab = {
-      id: crypto.randomUUID(),
-      name: inviteName.trim(),
-      email: inviteEmail.trim(),
-      role: inviteRole,
-      status: 'pending',
-      invitedAt: today(),
-      customPermissions: null,
-    };
-    const updated = [...collaborators, newCollab];
-    saveCollaborators(updated);
-    setInviteName('');
-    setInviteEmail('');
-    setInviteRole('manager');
-    setInviteSuccess(true);
-    setTimeout(() => setInviteSuccess(false), 4000);
+    try {
+      const res = await adminClient.post('/collaborators', {
+        name: inviteName.trim(),
+        email: inviteEmail.trim(),
+        role: inviteRole,
+      });
+      setCollaborators(prev => [...prev, res.data]);
+      setInviteName('');
+      setInviteEmail('');
+      setInviteRole('manager');
+      setInviteSuccess(true);
+      setTimeout(() => setInviteSuccess(false), 4000);
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Erreur lors de l\'invitation.');
+    }
   }
 
   return (
@@ -215,6 +200,7 @@ export default function AdminSettings() {
       <section className="settings-section">
         <h2>Collaborateurs / Collaborators</h2>
 
+        {collabError && <p style={{ color: '#e53e3e', fontSize: '0.85rem' }}>{collabError}</p>}
         {collaborators.length === 0 ? (
           <p style={{ color: 'var(--gray-mid)', fontStyle: 'italic' }}>
             Aucun collaborateur. / No collaborators yet.
@@ -254,7 +240,7 @@ export default function AdminSettings() {
                         </span>
                       </td>
                       <td style={{ color: 'var(--gray-mid)', fontSize: '0.82rem' }}>
-                        {new Date(collab.invitedAt).toLocaleDateString('en-GB')}
+                        {collab.created_at ? new Date(collab.created_at).toLocaleDateString('en-GB') : '—'}
                       </td>
                       <td>
                         {adminRole === 'super_admin' ? (
@@ -465,14 +451,13 @@ export default function AdminSettings() {
               </button>
               <button
                 className="btn btn-primary"
-                onClick={() => {
-                  const updated = collaborators.map(c =>
-                    c.id === permModal.id ? { ...c, customPermissions: permModal.customPermissions } : c
-                  );
-                  setCollaborators(updated);
-                  localStorage.setItem('greenfco_admin_collaborators', JSON.stringify(updated));
-                  showToast('Permissions enregistrées ! / Permissions saved!');
-                  setPermModal(null);
+                onClick={async () => {
+                  try {
+                    const res = await adminClient.put(`/collaborators/${permModal.id}`, { customPermissions: permModal.customPermissions });
+                    setCollaborators(prev => prev.map(c => c.id === permModal.id ? res.data : c));
+                    showToast('Permissions enregistrées ! / Permissions saved!');
+                    setPermModal(null);
+                  } catch { showToast('Erreur lors de l\'enregistrement des permissions.'); }
                 }}
               >
                 💾 Enregistrer

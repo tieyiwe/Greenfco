@@ -20,6 +20,11 @@ function requireAdmin(req, res, next) {
 
 router.use(requireAdmin);
 
+function parseId(param) {
+  const id = parseInt(param, 10);
+  return isNaN(id) ? null : id;
+}
+
 // ── Stats ─────────────────────────────────────────────────
 router.get('/stats', (req, res) => {
   const users = getAll('users');
@@ -55,15 +60,22 @@ router.get('/users', (req, res) => {
 });
 
 router.put('/users/:id', (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
   const existing = getById('users', id);
   if (!existing) return res.status(404).json({ error: 'Not found' });
-  const { password_hash, ...safe } = update('users', id, req.body);
+  const result = update('users', id, req.body);
+  if (!result) return res.status(404).json({ error: 'Not found' });
+  const { password_hash, ...safe } = result;
   res.json(safe);
 });
 
 router.delete('/users/:id', (req, res) => {
-  remove('users', parseInt(req.params.id));
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const existing = getById('users', id);
+  if (!existing) return res.status(404).json({ error: 'Not found' });
+  remove('users', id);
   res.json({ success: true });
 });
 
@@ -73,13 +85,18 @@ router.get('/listings', (req, res) => {
 });
 
 router.put('/listings/:id', (req, res) => {
-  const updated = update('market', parseInt(req.params.id), req.body);
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const updated = update('market', id, req.body);
   if (!updated) return res.status(404).json({ error: 'Not found' });
   res.json(updated);
 });
 
 router.delete('/listings/:id', (req, res) => {
-  remove('market', parseInt(req.params.id));
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('market', id)) return res.status(404).json({ error: 'Not found' });
+  remove('market', id);
   res.json({ success: true });
 });
 
@@ -89,13 +106,18 @@ router.get('/contacts', (req, res) => {
 });
 
 router.put('/contacts/:id', (req, res) => {
-  const updated = update('contact', parseInt(req.params.id), req.body);
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const updated = update('contact', id, req.body);
   if (!updated) return res.status(404).json({ error: 'Not found' });
   res.json(updated);
 });
 
 router.delete('/contacts/:id', (req, res) => {
-  remove('contact', parseInt(req.params.id));
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('contact', id)) return res.status(404).json({ error: 'Not found' });
+  remove('contact', id);
   res.json({ success: true });
 });
 
@@ -105,13 +127,18 @@ router.get('/consulting', (req, res) => {
 });
 
 router.put('/consulting/:id', (req, res) => {
-  const updated = update('consulting', parseInt(req.params.id), req.body);
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const updated = update('consulting', id, req.body);
   if (!updated) return res.status(404).json({ error: 'Not found' });
   res.json(updated);
 });
 
 router.delete('/consulting/:id', (req, res) => {
-  remove('consulting', parseInt(req.params.id));
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('consulting', id)) return res.status(404).json({ error: 'Not found' });
+  remove('consulting', id);
   res.json({ success: true });
 });
 
@@ -121,7 +148,10 @@ router.get('/newsletter', (req, res) => {
 });
 
 router.delete('/newsletter/:id', (req, res) => {
-  remove('newsletter', parseInt(req.params.id));
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('newsletter', id)) return res.status(404).json({ error: 'Not found' });
+  remove('newsletter', id);
   res.json({ success: true });
 });
 
@@ -145,13 +175,18 @@ router.post('/gallery', (req, res) => {
 });
 
 router.put('/gallery/:id', (req, res) => {
-  const updated = update('gallery', parseInt(req.params.id), req.body);
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const updated = update('gallery', id, req.body);
   if (!updated) return res.status(404).json({ error: 'Not found' });
   res.json(updated);
 });
 
 router.delete('/gallery/:id', (req, res) => {
-  remove('gallery', parseInt(req.params.id));
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('gallery', id)) return res.status(404).json({ error: 'Not found' });
+  remove('gallery', id);
   res.json({ success: true });
 });
 
@@ -174,13 +209,18 @@ router.post('/collaborators', (req, res) => {
 });
 
 router.put('/collaborators/:id', (req, res) => {
-  const updated = update('collaborators', parseInt(req.params.id), req.body);
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const updated = update('collaborators', id, req.body);
   if (!updated) return res.status(404).json({ error: 'Not found' });
   res.json(updated);
 });
 
 router.delete('/collaborators/:id', (req, res) => {
-  remove('collaborators', parseInt(req.params.id));
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('collaborators', id)) return res.status(404).json({ error: 'Not found' });
+  remove('collaborators', id);
   res.json({ success: true });
 });
 

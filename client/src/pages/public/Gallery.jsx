@@ -5,6 +5,21 @@ import './Gallery.css';
 const CATEGORIES_FR = ['Tout', 'Terrain', 'Formations', 'Événements', 'Ferme-École'];
 const CATEGORIES_EN = ['All', 'Field', 'Training', 'Events', 'Farm School'];
 
+const CATEGORY_MAP = {
+  terrain: 'Terrain',
+  formations: 'Formations',
+  formation: 'Formations',
+  evenements: 'Événements',
+  evenement: 'Événements',
+  'événements': 'Événements',
+  'événement': 'Événements',
+  events: 'Événements',
+  'ferme-ecole': 'Ferme-École',
+  'ferme-école': 'Ferme-École',
+  'farm-school': 'Ferme-École',
+  general: 'Terrain',
+};
+
 const PLACEHOLDERS = [
   { id: 1, cat: 'Terrain', w: 600, h: 400, label_fr: 'Visite terrain — Burkina Faso', label_en: 'Field visit — Burkina Faso' },
   { id: 2, cat: 'Formations', w: 600, h: 600, label_fr: 'Formation agriculture durable', label_en: 'Sustainable agriculture training' },
@@ -35,7 +50,7 @@ export default function Gallery() {
 
   const apiMapped = apiItems.map(item => ({
     id: `api-${item.id}`,
-    cat: item.category ? item.category.charAt(0).toUpperCase() + item.category.slice(1) : 'Terrain',
+    cat: item.category ? (CATEGORY_MAP[item.category.toLowerCase()] || 'Terrain') : 'Terrain',
     w: 600, h: 400,
     label_fr: item.title_fr || item.title,
     label_en: item.title,
