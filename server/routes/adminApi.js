@@ -64,12 +64,15 @@ router.get('/users', (req, res) => {
   res.json(users.reverse());
 });
 
+// Whitelist fields — prevents password_hash injection via admin panel
+const USER_UPDATABLE = ['name', 'country', 'user_type', 'language', 'status', 'phone'];
 router.put('/users/:id', (req, res) => {
   const id = parseId(req.params.id);
   if (!id) return res.status(400).json({ error: 'Invalid id' });
   const existing = getById('users', id);
   if (!existing) return res.status(404).json({ error: 'Not found' });
-  const result = update('users', id, req.body);
+  const patch = Object.fromEntries(USER_UPDATABLE.filter(k => k in req.body).map(k => [k, req.body[k]]));
+  const result = update('users', id, patch);
   if (!result) return res.status(404).json({ error: 'Not found' });
   const { password_hash, ...safe } = result;
   res.json(safe);
@@ -312,9 +315,18 @@ router.get('/projects', (req, res) => {
 });
 
 router.post('/projects', (req, res) => {
-  const { title } = req.body;
-  if (!title) return res.status(400).json({ error: 'title required' });
-  const project = insert('projects', { ...req.body, created_by: req.adminUser.email });
+  const { title, description, status, deadline, assignees, budget, color } = req.body;
+  if (!title?.trim()) return res.status(400).json({ error: 'title required' });
+  const project = insert('projects', {
+    title: title.trim().slice(0, 200),
+    description: (description || '').trim().slice(0, 2000),
+    status: ['todo', 'in_progress', 'done', 'on_hold'].includes(status) ? status : 'todo',
+    deadline: deadline || null,
+    assignees: Array.isArray(assignees) ? assignees.slice(0, 20) : [],
+    budget: typeof budget === 'number' ? budget : (parseFloat(budget) || 0),
+    color: color ? String(color).slice(0, 20) : null,
+    created_by: req.adminUser.email,
+  });
   res.status(201).json(project);
 });
 
@@ -348,9 +360,14 @@ router.get('/channels', (req, res) => {
 router.post('/channels', (req, res) => {
   const { name, description } = req.body;
   if (!name?.trim()) return res.status(400).json({ error: 'name required' });
+  if (name.trim().length > 50) return res.status(400).json({ error: 'Channel name too long (max 50 chars)' });
   const existing = getAll('channels').find(c => c.name.toLowerCase() === name.trim().toLowerCase());
   if (existing) return res.status(409).json({ error: 'Channel already exists' });
-  const channel = insert('channels', { name: name.trim(), description: description || '', created_by: req.adminUser.email });
+  const channel = insert('channels', {
+    name: name.trim().slice(0, 50),
+    description: (description || '').trim().slice(0, 200),
+    created_by: req.adminUser.email,
+  });
   res.status(201).json(channel);
 });
 
@@ -374,9 +391,10 @@ router.post('/channels/:id/messages', (req, res) => {
   if (!id) return res.status(400).json({ error: 'Invalid id' });
   const { text } = req.body;
   if (!text?.trim()) return res.status(400).json({ error: 'text required' });
+  if (text.trim().length > 2000) return res.status(400).json({ error: 'Message too long (max 2000 chars)' });
   const msg = insert('team_messages', {
     channel_id: id,
-    text: text.trim(),
+    text: text.trim().slice(0, 2000),
     sender_name: req.adminUser.name || req.adminUser.email,
     sender_email: req.adminUser.email,
   });
@@ -399,7 +417,14 @@ router.get('/activity', (req, res) => {
 
 router.post('/activity', (req, res) => {
   const { type, actor, action, target, severity } = req.body;
-  const entry = insert('activity', { type, actor, action, target, severity: severity || 'info' });
+  const VALID_SEVERITY = ['info', 'success', 'warning', 'error'];
+  const entry = insert('activity', {
+    type: String(type || 'system').slice(0, 50),
+    actor: String(actor || '').slice(0, 100),
+    action: String(action || '').slice(0, 200),
+    target: String(target || '').slice(0, 200),
+    severity: VALID_SEVERITY.includes(severity) ? severity : 'info',
+  });
   res.status(201).json(entry);
 });
 

@@ -38,7 +38,19 @@ const PORT = process.env.PORT || 5000;
 const publicDir = path.join(__dirname, 'public');
 
 app.use(helmet({
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https:"],
+      fontSrc: ["'self'", "data:"],
+      frameAncestors: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+    },
+  },
   crossOriginEmbedderPolicy: false,
 }));
 app.use(compression());
@@ -48,8 +60,8 @@ const allowedOrigins = process.env.CLIENT_URL
   ? process.env.CLIENT_URL.split(',').map(s => s.trim())
   : isDev ? true : false;
 app.use(cors({ origin: allowedOrigins, credentials: true }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // ── Request logger ────────────────────────────────────────────
 app.use((req, _res, next) => {
@@ -68,7 +80,7 @@ app.use('/api/auth',        authRoutes);
 app.use('/api/crops',       cropsRoutes);
 app.use('/api/finance',     financeRoutes);
 app.use('/api/market',      marketRoutes);
-app.use('/api/ai',          aiRoutes);
+app.use('/api/ai', express.json({ limit: '8mb' }), aiRoutes);
 app.use('/api/contact',     contactRoutes);
 app.use('/api/newsletter',  newsletterRoutes);
 app.use('/api/consulting',  consultingRoutes);

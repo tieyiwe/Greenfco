@@ -58,6 +58,7 @@ Keep responses practical and actionable for smallholder farmers.`;
 router.post('/greenbot', async (req, res) => {
   const { message, history = [], language = 'fr' } = req.body;
   if (!message) return res.status(400).json({ message: 'Message required' });
+  if (message.length > 2000) return res.status(400).json({ message: 'Message trop long (max 2000 caractères).' });
 
   try {
     // Sanitize history: only user/assistant roles, alternating, no trailing user turn
@@ -122,6 +123,7 @@ Respond in the user's language (French or English).`;
 router.post('/koob-assist', async (req, res) => {
   const { prompt, language = 'fr' } = req.body;
   if (!prompt) return res.status(400).json({ message: 'Prompt required' });
+  if (prompt.length > 3000) return res.status(400).json({ message: 'Prompt trop long (max 3000 caractères).' });
 
   try {
     const response = await client.messages.create({
@@ -144,6 +146,9 @@ router.post('/koob-assist', async (req, res) => {
 router.post('/soil-advisor', async (req, res) => {
   const { crop, symptoms, description, language = 'fr' } = req.body;
   if (!crop || !symptoms) return res.status(400).json({ message: 'Crop and symptoms required' });
+  if (crop.length > 100 || symptoms.length > 500 || (description && description.length > 1000)) {
+    return res.status(400).json({ message: 'Input trop long.' });
+  }
 
   const userMessage = `Culture: ${crop}\nSymptômes: ${symptoms}${description ? `\nContexte: ${description}` : ''}`;
 
