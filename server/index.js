@@ -7,6 +7,20 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
 
+// ── Startup checks ────────────────────────────────────────────
+const isProd = process.env.NODE_ENV === 'production';
+if (isProd) {
+  const required = ['JWT_SECRET', 'ADMIN_PASSWORD'];
+  const missing = required.filter(k => !process.env[k]);
+  if (missing.length) {
+    console.error(`❌ Missing required env vars in production: ${missing.join(', ')}`);
+    console.error('   Set them in Replit Secrets (🔒) and restart.');
+    process.exit(1);
+  }
+}
+if (!process.env.JWT_SECRET)      console.warn('⚠️  JWT_SECRET not set — using insecure default.');
+if (!process.env.ADMIN_PASSWORD)  console.warn('⚠️  ADMIN_PASSWORD not set — using insecure default.');
+
 import authRoutes from './routes/auth.js';
 import cropsRoutes from './routes/crops.js';
 import financeRoutes from './routes/finance.js';
@@ -38,6 +52,18 @@ app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// ── Request logger ────────────────────────────────────────────
+app.use((req, _res, next) => {
+  if (!req.path.startsWith('/api')) return next();
+  const start = Date.now();
+  _res.on('finish', () => {
+    const ms = Date.now() - start;
+    const color = _res.statusCode >= 500 ? '\x1b[31m' : _res.statusCode >= 400 ? '\x1b[33m' : '\x1b[32m';
+    console.log(`${color}${req.method} ${req.path} ${_res.statusCode}\x1b[0m — ${ms}ms`);
+  });
+  next();
+});
+
 // API routes
 app.use('/api/auth',        authRoutes);
 app.use('/api/crops',       cropsRoutes);
@@ -57,6 +83,16 @@ app.get('/api/gallery', (req, res) => {
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), env: process.env.NODE_ENV || 'development' });
+});
+
+// ── Global error handler ──────────────────────────────────────
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, _next) => {
+  const status = err.status || err.statusCode || 500;
+  console.error(`[Error] ${req.method} ${req.path} →`, err.message);
+  res.status(status).json({
+    error: isProd ? 'Une erreur est survenue.' : err.message,
+  });
 });
 
 // Serve built React app
