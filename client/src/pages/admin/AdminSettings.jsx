@@ -23,7 +23,7 @@ function getAdminUser() {
     const stored = JSON.parse(localStorage.getItem('greenfco_admin_session'));
     if (stored && stored.role) return stored;
   } catch { /* ignore */ }
-  return { name: 'Admin GreenFCO', email: 'admin@greenfco.com', role: 'super_admin' };
+  return { name: 'Super Admin', email: 'tieyiwebass@gmail.com', role: 'super_admin' };
 }
 
 function getCollaborators() {

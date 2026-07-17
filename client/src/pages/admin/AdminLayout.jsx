@@ -9,7 +9,7 @@ const ADMIN_ROLES = {
   analyst: { label: 'Analyst', color: '#3B82F6', canManageUsers: false, canDeleteContent: false, canInvite: false, canAccessSettings: false },
 };
 
-const DEFAULT_ADMIN = { name: 'Admin GreenFCO', email: 'admin@greenfco.com', role: 'super_admin' };
+const DEFAULT_ADMIN = { name: 'Super Admin', email: 'tieyiwebass@gmail.com', role: 'super_admin' };
 
 const NAV_LINKS = [
   { to: '/admin',              icon: '📊', label: 'Dashboard',    end: true,  permission: null },

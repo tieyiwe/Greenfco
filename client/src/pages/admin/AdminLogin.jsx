@@ -16,8 +16,8 @@ export default function AdminLogin() {
       const res = await api.post('/admin/auth', { password });
       localStorage.setItem('greenfco_admin_token', res.data.token);
       localStorage.setItem('greenfco_admin_session', JSON.stringify({
-        name: 'Admin GreenFCO',
-        email: 'admin@greenfco.com',
+        name: 'Super Admin',
+        email: 'tieyiwebass@gmail.com',
         role: 'super_admin',
         verified: true,
       }));
