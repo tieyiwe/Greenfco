@@ -2,7 +2,7 @@ import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import rateLimit from 'express-rate-limit';
-import { getAll, getOneWhere, insert, update } from '../db/store.js';
+import { getAll, getOneWhere, insert, update, remove } from '../db/store.js';
 
 const router = Router();
 const JWT_SECRET     = process.env.JWT_SECRET     || 'greenfco_secret_key_2024';
@@ -19,7 +19,7 @@ async function seedAdminUsers() {
   seeded = true;
 
   const superEmail  = 'tieyiwebass@gmail.com';
-  const secondEmail = 'dipamawenmanelie@gmail.com';
+  const secondEmail = 'wenmaneg20@gmail.com';
   const TEMP_PASS   = 'GreenFCO@Admin24';
 
   const existing = getAll('admin_users');
@@ -37,11 +37,15 @@ async function seedAdminUsers() {
     console.log('[Admin] Created super admin:', superEmail);
   }
 
+  // Remove old email if it exists (migration)
+  const oldEntry = existing.find(u => u.email === 'dipamawenmanelie@gmail.com');
+  if (oldEntry) remove('admin_users', oldEntry.id);
+
   if (!existing.find(u => u.email === secondEmail)) {
     const hash = await bcrypt.hash(TEMP_PASS, 10);
     insert('admin_users', {
       email: secondEmail,
-      name: 'Wenmanelie Dipama',
+      name: 'Wenmane',
       role: 'manager',
       password_hash: hash,
       must_change_password: true,
