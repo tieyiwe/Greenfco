@@ -105,14 +105,28 @@ export default function About() {
             <h2>{lang === 'fr' ? 'Les Visages de GreenFCO' : 'The Faces of GreenFCO'}</h2>
             <div className="divider" />
           </div>
+          {/* Joint cofounders photo */}
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <img
+              src="/images/cofounders.jpg"
+              alt="Elie et Elisée Dipama — Co-fondateurs GreenFCO"
+              style={{
+                width: '100%',
+                maxWidth: '720px',
+                borderRadius: '16px',
+                boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
+                display: 'block',
+                margin: '0 auto',
+              }}
+            />
+            <p style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--gray-mid)', fontStyle: 'italic' }}>
+              Wenmanegda Elie &amp; Wesmanegda Elisée DIPAMA — {lang === 'fr' ? 'Co-fondateurs de GreenFCO' : 'Co-founders of GreenFCO'}
+            </p>
+          </div>
+
           <div className="founders-grid">
             {/* Elie Dipama */}
             <div className="founder-card card">
-              <div className="founder-photo">
-                <div className="img-placeholder" style={{ height: '320px' }}>
-                  <span>Photo Elie Dipama — 400×400px</span>
-                </div>
-              </div>
               <div className="founder-content">
                 <h3>Wenmanegda Elie DIPAMA</h3>
                 <p className="founder-role">
@@ -169,11 +183,6 @@ export default function About() {
 
             {/* Elisée Dipama */}
             <div className="founder-card card">
-              <div className="founder-photo">
-                <div className="img-placeholder" style={{ height: '320px' }}>
-                  <span>Photo Elisée Dipama — 400×400px</span>
-                </div>
-              </div>
               <div className="founder-content">
                 <h3>Wesmanegda Elisée DIPAMA</h3>
                 <p className="founder-role">
