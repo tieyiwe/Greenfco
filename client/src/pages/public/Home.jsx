@@ -137,7 +137,6 @@ export default function Home() {
                 src="/cofounders.png"
                 alt="Elie et Elisée Dipama, co-fondateurs de GreenFCO"
                 className="who-photo"
-                loading="lazy"
               />
               <div className="who-badge">
                 <span>🏅</span>
