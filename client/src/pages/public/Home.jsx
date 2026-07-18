@@ -134,7 +134,7 @@ export default function Home() {
           <div className="who-grid">
             <div className="who-image">
               <img
-                src="/images/cofounders.jpg"
+                src="/cofounders.png"
                 alt="Elie et Elisée Dipama, co-fondateurs de GreenFCO"
                 className="who-photo"
                 loading="lazy"
