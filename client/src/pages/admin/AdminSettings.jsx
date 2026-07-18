@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { ALL_PERMISSIONS, ROLE_BASE_PERMISSIONS, ADMIN_ROLE_DEFINITIONS } from './adminPermissions';
 import adminClient from '../../api/adminClient';
 import { logActivity, getAdminName } from './AdminActivity';
+
+const plainApi = axios.create({ baseURL: '/api' });
 
 export { ALL_PERMISSIONS, ROLE_BASE_PERMISSIONS };
 
@@ -51,6 +54,14 @@ export default function AdminSettings() {
   // Profile edit state
   const [editName, setEditName] = useState(adminUser?.name || '');
   const [toast, setToast] = useState('');
+
+  // Change-password state
+  const [showPwForm, setShowPwForm] = useState(false);
+  const [cpCurrent, setCpCurrent]   = useState('');
+  const [cpNew, setCpNew]           = useState('');
+  const [cpConfirm, setCpConfirm]   = useState('');
+  const [cpError, setCpError]       = useState('');
+  const [cpLoading, setCpLoading]   = useState(false);
 
   // Collaborators state
   const [collaborators, setCollaborators] = useState([]);
@@ -128,8 +139,26 @@ export default function AdminSettings() {
     showToast('Nom mis à jour ! / Name updated!');
   }
 
-  function handleChangePassword() {
-    showToast('Feature coming soon / Fonctionnalité à venir');
+  async function handleChangePassword(e) {
+    e.preventDefault();
+    setCpError('');
+    if (cpNew.length < 8) { setCpError('Minimum 8 caractères requis.'); return; }
+    if (cpNew !== cpConfirm) { setCpError('Les mots de passe ne correspondent pas.'); return; }
+    setCpLoading(true);
+    try {
+      await plainApi.post('/admin/auth/change-password', {
+        email: adminUser.email,
+        current_password: cpCurrent,
+        new_password: cpNew,
+      });
+      setCpCurrent(''); setCpNew(''); setCpConfirm('');
+      setShowPwForm(false);
+      showToast('Mot de passe mis à jour et sauvegardé !');
+    } catch (err) {
+      setCpError(err.response?.data?.error || 'Erreur lors de la mise à jour.');
+    } finally {
+      setCpLoading(false);
+    }
   }
 
   async function handleRoleChange(id, newRole) {
@@ -263,11 +292,86 @@ export default function AdminSettings() {
             <button type="submit" className="btn btn-primary">
               Enregistrer / Save
             </button>
-            <button type="button" className="btn btn-secondary" onClick={handleChangePassword}>
-              Changer le mot de passe / Change Password
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => { setShowPwForm(v => !v); setCpError(''); }}
+            >
+              {showPwForm ? 'Annuler' : 'Changer le mot de passe / Change Password'}
             </button>
           </div>
         </form>
+
+        {showPwForm && (
+          <form
+            onSubmit={handleChangePassword}
+            style={{
+              marginTop: '1.25rem',
+              padding: '1.25rem',
+              background: '#f0fdf4',
+              borderRadius: '10px',
+              border: '1px solid #bbf7d0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+            }}
+          >
+            <h4 style={{ margin: 0, color: '#1B4332', fontSize: '0.95rem', fontWeight: 600 }}>
+              Changer le mot de passe / Change Password
+            </h4>
+            <div>
+              <label style={{ fontSize: '0.82rem', color: 'var(--gray-mid)', display: 'block', marginBottom: '0.3rem' }}>
+                Mot de passe actuel
+              </label>
+              <input
+                type="password"
+                value={cpCurrent}
+                onChange={e => setCpCurrent(e.target.value)}
+                required
+                placeholder="Mot de passe actuel"
+                style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.82rem', color: 'var(--gray-mid)', display: 'block', marginBottom: '0.3rem' }}>
+                Nouveau mot de passe (min. 8 caractères)
+              </label>
+              <input
+                type="password"
+                value={cpNew}
+                onChange={e => setCpNew(e.target.value)}
+                required
+                minLength={8}
+                placeholder="Nouveau mot de passe"
+                style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.82rem', color: 'var(--gray-mid)', display: 'block', marginBottom: '0.3rem' }}>
+                Confirmer le nouveau mot de passe
+              </label>
+              <input
+                type="password"
+                value={cpConfirm}
+                onChange={e => setCpConfirm(e.target.value)}
+                required
+                placeholder="Confirmer le mot de passe"
+                style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}
+              />
+            </div>
+            {cpError && (
+              <p style={{ color: '#e53e3e', fontSize: '0.85rem', margin: 0 }}>{cpError}</p>
+            )}
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button type="submit" className="btn btn-primary" disabled={cpLoading}>
+                {cpLoading ? 'Enregistrement…' : '💾 Enregistrer le nouveau mot de passe'}
+              </button>
+            </div>
+            <p style={{ fontSize: '0.78rem', color: 'var(--gray-mid)', margin: 0 }}>
+              Le nouveau mot de passe est sauvegardé et survivra aux redéploiements.
+            </p>
+          </form>
+        )}
       </section>
 
       {/* ── Section 2: Collaborators ── */}

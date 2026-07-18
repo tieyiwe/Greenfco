@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
-import { insert, getOneWhere } from '../db/store.js';
+import { insert, getOneWhere, getAll, update, remove } from '../db/store.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { sendPasswordResetEmail } from '../utils/email.js';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'greenfco_secret_key_2024';
@@ -111,9 +113,70 @@ router.get('/me', authMiddleware, (req, res) => {
   res.json(safeUser);
 });
 
-router.post('/forgot-password', (req, res) => {
-  // Email sending would go here with a real email provider
-  res.json({ message: 'Si ce compte existe, un email de réinitialisation a été envoyé.' });
+const resetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { message: 'Trop de tentatives. Réessayez dans 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.post('/forgot-password', resetLimiter, async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email?.trim()) return res.status(400).json({ message: 'Email requis.' });
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Always respond with success to avoid revealing whether email exists
+    const user = getOneWhere('users', 'email', normalizedEmail);
+    if (!user) return res.json({ message: 'Si ce compte existe, vous recevrez un lien de réinitialisation.' });
+
+    // Invalidate any existing tokens for this email
+    const existing = getAll('password_reset_tokens').filter(t => t.email === normalizedEmail && !t.used);
+    existing.forEach(t => remove('password_reset_tokens', t.id));
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires_at = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+    insert('password_reset_tokens', { email: normalizedEmail, token, type: 'user', expires_at, used: false });
+
+    const result = await sendPasswordResetEmail(normalizedEmail, token, 'user');
+
+    res.json({
+      message: 'Si ce compte existe, vous recevrez un lien de réinitialisation.',
+      // Only expose link when email is not configured (dev/no-SMTP mode)
+      ...(result.link ? { reset_link: result.link } : {}),
+    });
+  } catch (err) {
+    console.error('Forgot password error:', err.message);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+});
+
+router.post('/reset-password', resetLimiter, async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ message: 'Token et mot de passe requis.' });
+    if (password.length < 8) return res.status(400).json({ message: 'Le mot de passe doit contenir au moins 8 caractères.' });
+
+    const record = getAll('password_reset_tokens').find(t => t.token === token && t.type === 'user' && !t.used);
+    if (!record) return res.status(400).json({ message: 'Lien invalide ou expiré.' });
+    if (new Date(record.expires_at) < new Date()) {
+      remove('password_reset_tokens', record.id);
+      return res.status(400).json({ message: 'Ce lien a expiré. Faites une nouvelle demande.' });
+    }
+
+    const user = getOneWhere('users', 'email', record.email);
+    if (!user) return res.status(400).json({ message: 'Compte introuvable.' });
+
+    const password_hash = await bcrypt.hash(password, 10);
+    update('users', user.id, { password_hash });
+    update('password_reset_tokens', record.id, { used: true });
+
+    res.json({ message: 'Mot de passe réinitialisé avec succès.' });
+  } catch (err) {
+    console.error('Reset password error:', err.message);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
 });
 
 export default router;
