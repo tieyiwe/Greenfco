@@ -108,7 +108,7 @@ export default function About() {
           {/* Joint cofounders photo */}
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <img
-              src="/images/cofounders.jpg"
+              src="/images/cofounders.png"
               alt="Elie et Elisée Dipama — Co-fondateurs GreenFCO"
               style={{
                 width: '100%',
