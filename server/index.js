@@ -126,10 +126,10 @@ initPersistence().then(() => {
     console.log(`🌿 GreenFCO Server on port ${PORT}`);
     console.log(`   Frontend dir : ${publicDir}`);
     console.log(`   index.html   : ${fs.existsSync(path.join(publicDir, 'index.html')) ? '✅ found' : '❌ MISSING — run: cd client && npm install && npm run build'}`);
-    if (process.env.REPLIT_DB_URL) {
-      console.log('   Persistence  : ✅ Replit Database (survives deployments)');
+    if (process.env.DATABASE_URL) {
+      console.log('   Persistence  : ✅ PostgreSQL (survives deployments)');
     } else {
-      console.log('   Persistence  : ⚠️  Local db.json only (set REPLIT_DB_URL for deploy persistence)');
+      console.log('   Persistence  : ⚠️  Local db.json only (add DATABASE_URL secret for deploy persistence)');
     }
   });
 }).catch(err => {
