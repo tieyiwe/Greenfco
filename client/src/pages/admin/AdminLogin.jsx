@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 const plainApi = axios.create({ baseURL: '/api' });
 
@@ -23,19 +23,24 @@ const wrap = {
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const [step, setStep] = useState('login'); // 'login' | 'change-password'
+  const [step, setStep] = useState('login'); // 'login' | 'change-password' | 'forgot-password'
 
   // Login form
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
 
-  // Change-password form (first-login)
+  // Change-password form (first-login / temp password)
   const [pendingEmail, setPendingEmail] = useState('');
   const [currentPass, setCurrentPass]   = useState('');
   const [newPass, setNewPass]           = useState('');
   const [confirmPass, setConfirmPass]   = useState('');
 
-  const [error, setError]   = useState('');
+  // Forgot-password form
+  const [fpEmail, setFpEmail]   = useState('');
+  const [fpSent, setFpSent]     = useState(false);
+  const [fpLink, setFpLink]     = useState('');
+
+  const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
 
   function storeSession(token, user) {
@@ -93,6 +98,89 @@ export default function AdminLogin() {
     }
   }
 
+  async function handleForgotPassword(e) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const res = await plainApi.post('/admin/auth/forgot-password', { email: fpEmail.trim() });
+      if (res.data?.reset_link) setFpLink(res.data.reset_link);
+      setFpSent(true);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erreur lors de l\'envoi.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ── Forgot Password Step ───────────────────────────────────────
+  if (step === 'forgot-password') {
+    return (
+      <div style={wrap}>
+        <div style={card}>
+          <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
+            <Link to="/" style={{ textDecoration: 'none', color: '#1B4332', fontSize: '1.8rem' }}>🌿</Link>
+            <h1 style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '0.6rem', color: '#1B4332', fontFamily: 'var(--font-display)' }}>
+              Mot de passe oublié
+            </h1>
+            <p style={{ color: '#6c757d', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+              Un lien de réinitialisation sera envoyé à votre adresse e-mail admin.
+            </p>
+          </div>
+
+          {fpSent ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ padding: '1rem', background: '#d1fae5', borderRadius: '8px', color: '#065f46', fontSize: '0.9rem', textAlign: 'center' }}>
+                ✅ Si ce compte existe, vous recevrez un lien de réinitialisation.
+              </div>
+              {fpLink && (
+                <div style={{ padding: '0.85rem', background: '#fef9c3', borderRadius: '8px', border: '1px solid #fde047', fontSize: '0.82rem' }}>
+                  <p style={{ color: '#854d0e', fontWeight: 600, marginBottom: '0.4rem' }}>⚠ Email non configuré — lien direct :</p>
+                  <a href={fpLink} style={{ color: '#1B4332', wordBreak: 'break-all', fontSize: '0.78rem' }}>{fpLink}</a>
+                </div>
+              )}
+              <button
+                className="btn btn-secondary"
+                style={{ width: '100%', marginTop: '0.5rem' }}
+                onClick={() => { setStep('login'); setFpSent(false); setFpLink(''); setFpEmail(''); }}
+              >
+                ← Retour à la connexion
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleForgotPassword}>
+              <div style={{ marginBottom: '1rem' }}>
+                <input
+                  type="email"
+                  placeholder="Email administrateur"
+                  value={fpEmail}
+                  onChange={e => setFpEmail(e.target.value)}
+                  required
+                  className="form-input"
+                  style={{ width: '100%' }}
+                  autoFocus
+                />
+              </div>
+              {error && <p style={{ color: '#e53e3e', fontSize: '0.85rem', marginBottom: '1rem', textAlign: 'center' }}>{error}</p>}
+              <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+                {loading ? 'Envoi…' : 'Envoyer le lien'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ width: '100%', marginTop: '0.5rem' }}
+                onClick={() => { setStep('login'); setError(''); }}
+              >
+                ← Retour
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Change Password Step (temp password detected) ─────────────
   if (step === 'change-password') {
     return (
       <div style={wrap}>
@@ -102,9 +190,19 @@ export default function AdminLogin() {
             <h1 style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '0.6rem', color: '#1B4332', fontFamily: 'var(--font-display)' }}>
               Définir votre mot de passe
             </h1>
-            <p style={{ color: '#6c757d', fontSize: '0.85rem', marginTop: '0.25rem' }}>
-              Première connexion — choisissez un nouveau mot de passe sécurisé.
-            </p>
+            <div style={{
+              background: '#fef9c3',
+              border: '1px solid #fde047',
+              borderRadius: '8px',
+              padding: '0.65rem 0.9rem',
+              marginTop: '0.75rem',
+              fontSize: '0.82rem',
+              color: '#854d0e',
+              textAlign: 'left',
+            }}>
+              ⚠️ <strong>Mot de passe temporaire détecté.</strong><br />
+              Vous devez créer un mot de passe personnel avant de continuer.
+            </div>
           </div>
           <form onSubmit={handleChangePassword}>
             <div style={{ marginBottom: '0.85rem' }}>
@@ -143,12 +241,16 @@ export default function AdminLogin() {
     );
   }
 
+  // ── Login Step ────────────────────────────────────────────────
   return (
     <div style={wrap}>
       <div style={card}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ fontSize: '2.5rem' }}>🌿</div>
-          <h1 style={{ fontSize: '1.35rem', fontWeight: 700, marginTop: '0.75rem', color: '#1B4332', fontFamily: 'var(--font-display)' }}>
+          <Link to="/" style={{ textDecoration: 'none', display: 'inline-block' }}>
+            <div style={{ fontSize: '2.5rem' }}>🌿</div>
+            <p style={{ fontSize: '0.78rem', color: '#9ca3af', marginTop: '0.1rem' }}>← Retour à l'accueil</p>
+          </Link>
+          <h1 style={{ fontSize: '1.35rem', fontWeight: 700, marginTop: '0.5rem', color: '#1B4332', fontFamily: 'var(--font-display)' }}>
             GreenFCO Admin
           </h1>
           <p style={{ color: '#6c757d', fontSize: '0.875rem', marginTop: '0.25rem' }}>
@@ -168,7 +270,7 @@ export default function AdminLogin() {
               autoFocus
             />
           </div>
-          <div style={{ marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '0.5rem' }}>
             <input
               type="password"
               placeholder="Mot de passe"
@@ -178,6 +280,15 @@ export default function AdminLogin() {
               className="form-input"
               style={{ width: '100%' }}
             />
+          </div>
+          <div style={{ textAlign: 'right', marginBottom: '1rem' }}>
+            <button
+              type="button"
+              onClick={() => { setStep('forgot-password'); setError(''); setFpEmail(email); }}
+              style={{ background: 'none', border: 'none', color: '#1B4332', fontSize: '0.8rem', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+            >
+              Mot de passe oublié ?
+            </button>
           </div>
           {error && <p style={{ color: '#e53e3e', fontSize: '0.85rem', marginBottom: '1rem', textAlign: 'center' }}>{error}</p>}
           <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>

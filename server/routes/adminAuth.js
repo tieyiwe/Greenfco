@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getAll, getOneWhere, insert, update, remove } from '../db/store.js';
+import { sendPasswordResetEmail } from '../utils/email.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CREDS_FILE = path.join(__dirname, '..', 'data', 'admin_creds.json');
@@ -228,6 +230,69 @@ router.post('/auth/change-password', adminAuthLimiter, async (req, res) => {
 
     res.json({ success: true, token, user: { name: adminUser.name, email: adminUser.email, role: adminUser.role } });
   } catch {
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
+});
+
+// ── POST /admin/auth/forgot-password ─────────────────────────
+router.post('/auth/forgot-password', adminAuthLimiter, async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email?.trim()) return res.status(400).json({ error: 'Email requis.' });
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const adminUser = getOneWhere('admin_users', 'email', normalizedEmail);
+    if (!adminUser) return res.json({ message: 'Si ce compte existe, vous recevrez un lien.' });
+
+    // Invalidate existing tokens
+    getAll('password_reset_tokens')
+      .filter(t => t.email === normalizedEmail && t.type === 'admin' && !t.used)
+      .forEach(t => remove('password_reset_tokens', t.id));
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires_at = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    insert('password_reset_tokens', { email: normalizedEmail, token, type: 'admin', expires_at, used: false });
+
+    const result = await sendPasswordResetEmail(normalizedEmail, token, 'admin');
+    res.json({
+      message: 'Si ce compte existe, vous recevrez un lien de réinitialisation.',
+      ...(result.link ? { reset_link: result.link } : {}),
+    });
+  } catch (err) {
+    console.error('Admin forgot password error:', err.message);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
+});
+
+// ── POST /admin/auth/reset-password ──────────────────────────
+router.post('/auth/reset-password', adminAuthLimiter, async (req, res) => {
+  try {
+    const { token, new_password } = req.body;
+    if (!token || !new_password) return res.status(400).json({ error: 'Token et mot de passe requis.' });
+    if (new_password.length < 8) return res.status(400).json({ error: 'Minimum 8 caractères.' });
+
+    const record = getAll('password_reset_tokens').find(t => t.token === token && t.type === 'admin' && !t.used);
+    if (!record) return res.status(400).json({ error: 'Lien invalide ou expiré.' });
+    if (new Date(record.expires_at) < new Date()) {
+      remove('password_reset_tokens', record.id);
+      return res.status(400).json({ error: 'Ce lien a expiré. Faites une nouvelle demande.' });
+    }
+
+    const adminUser = getOneWhere('admin_users', 'email', record.email);
+    if (!adminUser) return res.status(400).json({ error: 'Compte introuvable.' });
+
+    const newHash = await bcrypt.hash(new_password, 10);
+    update('admin_users', adminUser.id, { password_hash: newHash, must_change_password: false, password_changed_at: new Date().toISOString() });
+    update('password_reset_tokens', record.id, { used: true });
+    writeAdminCreds(adminUser.email, newHash);
+
+    // Also sync the linked user account
+    const existingUser = getOneWhere('users', 'email', adminUser.email);
+    if (existingUser) update('users', existingUser.id, { password_hash: newHash });
+
+    res.json({ success: true, message: 'Mot de passe réinitialisé avec succès.' });
+  } catch (err) {
+    console.error('Admin reset password error:', err.message);
     res.status(500).json({ error: 'Erreur serveur.' });
   }
 });

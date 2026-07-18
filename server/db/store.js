@@ -9,7 +9,7 @@ const DATA_DIR  = path.join(__dirname, '..', 'data');
 const DATA_FILE = path.join(DATA_DIR, 'db.json');
 const PG_KEY    = 'greenfco_v1';
 
-const TABLES = ['users', 'crops', 'finance', 'market', 'newsletter', 'contact', 'consulting', 'gallery', 'collaborators', 'activity', 'settings', 'admin_users', 'access_requests', 'projects', 'channels', 'team_messages'];
+const TABLES = ['users', 'crops', 'finance', 'market', 'newsletter', 'contact', 'consulting', 'gallery', 'collaborators', 'activity', 'settings', 'admin_users', 'access_requests', 'projects', 'channels', 'team_messages', 'password_reset_tokens'];
 
 // ── In-memory store ───────────────────────────────────────────
 let store = Object.fromEntries(TABLES.map(t => [t, []]));
