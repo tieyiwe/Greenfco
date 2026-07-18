@@ -1,12 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import axios from 'axios';
+import pg from 'pg';
 
+const { Pool } = pg;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR  = path.join(__dirname, '..', 'data');
 const DATA_FILE = path.join(DATA_DIR, 'db.json');
-const REPLIT_DB_KEY = 'greenfco_store_v1';
+const PG_KEY    = 'greenfco_v1';
 
 const TABLES = ['users', 'crops', 'finance', 'market', 'newsletter', 'contact', 'consulting', 'gallery', 'collaborators', 'activity', 'settings', 'admin_users', 'access_requests', 'projects', 'channels', 'team_messages'];
 
@@ -22,30 +23,49 @@ function hydrateFrom(saved) {
   }
 }
 
-// ── Replit Database (no extra package — plain HTTP via axios) ─
-async function replitDbGet(key) {
-  const url = process.env.REPLIT_DB_URL;
-  if (!url) return null;
+// ── PostgreSQL helpers ────────────────────────────────────────
+let pool = null;
+
+function getPool() {
+  if (!process.env.DATABASE_URL) return null;
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false },
+    });
+  }
+  return pool;
+}
+
+async function pgLoad() {
+  const p = getPool();
+  if (!p) return null;
   try {
-    const res = await axios.get(`${url}/${encodeURIComponent(key)}`);
-    return typeof res.data === 'string' ? res.data : JSON.stringify(res.data);
+    await p.query(`
+      CREATE TABLE IF NOT EXISTS app_store (
+        key   VARCHAR(100) PRIMARY KEY,
+        value TEXT NOT NULL
+      )
+    `);
+    const { rows } = await p.query('SELECT value FROM app_store WHERE key = $1', [PG_KEY]);
+    return rows[0]?.value || null;
   } catch (err) {
-    if (err.response?.status === 404) return null;
-    console.error('[DB] Replit DB get error:', err.message);
+    console.error('[DB] PostgreSQL load error:', err.message);
     return null;
   }
 }
 
-async function replitDbSet(key, value) {
-  const url = process.env.REPLIT_DB_URL;
-  if (!url) return;
+async function pgSave(json) {
+  const p = getPool();
+  if (!p) return;
   try {
-    await axios.post(url,
-      `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    await p.query(
+      `INSERT INTO app_store (key, value) VALUES ($1, $2)
+       ON CONFLICT (key) DO UPDATE SET value = $2`,
+      [PG_KEY, json]
     );
   } catch (err) {
-    console.error('[DB] Replit DB set error:', err.message);
+    console.error('[DB] PostgreSQL save error:', err.message);
   }
 }
 
@@ -53,29 +73,29 @@ async function replitDbSet(key, value) {
 export async function initPersistence() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
-  // 1. Try Replit Database first (survives deployments)
-  if (process.env.REPLIT_DB_URL) {
-    const raw = await replitDbGet(REPLIT_DB_KEY);
+  // 1. Try PostgreSQL (survives deployments)
+  if (process.env.DATABASE_URL) {
+    const raw = await pgLoad();
     if (raw) {
       try {
         hydrateFrom(JSON.parse(raw));
-        console.log(`[DB] Loaded from Replit Database — ${Object.values(store).flat().length} records`);
+        console.log(`[DB] Loaded from PostgreSQL — ${Object.values(store).flat().length} records`);
         return;
       } catch (err) {
-        console.warn('[DB] Replit DB parse failed, falling back to file:', err.message);
+        console.warn('[DB] PostgreSQL parse failed, falling back to file:', err.message);
       }
     } else {
-      console.log('[DB] Replit Database: no saved data yet, will initialise fresh');
+      console.log('[DB] PostgreSQL: no saved data yet — will initialise fresh');
     }
   }
 
-  // 2. Fall back to local db.json (dev / first-time setup)
+  // 2. Fall back to local db.json (dev or first boot)
   if (fs.existsSync(DATA_FILE)) {
     try {
       const saved = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
       hydrateFrom(saved);
       console.log(`[DB] Loaded ${DATA_FILE} — ${Object.values(store).flat().length} records`);
-      scheduleReplitSave(); // mirror to Replit DB for next deploy
+      scheduleDbSave(); // mirror to PostgreSQL for next deploy
     } catch (err) {
       console.warn('[DB] Failed to parse db.json, starting fresh:', err.message);
     }
@@ -86,7 +106,7 @@ export async function initPersistence() {
 
 // ── Save scheduler ────────────────────────────────────────────
 let saveTimer = null;
-let replitSaveTimer = null;
+let pgSaveTimer = null;
 
 function scheduleSave() {
   // Fast local file write (200 ms debounce)
@@ -100,16 +120,15 @@ function scheduleSave() {
       }
     }, 200);
   }
-  // Slow Replit DB write (2 s debounce — avoids hammering the API)
-  scheduleReplitSave();
+  scheduleDbSave();
 }
 
-function scheduleReplitSave() {
-  if (!process.env.REPLIT_DB_URL) return;
-  if (replitSaveTimer) clearTimeout(replitSaveTimer);
-  replitSaveTimer = setTimeout(() => {
-    replitSaveTimer = null;
-    replitDbSet(REPLIT_DB_KEY, JSON.stringify({ store, ids })).catch(() => {});
+function scheduleDbSave() {
+  if (!process.env.DATABASE_URL) return;
+  if (pgSaveTimer) clearTimeout(pgSaveTimer);
+  pgSaveTimer = setTimeout(() => {
+    pgSaveTimer = null;
+    pgSave(JSON.stringify({ store, ids })).catch(() => {});
   }, 2000);
 }
 
