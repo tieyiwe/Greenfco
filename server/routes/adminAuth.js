@@ -73,8 +73,11 @@ async function seedAdminUsers() {
     const match = await bcrypt.compare(superPassword, superAdmin.password_hash);
     if (!match) {
       const hash = await bcrypt.hash(superPassword, 10);
-      update('admin_users', superAdmin.id, { password_hash: hash, must_change_password: false, password_changed_at: new Date().toISOString() });
-      console.log(`[Admin] Synced super admin password from ADMIN_SUPER_PASSWORD`);
+      const isTempPass = superPassword === SUPER_TEMP_PASS;
+      update('admin_users', superAdmin.id, { password_hash: hash, must_change_password: isTempPass, password_changed_at: new Date().toISOString() });
+      console.log(`[Admin] Synced super admin password from ADMIN_SUPER_PASSWORD${isTempPass ? ' (temp — will prompt change)' : ''}`);
+    } else if (superAdmin.must_change_password === false && superPassword === SUPER_TEMP_PASS) {
+      update('admin_users', superAdmin.id, { must_change_password: true });
     }
   } else if (!superFromEnv && creds[superEmail] && superAdmin.must_change_password) {
     // Creds file has a saved hash from a previous session — restore it
@@ -106,8 +109,12 @@ async function seedAdminUsers() {
     const match = await bcrypt.compare(secondPassword, secondAdmin.password_hash);
     if (!match) {
       const hash = await bcrypt.hash(secondPassword, 10);
-      update('admin_users', secondAdmin.id, { password_hash: hash, must_change_password: false, password_changed_at: new Date().toISOString() });
-      console.log(`[Admin] Synced second admin password from ADMIN_SECOND_PASSWORD`);
+      const isTempPass = secondPassword === SECOND_TEMP_PASS;
+      update('admin_users', secondAdmin.id, { password_hash: hash, must_change_password: isTempPass, password_changed_at: new Date().toISOString() });
+      console.log(`[Admin] Synced second admin password from ADMIN_SECOND_PASSWORD${isTempPass ? ' (temp — will prompt change)' : ''}`);
+    } else if (secondAdmin.must_change_password === false && secondPassword === SECOND_TEMP_PASS) {
+      // Hash already matches but it's still the temp — ensure must_change_password is true
+      update('admin_users', secondAdmin.id, { must_change_password: true });
     }
   } else if (!secondFromEnv && creds[secondEmail] && secondAdmin.must_change_password) {
     // Restore from creds file
