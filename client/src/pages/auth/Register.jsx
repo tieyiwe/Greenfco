@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { register } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
+import PasswordInput from '../../components/PasswordInput';
 import './Auth.css';
 
 const USER_TYPES = ['farmer', 'expert', 'investor', 'organization'];
@@ -136,11 +137,11 @@ export default function Register() {
             <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">{t('auth.password')} *</label>
-                <input type="password" name="password" className="form-input" value={form.password} onChange={handleChange} required placeholder="••••••••" minLength={8} />
+                <PasswordInput name="password" className="form-input" value={form.password} onChange={handleChange} required placeholder="••••••••" minLength={8} />
               </div>
               <div className="form-group">
                 <label className="form-label">{t('auth.confirm_password')} *</label>
-                <input type="password" name="confirm_password" className="form-input" value={form.confirm_password} onChange={handleChange} required placeholder="••••••••" />
+                <PasswordInput name="confirm_password" className="form-input" value={form.confirm_password} onChange={handleChange} required placeholder="••••••••" />
               </div>
             </div>
             <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>

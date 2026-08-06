@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
+import PasswordInput from '../../components/PasswordInput';
 import './Auth.css';
 
 export default function Login() {
@@ -72,8 +73,7 @@ export default function Login() {
             </div>
             <div className="form-group">
               <label className="form-label">{t('auth.password')}</label>
-              <input
-                type="password"
+              <PasswordInput
                 className="form-input"
                 value={form.password}
                 onChange={e => setForm(p => ({ ...p, password: e.target.value }))}

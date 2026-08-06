@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import PasswordInput from '../../components/PasswordInput';
 const plainApi = axios.create({ baseURL: '/api' });
 
 const card = {
@@ -157,7 +158,7 @@ export default function AdminLogin() {
                   onChange={e => setFpEmail(e.target.value)}
                   required
                   className="form-input"
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', boxSizing: 'border-box' }}
                   autoFocus
                 />
               </div>
@@ -206,26 +207,22 @@ export default function AdminLogin() {
           </div>
           <form onSubmit={handleChangePassword}>
             <div style={{ marginBottom: '0.85rem' }}>
-              <input
-                type="password"
+              <PasswordInput
                 placeholder="Nouveau mot de passe (min. 8 caractères)"
                 value={newPass}
                 onChange={e => setNewPass(e.target.value)}
                 required
                 className="form-input"
-                style={{ width: '100%' }}
                 autoFocus
               />
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <input
-                type="password"
+              <PasswordInput
                 placeholder="Confirmer le mot de passe"
                 value={confirmPass}
                 onChange={e => setConfirmPass(e.target.value)}
                 required
                 className="form-input"
-                style={{ width: '100%' }}
               />
             </div>
             {error && <p style={{ color: '#e53e3e', fontSize: '0.85rem', marginBottom: '1rem', textAlign: 'center' }}>{error}</p>}
@@ -271,14 +268,12 @@ export default function AdminLogin() {
             />
           </div>
           <div style={{ marginBottom: '0.5rem' }}>
-            <input
-              type="password"
+            <PasswordInput
               placeholder="Mot de passe"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
               className="form-input"
-              style={{ width: '100%' }}
             />
           </div>
           <div style={{ textAlign: 'right', marginBottom: '1rem' }}>

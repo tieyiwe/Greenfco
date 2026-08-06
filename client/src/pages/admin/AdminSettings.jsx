@@ -3,6 +3,7 @@ import axios from 'axios';
 import { ALL_PERMISSIONS, ROLE_BASE_PERMISSIONS, ADMIN_ROLE_DEFINITIONS } from './adminPermissions';
 import adminClient from '../../api/adminClient';
 import { logActivity, getAdminName } from './AdminActivity';
+import PasswordInput from '../../components/PasswordInput';
 
 const plainApi = axios.create({ baseURL: '/api' });
 
@@ -323,40 +324,37 @@ export default function AdminSettings() {
               <label style={{ fontSize: '0.82rem', color: 'var(--gray-mid)', display: 'block', marginBottom: '0.3rem' }}>
                 Mot de passe actuel
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 value={cpCurrent}
                 onChange={e => setCpCurrent(e.target.value)}
                 required
                 placeholder="Mot de passe actuel"
-                style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}
+                inputStyle={{ padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}
               />
             </div>
             <div>
               <label style={{ fontSize: '0.82rem', color: 'var(--gray-mid)', display: 'block', marginBottom: '0.3rem' }}>
                 Nouveau mot de passe (min. 8 caractères)
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 value={cpNew}
                 onChange={e => setCpNew(e.target.value)}
                 required
                 minLength={8}
                 placeholder="Nouveau mot de passe"
-                style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}
+                inputStyle={{ padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}
               />
             </div>
             <div>
               <label style={{ fontSize: '0.82rem', color: 'var(--gray-mid)', display: 'block', marginBottom: '0.3rem' }}>
                 Confirmer le nouveau mot de passe
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 value={cpConfirm}
                 onChange={e => setCpConfirm(e.target.value)}
                 required
                 placeholder="Confirmer le mot de passe"
-                style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}
+                inputStyle={{ padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}
               />
             </div>
             {cpError && (

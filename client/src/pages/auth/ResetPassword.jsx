@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { resetPassword, adminResetPassword } from '../../api/auth';
+import PasswordInput from '../../components/PasswordInput';
 import './Auth.css';
 
 export default function ResetPassword({ type = 'user' }) {
@@ -101,8 +102,7 @@ export default function ResetPassword({ type = 'user' }) {
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label className="form-label">{lang === 'fr' ? 'Nouveau mot de passe' : 'New password'}</label>
-                <input
-                  type="password"
+                <PasswordInput
                   className="form-input"
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
@@ -114,8 +114,7 @@ export default function ResetPassword({ type = 'user' }) {
               </div>
               <div className="form-group">
                 <label className="form-label">{lang === 'fr' ? 'Confirmer le mot de passe' : 'Confirm password'}</label>
-                <input
-                  type="password"
+                <PasswordInput
                   className="form-input"
                   value={confirmPassword}
                   onChange={e => setConfirmPassword(e.target.value)}
