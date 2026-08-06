@@ -1,0 +1,454 @@
+import { Router } from 'express';
+import jwt from 'jsonwebtoken';
+import { getAll, getById, getOneWhere, insert, update, remove } from '../db/store.js';
+
+const router = Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'greenfco_secret_key_2024';
+
+function requireAdmin(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const payload = jwt.verify(auth.slice(7), JWT_SECRET);
+    if (payload.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+    req.adminUser = payload;
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Token invalid or expired' });
+  }
+}
+
+router.use(requireAdmin);
+
+function parseId(param) {
+  const id = parseInt(param, 10);
+  return isNaN(id) ? null : id;
+}
+
+// ── Stats ─────────────────────────────────────────────────
+router.get('/stats', (req, res) => {
+  const users = getAll('users');
+  const listings = getAll('market');
+  const consulting = getAll('consulting');
+  const newsletter = getAll('newsletter');
+  const contacts = getAll('contact');
+  const gallery = getAll('gallery');
+  const crops = getAll('crops');
+  const finance = getAll('finance');
+  const collaborators = getAll('collaborators');
+
+  const access_requests = getAll('access_requests');
+  const projects = getAll('projects');
+  res.json({
+    users: users.length,
+    listings: listings.length,
+    active_listings: listings.filter(l => l.active !== false).length,
+    flagged_listings: listings.filter(l => l.flagged).length,
+    crops: crops.length,
+    finance: finance.length,
+    consulting: consulting.length,
+    pending_consulting: consulting.filter(c => !c.status || c.status === 'pending').length,
+    newsletter: newsletter.length,
+    contacts: contacts.length,
+    unread_contacts: contacts.filter(c => !c.read).length,
+    gallery: gallery.length,
+    collaborators: collaborators.length,
+    projects: projects.length,
+    pending_access_requests: access_requests.filter(r => r.status === 'pending').length,
+  });
+});
+
+// ── Users ─────────────────────────────────────────────────
+router.get('/users', (req, res) => {
+  const users = getAll('users').map(({ password_hash, ...u }) => u);
+  res.json(users.reverse());
+});
+
+// Whitelist fields — prevents password_hash injection via admin panel
+const USER_UPDATABLE = ['name', 'country', 'user_type', 'language', 'status', 'phone'];
+router.put('/users/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const existing = getById('users', id);
+  if (!existing) return res.status(404).json({ error: 'Not found' });
+  const patch = Object.fromEntries(USER_UPDATABLE.filter(k => k in req.body).map(k => [k, req.body[k]]));
+  const result = update('users', id, patch);
+  if (!result) return res.status(404).json({ error: 'Not found' });
+  const { password_hash, ...safe } = result;
+  res.json(safe);
+});
+
+router.delete('/users/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const existing = getById('users', id);
+  if (!existing) return res.status(404).json({ error: 'Not found' });
+  remove('users', id);
+  res.json({ success: true });
+});
+
+// ── Listings ──────────────────────────────────────────────
+router.get('/listings', (req, res) => {
+  res.json(getAll('market').reverse());
+});
+
+router.put('/listings/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const updated = update('market', id, req.body);
+  if (!updated) return res.status(404).json({ error: 'Not found' });
+  res.json(updated);
+});
+
+router.delete('/listings/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('market', id)) return res.status(404).json({ error: 'Not found' });
+  remove('market', id);
+  res.json({ success: true });
+});
+
+// ── Contacts ──────────────────────────────────────────────
+router.get('/contacts', (req, res) => {
+  res.json(getAll('contact').reverse());
+});
+
+router.put('/contacts/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const updated = update('contact', id, req.body);
+  if (!updated) return res.status(404).json({ error: 'Not found' });
+  res.json(updated);
+});
+
+router.delete('/contacts/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('contact', id)) return res.status(404).json({ error: 'Not found' });
+  remove('contact', id);
+  res.json({ success: true });
+});
+
+// ── Consulting ────────────────────────────────────────────
+router.get('/consulting', (req, res) => {
+  res.json(getAll('consulting').reverse());
+});
+
+router.put('/consulting/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const updated = update('consulting', id, req.body);
+  if (!updated) return res.status(404).json({ error: 'Not found' });
+  res.json(updated);
+});
+
+router.delete('/consulting/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('consulting', id)) return res.status(404).json({ error: 'Not found' });
+  remove('consulting', id);
+  res.json({ success: true });
+});
+
+// ── Newsletter ────────────────────────────────────────────
+router.get('/newsletter', (req, res) => {
+  res.json(getAll('newsletter').reverse());
+});
+
+router.delete('/newsletter/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('newsletter', id)) return res.status(404).json({ error: 'Not found' });
+  remove('newsletter', id);
+  res.json({ success: true });
+});
+
+// ── Gallery ───────────────────────────────────────────────
+router.get('/gallery', (req, res) => {
+  res.json(getAll('gallery').reverse());
+});
+
+router.post('/gallery', (req, res) => {
+  const { title, title_fr, category, image_url, caption, caption_fr } = req.body;
+  if (!title || !image_url) return res.status(400).json({ error: 'title and image_url required' });
+  const item = insert('gallery', {
+    title,
+    title_fr: title_fr || title,
+    category: category || 'general',
+    image_url,
+    caption: caption || '',
+    caption_fr: caption_fr || caption || '',
+  });
+  res.status(201).json(item);
+});
+
+router.put('/gallery/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const updated = update('gallery', id, req.body);
+  if (!updated) return res.status(404).json({ error: 'Not found' });
+  res.json(updated);
+});
+
+router.delete('/gallery/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('gallery', id)) return res.status(404).json({ error: 'Not found' });
+  remove('gallery', id);
+  res.json({ success: true });
+});
+
+// ── Collaborators ─────────────────────────────────────────
+router.get('/collaborators', (req, res) => {
+  res.json(getAll('collaborators').reverse());
+});
+
+router.post('/collaborators', (req, res) => {
+  const { name, email, role, customPermissions } = req.body;
+  if (!name || !email || !role) return res.status(400).json({ error: 'name, email, role required' });
+  const existing = getAll('collaborators').find(c => c.email === email);
+  if (existing) return res.status(409).json({ error: 'Collaborator already exists' });
+  const collab = insert('collaborators', {
+    name, email, role,
+    status: 'pending',
+    customPermissions: customPermissions || null,
+  });
+  res.status(201).json(collab);
+});
+
+router.put('/collaborators/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const updated = update('collaborators', id, req.body);
+  if (!updated) return res.status(404).json({ error: 'Not found' });
+  res.json(updated);
+});
+
+router.delete('/collaborators/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('collaborators', id)) return res.status(404).json({ error: 'Not found' });
+  remove('collaborators', id);
+  res.json({ success: true });
+});
+
+// ── Switch to user ────────────────────────────────────────────
+router.post('/switch-to-user', (req, res) => {
+  const JWT_SECRET_KEY = process.env.JWT_SECRET || 'greenfco_secret_key_2024';
+  let user = getOneWhere('users', 'email', req.adminUser.email);
+
+  if (!user) {
+    // Auto-create a linked user account from the admin record
+    const adminRecord = getOneWhere('admin_users', 'email', req.adminUser.email);
+    user = insert('users', {
+      name: adminRecord?.name || req.adminUser.email.split('@')[0],
+      email: req.adminUser.email,
+      password_hash: adminRecord?.password_hash || '',
+      user_type: 'expert',
+      language: 'fr',
+      country: '',
+      status: 'active',
+      is_admin: true,
+    });
+  }
+
+  const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET_KEY, { expiresIn: '7d' });
+  const { password_hash, ...safe } = user;
+  res.json({ token, user: safe });
+});
+
+// ── Admin users (super_admin only) ────────────────────────────
+router.get('/admin-users', (req, res) => {
+  if (req.adminUser.adminRole !== 'super_admin') return res.status(403).json({ error: 'Super admin only' });
+  const users = getAll('admin_users').map(({ password_hash, ...u }) => u);
+  res.json(users.reverse());
+});
+
+router.put('/admin-users/:id', (req, res) => {
+  if (req.adminUser.adminRole !== 'super_admin') return res.status(403).json({ error: 'Super admin only' });
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const result = update('admin_users', id, req.body);
+  if (!result) return res.status(404).json({ error: 'Not found' });
+  const { password_hash, ...safe } = result;
+  res.json(safe);
+});
+
+// ── Access requests ───────────────────────────────────────────
+router.get('/access-requests', (req, res) => {
+  res.json(getAll('access_requests').reverse());
+});
+
+router.post('/access-requests', (req, res) => {
+  const { feature, reason } = req.body;
+  if (!feature) return res.status(400).json({ error: 'feature required' });
+  const entry = insert('access_requests', {
+    feature,
+    reason: reason || '',
+    requester_email: req.adminUser.email,
+    requester_name: req.adminUser.name || req.adminUser.email,
+    status: 'pending',
+  });
+  res.status(201).json(entry);
+});
+
+router.put('/access-requests/:id', (req, res) => {
+  if (req.adminUser.adminRole !== 'super_admin') return res.status(403).json({ error: 'Super admin only' });
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const result = update('access_requests', id, req.body);
+  if (!result) return res.status(404).json({ error: 'Not found' });
+  res.json(result);
+});
+
+router.delete('/access-requests/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('access_requests', id)) return res.status(404).json({ error: 'Not found' });
+  remove('access_requests', id);
+  res.json({ success: true });
+});
+
+// ── Projects ──────────────────────────────────────────────────
+router.get('/projects', (req, res) => {
+  res.json(getAll('projects').reverse());
+});
+
+router.post('/projects', (req, res) => {
+  const { title, description, status, deadline, assignees, budget, color } = req.body;
+  if (!title?.trim()) return res.status(400).json({ error: 'title required' });
+  const project = insert('projects', {
+    title: title.trim().slice(0, 200),
+    description: (description || '').trim().slice(0, 2000),
+    status: ['todo', 'in_progress', 'done', 'on_hold'].includes(status) ? status : 'todo',
+    deadline: deadline || null,
+    assignees: Array.isArray(assignees) ? assignees.slice(0, 20) : [],
+    budget: typeof budget === 'number' ? budget : (parseFloat(budget) || 0),
+    color: color ? String(color).slice(0, 20) : null,
+    created_by: req.adminUser.email,
+  });
+  res.status(201).json(project);
+});
+
+router.put('/projects/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const result = update('projects', id, req.body);
+  if (!result) return res.status(404).json({ error: 'Not found' });
+  res.json(result);
+});
+
+router.delete('/projects/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('projects', id)) return res.status(404).json({ error: 'Not found' });
+  remove('projects', id);
+  res.json({ success: true });
+});
+
+// ── Team Chat: Channels & Messages ────────────────────────────
+router.get('/channels', (req, res) => {
+  const channels = getAll('channels');
+  if (channels.length === 0) {
+    const general = insert('channels', { name: 'Général', description: 'Canal principal', created_by: 'system' });
+    const annonces = insert('channels', { name: 'Annonces', description: 'Annonces officielles', created_by: 'system' });
+    return res.json([general, annonces]);
+  }
+  res.json(channels);
+});
+
+router.post('/channels', (req, res) => {
+  const { name, description } = req.body;
+  if (!name?.trim()) return res.status(400).json({ error: 'name required' });
+  if (name.trim().length > 50) return res.status(400).json({ error: 'Channel name too long (max 50 chars)' });
+  const existing = getAll('channels').find(c => c.name.toLowerCase() === name.trim().toLowerCase());
+  if (existing) return res.status(409).json({ error: 'Channel already exists' });
+  const channel = insert('channels', {
+    name: name.trim().slice(0, 50),
+    description: (description || '').trim().slice(0, 200),
+    created_by: req.adminUser.email,
+  });
+  res.status(201).json(channel);
+});
+
+router.delete('/channels/:id', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('channels', id)) return res.status(404).json({ error: 'Not found' });
+  remove('channels', id);
+  res.json({ success: true });
+});
+
+router.get('/channels/:id/messages', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const messages = getAll('team_messages').filter(m => m.channel_id === id);
+  res.json(messages.slice(-100));
+});
+
+router.post('/channels/:id/messages', (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Invalid id' });
+  const { text } = req.body;
+  if (!text?.trim()) return res.status(400).json({ error: 'text required' });
+  if (text.trim().length > 2000) return res.status(400).json({ error: 'Message too long (max 2000 chars)' });
+  const msg = insert('team_messages', {
+    channel_id: id,
+    text: text.trim().slice(0, 2000),
+    sender_name: req.adminUser.name || req.adminUser.email,
+    sender_email: req.adminUser.email,
+  });
+  res.status(201).json(msg);
+});
+
+router.delete('/channels/:channelId/messages/:msgId', (req, res) => {
+  if (req.adminUser.adminRole !== 'super_admin') return res.status(403).json({ error: 'Super admin only' });
+  const msgId = parseId(req.params.msgId);
+  if (!msgId) return res.status(400).json({ error: 'Invalid id' });
+  if (!getById('team_messages', msgId)) return res.status(404).json({ error: 'Not found' });
+  remove('team_messages', msgId);
+  res.json({ success: true });
+});
+
+// ── Activity log ──────────────────────────────────────────
+router.get('/activity', (req, res) => {
+  res.json(getAll('activity').reverse().slice(0, 100));
+});
+
+router.post('/activity', (req, res) => {
+  const { type, actor, action, target, severity } = req.body;
+  const VALID_SEVERITY = ['info', 'success', 'warning', 'error'];
+  const entry = insert('activity', {
+    type: String(type || 'system').slice(0, 50),
+    actor: String(actor || '').slice(0, 100),
+    action: String(action || '').slice(0, 200),
+    target: String(target || '').slice(0, 200),
+    severity: VALID_SEVERITY.includes(severity) ? severity : 'info',
+  });
+  res.status(201).json(entry);
+});
+
+// ── Platform settings ─────────────────────────────────────
+router.get('/settings', (req, res) => {
+  const settings = getAll('settings')[0];
+  res.json(settings || {
+    whatsapp: '+226 XX XX XX XX',
+    platform_name: 'GreenFCO',
+    support_email: 'support@greenfco.com',
+    maintenance_mode: false,
+    allow_new_registrations: true,
+    ai_features_enabled: true,
+    marketplace_enabled: true,
+    network_enabled: true,
+  });
+});
+
+router.put('/settings', (req, res) => {
+  const existing = getAll('settings')[0];
+  const updated = existing
+    ? update('settings', existing.id, req.body)
+    : insert('settings', req.body);
+  res.json(updated);
+});
+
+export default router;

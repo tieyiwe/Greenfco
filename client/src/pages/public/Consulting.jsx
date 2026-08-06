@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import api from '../../api/client';
 import './Consulting.css';
 
 const COUNTRIES = [
@@ -138,7 +139,7 @@ export default function Consulting() {
     return newErrors;
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -147,28 +148,15 @@ export default function Consulting() {
     }
 
     setSubmitting(true);
-
-    // Simulate slight async save
-    setTimeout(() => {
-      const appointment = {
-        ...form,
-        id: `consult_${Date.now()}`,
-        createdAt: new Date().toISOString(),
-        status: 'pending',
-      };
-
-      try {
-        const existing = JSON.parse(localStorage.getItem('greenfco_consulting_requests') || '[]');
-        existing.push(appointment);
-        localStorage.setItem('greenfco_consulting_requests', JSON.stringify(existing));
-      } catch (_) {
-        // localStorage unavailable — silently skip
-      }
-
-      setSubmittedData(appointment);
+    try {
+      await api.post('/consulting', form);
+      setSubmittedData(form);
       setSubmitted(true);
+    } catch {
+      setErrors({ submit: lang === 'fr' ? 'Erreur lors de la soumission. Réessayez.' : 'Submission failed. Please try again.' });
+    } finally {
       setSubmitting(false);
-    }, 600);
+    }
   }
 
   function handleReset() {
@@ -489,6 +477,11 @@ export default function Consulting() {
                       </div>
                     </div>
 
+                    {errors.submit && (
+                      <p style={{ color: '#e53e3e', fontSize: '0.875rem', marginBottom: '0.75rem', textAlign: 'center' }}>
+                        {errors.submit}
+                      </p>
+                    )}
                     <button type="submit" className="submit-btn" disabled={submitting}>
                       {submitting
                         ? (lang === 'fr' ? 'Envoi en cours...' : 'Sending...')

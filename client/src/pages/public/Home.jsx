@@ -133,9 +133,11 @@ export default function Home() {
         <div className="container">
           <div className="who-grid">
             <div className="who-image">
-              <div className="img-placeholder" style={{ height: '420px' }}>
-                <span>Photo co-fondateurs — 800×600px</span>
-              </div>
+              <img
+                src="/cofounders.png"
+                alt="Elie et Elisée Dipama, co-fondateurs de GreenFCO"
+                className="who-photo"
+              />
               <div className="who-badge">
                 <span>🏅</span>
                 <span>Fondé au Burkina Faso · 2021</span>

@@ -1,15 +1,13 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import './AdminLayout.css';
-import { ROLE_BASE_PERMISSIONS } from './adminPermissions';
+import { ROLE_BASE_PERMISSIONS, ADMIN_ROLE_DEFINITIONS } from './adminPermissions';
+import adminClient from '../../api/adminClient';
+import useAuthStore from '../../store/authStore';
 
-const ADMIN_ROLES = {
-  super_admin: { label: 'Super Admin', color: '#EF4444', canManageUsers: true, canDeleteContent: true, canInvite: true, canAccessSettings: true },
-  manager: { label: 'Manager', color: '#F59E0B', canManageUsers: true, canDeleteContent: false, canInvite: false, canAccessSettings: false },
-  analyst: { label: 'Analyst', color: '#3B82F6', canManageUsers: false, canDeleteContent: false, canInvite: false, canAccessSettings: false },
-};
+const ADMIN_ROLES = ADMIN_ROLE_DEFINITIONS;
 
-const DEFAULT_ADMIN = { name: 'Admin GreenFCO', email: 'admin@greenfco.com', role: 'super_admin' };
+const DEFAULT_ADMIN = { name: 'Super Admin', email: 'tieyiwebass@gmail.com', role: 'super_admin' };
 
 const NAV_LINKS = [
   { to: '/admin',              icon: '📊', label: 'Dashboard',    end: true,  permission: null },
@@ -18,6 +16,7 @@ const NAV_LINKS = [
   { to: '/admin/transactions', icon: '🔗', label: 'Transactions',             permission: 'view_transactions' },
   { to: '/admin/blog',         icon: '📰', label: 'Blog',                     permission: 'view_blog' },
   { to: '/admin/consulting',   icon: '🗓️', label: 'Consulting',               permission: 'view_consulting' },
+  { to: '/admin/gallery',      icon: '🖼️', label: 'Galerie',                  permission: null },
   { to: '/admin/projects',     icon: '📋', label: 'Projets',                  permission: 'view_projects' },
   { to: '/admin/activity',     icon: '📜', label: 'Activité',                 permission: 'view_activity' },
   { to: '/admin/messages',     icon: '💬', label: 'Messages',                 permission: null },
@@ -34,23 +33,30 @@ function hasPermission(adminUser, collaborators, permKey) {
 
 export default function AdminLayout() {
   const navigate = useNavigate();
+  const setAuth = useAuthStore(s => s.setAuth);
 
   const [adminUser, setAdminUser] = useState(() => {
     try {
       const stored = JSON.parse(localStorage.getItem('greenfco_admin_session'));
-      if (stored && stored.role) return stored;
-    } catch {
-      // fall through to default
-    }
-    // No valid session — create default super_admin session
-    const def = DEFAULT_ADMIN;
-    localStorage.setItem('greenfco_admin_session', JSON.stringify(def));
-    return def;
+      if (stored && stored.role && stored.verified) return stored;
+    } catch {}
+    return DEFAULT_ADMIN;
   });
 
   function handleLogout() {
-    localStorage.removeItem('user');
-    navigate('/');
+    localStorage.removeItem('greenfco_admin_session');
+    localStorage.removeItem('greenfco_admin_token');
+    navigate('/admin/login');
+  }
+
+  async function handleSwitchToUser() {
+    try {
+      const res = await adminClient.post('/switch-to-user');
+      setAuth(res.data.user, res.data.token);
+      window.open('/dashboard', '_blank');
+    } catch (err) {
+      alert(err.response?.data?.error || 'Impossible de basculer. Connectez-vous d\'abord à /admin/login et définissez votre mot de passe.');
+    }
   }
 
   function handleRoleSwitch(e) {
@@ -151,19 +157,15 @@ export default function AdminLayout() {
                 </span>
               </div>
             </div>
-            {/* Role switcher — demo only */}
-            <select
-              className="admin-role-switcher"
-              value={adminUser?.role || 'super_admin'}
-              onChange={handleRoleSwitch}
-              title="Switch role (demo)"
+            <button
+              className="admin-switch-user-btn"
+              onClick={handleSwitchToUser}
+              title="Ouvrir le tableau de bord utilisateur dans un nouvel onglet"
             >
-              <option value="super_admin">Super Admin</option>
-              <option value="manager">Manager</option>
-              <option value="analyst">Analyst</option>
-            </select>
+              👤 Vue Utilisateur
+            </button>
             <button className="admin-logout-btn" onClick={handleLogout}>
-              Logout
+              Déconnexion
             </button>
           </div>
         </header>

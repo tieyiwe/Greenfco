@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -186,6 +186,150 @@ const DEMO_REVIEWS = [
 const DEFAULT_SELLER = { farmName: '', bio: '', phone: '', location: '', lat: null, lng: null, certifications: [], delivery: ['pickup'], memberSince: new Date().getFullYear().toString() };
 const DEFAULT_BUYER  = { name: '', location: '', lat: null, lng: null, preferredCategories: [], memberSince: new Date().getFullYear().toString() };
 
+/* ─── Farm Records (moved from KoobAssist) ─────────────────── */
+const TRACKER_TYPES = [
+  { value: 'Revenu',     fr: 'Revenu',     en: 'Income',     icon: '💰', color: '#52B788' },
+  { value: 'Dépense',    fr: 'Dépense',    en: 'Expense',    icon: '💸', color: '#EF4444' },
+  { value: 'Plantation', fr: 'Plantation', en: 'Planting',   icon: '🌱', color: '#2D6A4F' },
+  { value: 'Récolte',    fr: 'Récolte',    en: 'Harvest',    icon: '🌾', color: '#F59E0B' },
+  { value: 'Irrigation', fr: 'Irrigation', en: 'Irrigation', icon: '💧', color: '#3B82F6' },
+  { value: 'Traitement', fr: 'Traitement', en: 'Treatment',  icon: '💊', color: '#8B5CF6' },
+];
+
+function FarmRecordsTab({ lang }) {
+  const [entries, setEntries] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('greenfco_koob_tracker')) || []; } catch { return []; }
+  });
+  const [form, setForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    type: 'Revenu',
+    description: '',
+    amount: '',
+    quantity: '',
+    unit: 'kg',
+  });
+  const [showForm, setShowForm] = useState(false);
+
+  function handleAdd(e) {
+    e.preventDefault();
+    const entry = { ...form, id: Date.now() };
+    const updated = [entry, ...entries].slice(0, 100);
+    setEntries(updated);
+    localStorage.setItem('greenfco_koob_tracker', JSON.stringify(updated));
+    setForm({ date: new Date().toISOString().split('T')[0], type: 'Revenu', description: '', amount: '', quantity: '', unit: 'kg' });
+    setShowForm(false);
+  }
+
+  function handleDelete(id) {
+    const updated = entries.filter(e => e.id !== id);
+    setEntries(updated);
+    localStorage.setItem('greenfco_koob_tracker', JSON.stringify(updated));
+  }
+
+  const totalIncome  = entries.filter(e => e.type === 'Revenu'  && e.amount).reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+  const totalExpense = entries.filter(e => e.type === 'Dépense' && e.amount).reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+  const netMargin = totalIncome - totalExpense;
+  const fmt = n => n.toLocaleString('fr-FR') + ' FCFA';
+
+  return (
+    <div className="tracker-tab">
+      <div className="tracker-stats">
+        <div className="card tracker-stat-card">
+          <div className="stat-value" style={{ color: '#52B788' }}>{fmt(totalIncome)}</div>
+          <div className="stat-label">{lang === 'fr' ? 'Total Revenus' : 'Total Income'}</div>
+        </div>
+        <div className="card tracker-stat-card">
+          <div className="stat-value" style={{ color: '#EF4444' }}>{fmt(totalExpense)}</div>
+          <div className="stat-label">{lang === 'fr' ? 'Total Dépenses' : 'Total Expenses'}</div>
+        </div>
+        <div className="card tracker-stat-card">
+          <div className="stat-value" style={{ color: netMargin >= 0 ? '#52B788' : '#EF4444' }}>{fmt(netMargin)}</div>
+          <div className="stat-label">{lang === 'fr' ? 'Marge Nette' : 'Net Margin'}</div>
+        </div>
+      </div>
+
+      <button className="btn btn-primary tracker-add-btn" onClick={() => setShowForm(v => !v)}>
+        {showForm ? (lang === 'fr' ? '✕ Annuler' : '✕ Cancel') : (lang === 'fr' ? '+ Ajouter une activité' : '+ Add Activity')}
+      </button>
+
+      {showForm && (
+        <form className="card tracker-form" onSubmit={handleAdd}>
+          <h4>{lang === 'fr' ? 'Nouvelle activité' : 'New Activity'}</h4>
+          <div className="tracker-form-grid">
+            <div className="form-group">
+              <label className="form-label">{lang === 'fr' ? 'Date' : 'Date'}</label>
+              <input type="date" className="form-input" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">{lang === 'fr' ? 'Type' : 'Type'}</label>
+              <select className="form-select" value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}>
+                {TRACKER_TYPES.map(t => (
+                  <option key={t.value} value={t.value}>{t.icon} {lang === 'fr' ? t.fr : t.en}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label className="form-label">{lang === 'fr' ? 'Description' : 'Description'}</label>
+              <input type="text" className="form-input" placeholder={lang === 'fr' ? 'Ex: Vente oignons marché Dori' : 'E.g. Onion sale at Dori market'} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">{lang === 'fr' ? 'Montant (FCFA)' : 'Amount (FCFA)'}</label>
+              <input type="number" className="form-input" placeholder="0" value={form.amount} min="0" onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">{lang === 'fr' ? 'Quantité' : 'Quantity'}</label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input type="number" className="form-input" placeholder="0" value={form.quantity} min="0" onChange={e => setForm(p => ({ ...p, quantity: e.target.value }))} style={{ flex: 1 }} />
+                <select className="form-select" value={form.unit} onChange={e => setForm(p => ({ ...p, unit: e.target.value }))} style={{ width: '80px' }}>
+                  <option value="kg">kg</option>
+                  <option value="t">t</option>
+                  <option value="sac">sac</option>
+                  <option value="l">l</option>
+                  <option value="ha">ha</option>
+                  <option value="unité">unité</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
+            {lang === 'fr' ? '✓ Enregistrer' : '✓ Save'}
+          </button>
+        </form>
+      )}
+
+      <div className="tracker-timeline">
+        {entries.length === 0 ? (
+          <div className="card tracker-empty">
+            <p>📋 {lang === 'fr' ? 'Aucune activité enregistrée. Commencez à suivre vos opérations !' : 'No activities recorded yet. Start tracking your operations!'}</p>
+          </div>
+        ) : (
+          entries.map(entry => {
+            const typeObj = TRACKER_TYPES.find(t => t.value === entry.type) || TRACKER_TYPES[0];
+            return (
+              <div key={entry.id} className="tracker-entry card">
+                <div className="tracker-entry-icon" style={{ background: typeObj.color + '22', color: typeObj.color }}>{typeObj.icon}</div>
+                <div className="tracker-entry-body">
+                  <div className="tracker-entry-title">{entry.description}</div>
+                  <div className="tracker-entry-meta">
+                    {entry.date} · {lang === 'fr' ? typeObj.fr : typeObj.en}
+                    {entry.quantity && ` · ${entry.quantity} ${entry.unit}`}
+                  </div>
+                </div>
+                {entry.amount && (
+                  <span className="tracker-entry-amount" style={{ color: entry.type === 'Revenu' ? '#52B788' : entry.type === 'Dépense' ? '#EF4444' : '#6B7280' }}>
+                    {entry.type === 'Revenu' ? '+' : entry.type === 'Dépense' ? '-' : ''}{parseFloat(entry.amount).toLocaleString('fr-FR')} F
+                  </span>
+                )}
+                <button type="button" style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: '1rem', padding: '0 0.25rem' }} onClick={() => handleDelete(entry.id)} title={lang === 'fr' ? 'Supprimer' : 'Delete'}>×</button>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Main component ──────────────────────────────────────── */
 // mode: 'marketplace' = browse/sell/saved tabs | 'agropro' = prices/analytics tabs
 export default function MarketPage({ mode = 'marketplace' }) {
@@ -202,6 +346,13 @@ export default function MarketPage({ mode = 'marketplace' }) {
 
   // Listings
   const [listings, setListings]   = useState(DEMO_LISTINGS);
+
+  useEffect(() => {
+    api.get('/market')
+      .then(res => { if (res.data?.length > 0) setListings(res.data); })
+      .catch(() => {});
+  }, []);
+
   const [search, setSearch]       = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [sort, setSort]           = useState('newest');
@@ -498,7 +649,7 @@ export default function MarketPage({ mode = 'marketplace' }) {
   }
 
   /* ── Filtered listings ───────────────────────────────────*/
-  const filtered = listings
+  const filtered = useMemo(() => listings
     .filter(l => {
       const ms = !search || l.crop_name.toLowerCase().includes(search.toLowerCase()) || l.location?.toLowerCase().includes(search.toLowerCase());
       const mc = activeCategory === 'all' || l.category === activeCategory;
@@ -512,7 +663,7 @@ export default function MarketPage({ mode = 'marketplace' }) {
       if (sort === 'qty_desc')   return Number(b.quantity_kg) - Number(a.quantity_kg);
       if (sort === 'rating')     return (b.seller_rating || 0) - (a.seller_rating || 0);
       return new Date(b.created_at) - new Date(a.created_at);
-    });
+    }), [listings, search, activeCategory, buyerLoc, sort]);
 
   const myListings  = listings.filter(l => l.user_id === (user?.id || 'me') || l.user_name === (sellerProfile?.farmName || user?.name));
   const savedListings = listings.filter(l => savedIds.includes(l.id));
@@ -528,6 +679,7 @@ export default function MarketPage({ mode = 'marketplace' }) {
     { key:'sell',      fr:'📦 Vendre',         en:'📦 Sell' },
     { key:'prices',    fr:'📊 Prix du marché',  en:'📊 Market Prices' },
     { key:'analytics', fr:'📈 Analytics',       en:'📈 Analytics' },
+    { key:'records',   fr:'📋 Mes Records',     en:'📋 My Records' },
   ];
   const TABS = mode === 'agropro' ? AGROPRO_TABS : MARKETPLACE_TABS;
 
@@ -844,7 +996,7 @@ export default function MarketPage({ mode = 'marketplace' }) {
                         <div className="upload-thumbs">
                           {uploadedImages.map((img, i) => (
                             <div key={i} className="upload-thumb">
-                              <img src={img.dataUrl} alt={`product-${i}`} />
+                              <img src={img.dataUrl} alt={`product-${i}`} loading="lazy" decoding="async" />
                               <button type="button" className="upload-thumb-remove" onClick={e => { e.stopPropagation(); setUploadedImages(prev => prev.filter((_, idx) => idx !== i)); }}>×</button>
                             </div>
                           ))}
@@ -903,7 +1055,10 @@ export default function MarketPage({ mode = 'marketplace' }) {
                     </div>
                     <div className="my-listing-actions">
                       <button className="btn btn-secondary btn-sm" onClick={() => openChat(l)}>💬</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => setListings(p => p.filter(x => x.id !== l.id))}>🗑</button>
+                      <button className="btn btn-danger btn-sm" onClick={async () => {
+                        try { await api.delete(`/market/${l.id}`); } catch {}
+                        setListings(p => p.filter(x => x.id !== l.id));
+                      }}>🗑</button>
                     </div>
                   </div>
                 ))}
@@ -1064,6 +1219,9 @@ export default function MarketPage({ mode = 'marketplace' }) {
           </div>
         </div>
       )}
+
+      {/* ══ TAB: RECORDS ══════════════════════════════════════ */}
+      {activeTab === 'records' && <FarmRecordsTab lang={lang} />}
 
       {/* ══ SELLER PROFILE SHEET ═════════════════════════════ */}
       {viewingSeller && (
@@ -1374,7 +1532,7 @@ const CAT_COLORS = {
 };
 
 /* ─── Listing Card ────────────────────────────────────────── */
-function ListingCard({ listing, lang, categories, buyerLoc, isSaved, onToggleSave, onContact, onViewSeller }) {
+const ListingCard = memo(function ListingCard({ listing, lang, categories, buyerLoc, isSaved, onToggleSave, onContact, onViewSeller }) {
   const cat  = categories.find(c => c.value === listing.category);
   const dist = listing._dist;
   const barColor = CAT_COLORS[listing.category] || CAT_COLORS.autres;
@@ -1400,7 +1558,7 @@ function ListingCard({ listing, lang, categories, buyerLoc, isSaved, onToggleSav
       {/* Product image */}
       {listing.images?.length > 0 && (
         <div className="lc-image">
-          <img src={listing.images[0]} alt={listing.crop_name} loading="lazy" />
+          <img src={listing.images[0]} alt={listing.crop_name} loading="lazy" decoding="async" />
           {listing.images.length > 1 && <span className="lc-image-count">+{listing.images.length - 1}</span>}
           {listing.video && <span className="lc-video-badge">🎬</span>}
         </div>
@@ -1461,4 +1619,4 @@ function ListingCard({ listing, lang, categories, buyerLoc, isSaved, onToggleSav
       </div>
     </div>
   );
-}
+});

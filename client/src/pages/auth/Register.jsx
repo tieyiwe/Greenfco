@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { register } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
+import PasswordInput from '../../components/PasswordInput';
 import './Auth.css';
 
 const USER_TYPES = ['farmer', 'expert', 'investor', 'organization'];
@@ -34,15 +35,12 @@ export default function Register() {
     setLoading(true);
     setError('');
 
-    // Save seller location to localStorage if role = seller
-    if (marketRole === 'seller') {
-      const existing = (() => { try { return JSON.parse(localStorage.getItem('greenfco_seller_profile')) || {}; } catch { return {}; } })();
-      const sellerProfile = { ...existing, location: sellerLocation, memberSince: new Date().getFullYear().toString() };
-      localStorage.setItem('greenfco_seller_profile', JSON.stringify(sellerProfile));
-    }
-
     try {
       const res = await register({ ...form, market_role: marketRole });
+      if (marketRole === 'seller') {
+        const existing = (() => { try { return JSON.parse(localStorage.getItem('greenfco_seller_profile')) || {}; } catch { return {}; } })();
+        localStorage.setItem('greenfco_seller_profile', JSON.stringify({ ...existing, location: sellerLocation, memberSince: new Date().getFullYear().toString() }));
+      }
       setAuth(res.data.user, res.data.token);
       navigate('/dashboard');
     } catch (err) {
@@ -139,11 +137,11 @@ export default function Register() {
             <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">{t('auth.password')} *</label>
-                <input type="password" name="password" className="form-input" value={form.password} onChange={handleChange} required placeholder="••••••••" minLength={8} />
+                <PasswordInput name="password" className="form-input" value={form.password} onChange={handleChange} required placeholder="••••••••" minLength={8} />
               </div>
               <div className="form-group">
                 <label className="form-label">{t('auth.confirm_password')} *</label>
-                <input type="password" name="confirm_password" className="form-input" value={form.confirm_password} onChange={handleChange} required placeholder="••••••••" />
+                <PasswordInput name="confirm_password" className="form-input" value={form.confirm_password} onChange={handleChange} required placeholder="••••••••" />
               </div>
             </div>
             <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>

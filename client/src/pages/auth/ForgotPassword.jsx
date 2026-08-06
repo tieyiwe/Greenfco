@@ -9,14 +9,17 @@ export default function ForgotPassword() {
   const lang = i18n.language?.startsWith('fr') ? 'fr' : 'en';
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [resetLink, setResetLink] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
     try {
-      await forgotPassword(email);
-    } finally {
+      const res = await forgotPassword(email);
+      if (res.data?.reset_link) setResetLink(res.data.reset_link);
+    } catch { /* show generic success regardless */ }
+    finally {
       setSent(true);
       setLoading(false);
     }
@@ -39,10 +42,20 @@ export default function ForgotPassword() {
             <Link to="/login">← {lang === 'fr' ? 'Retour à la connexion' : 'Back to sign in'}</Link>
           </p>
           {sent ? (
-            <div className="form-success" style={{ padding: '1.25rem', background: 'var(--green-pale)', borderRadius: 'var(--radius-md)', color: 'var(--green-deep)' }}>
-              ✅ {lang === 'fr'
-                ? 'Si un compte existe avec cet e-mail, vous recevrez un lien de réinitialisation sous peu.'
-                : 'If an account exists with this email, you will receive a reset link shortly.'}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div className="form-success" style={{ padding: '1.25rem', background: 'var(--green-pale)', borderRadius: 'var(--radius-md)', color: 'var(--green-deep)' }}>
+                ✅ {lang === 'fr'
+                  ? 'Si un compte existe avec cet e-mail, vous recevrez un lien de réinitialisation sous peu.'
+                  : 'If an account exists with this email, you will receive a reset link shortly.'}
+              </div>
+              {resetLink && (
+                <div style={{ padding: '1rem', background: '#fef9c3', borderRadius: 'var(--radius-md)', border: '1px solid #fde047', fontSize: '0.85rem' }}>
+                  <p style={{ color: '#854d0e', fontWeight: 600, marginBottom: '0.4rem' }}>
+                    {lang === 'fr' ? '⚠ Email non configuré — lien direct :' : '⚠ Email not configured — direct link:'}
+                  </p>
+                  <a href={resetLink} style={{ color: '#1B4332', wordBreak: 'break-all' }}>{resetLink}</a>
+                </div>
+              )}
             </div>
           ) : (
             <form onSubmit={handleSubmit}>

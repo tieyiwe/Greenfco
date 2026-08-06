@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import adminClient from '../../api/adminClient';
+import { logActivity, getAdminName } from './AdminActivity';
 
 const DEFAULT_TEAM = [
   { id: '1', name: 'Aïssata Kaboré', email: 'akabore@greenfco.com', role: 'manager' },
@@ -103,23 +105,7 @@ function getAvatarColor(name) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-function loadProjects() {
-  try {
-    const stored = JSON.parse(localStorage.getItem('greenfco_projects'));
-    if (Array.isArray(stored) && stored.length > 0) return stored;
-  } catch {}
-  return DEFAULT_PROJECTS;
-}
-
-function saveProjects(projects) {
-  localStorage.setItem('greenfco_projects', JSON.stringify(projects));
-}
-
 function loadTeam() {
-  try {
-    const stored = JSON.parse(localStorage.getItem('greenfco_admin_collaborators'));
-    if (Array.isArray(stored) && stored.length > 0) return stored;
-  } catch {}
   return DEFAULT_TEAM;
 }
 
@@ -630,24 +616,47 @@ const btnSecondary = {
 
 // ─── Main Page ──────────────────────────────────────────────────────────────
 export default function AdminProjects() {
-  const [projects, setProjects] = useState(loadProjects);
-  const [team] = useState(loadTeam);
+  const [projects, setProjects] = useState([]);
+  const [team, setTeam] = useState(DEFAULT_TEAM);
   const [currentUser] = useState(loadCurrentUser);
   const [showCreate, setShowCreate] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    saveProjects(projects);
-  }, [projects]);
+    // Load projects from server
+    adminClient.get('/projects')
+      .then(r => setProjects(Array.isArray(r.data) && r.data.length > 0 ? r.data : DEFAULT_PROJECTS))
+      .catch(() => setProjects(DEFAULT_PROJECTS))
+      .finally(() => setLoading(false));
+    // Load team from collaborators API
+    adminClient.get('/collaborators')
+      .then(r => {
+        if (Array.isArray(r.data) && r.data.length > 0) setTeam(r.data);
+      })
+      .catch(() => {});
+  }, []);
 
-  function handleCreateProject(project) {
-    setProjects((prev) => [project, ...prev]);
+  async function handleCreateProject(project) {
+    try {
+      const res = await adminClient.post('/projects', project);
+      setProjects((prev) => [res.data, ...prev]);
+      logActivity('project', getAdminName(), 'a créé un projet', project.title, 'info');
+    } catch {
+      // fallback: add to local state with original id
+      setProjects((prev) => [project, ...prev]);
+    }
     setShowCreate(false);
   }
 
-  function handleUpdateProject(updated) {
+  async function handleUpdateProject(updated) {
     setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
     if (selectedProject?.id === updated.id) setSelectedProject(updated);
+    // Persist to server (fire and forget — ID may be a UUID from old data)
+    const numId = parseInt(updated.id, 10);
+    if (!isNaN(numId)) {
+      adminClient.put(`/projects/${numId}`, updated).catch(() => {});
+    }
   }
 
   const now = new Date(new Date().toDateString());

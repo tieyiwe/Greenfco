@@ -1,12 +1,65 @@
-run = "npm install && npm run dev"
+run = "cd server && npm install && node index.js"
+modules = ["nodejs-20"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["psmisc"]
 
 [deployment]
-run = ["sh", "-c", "cd client && npm install && npm run build && cd ../server && npm install && node index.js"]
+run = ["sh", "-c", "node server/index.js"]
 deploymentTarget = "cloudrun"
 
 [[ports]]
-localPort = 3003
+localPort = 3001
+externalPort = 3001
+
+[[ports]]
+localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 5001
+externalPort = 3000
+
+[agent]
+expertMode = true
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Backend API"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev:client"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow]]
+name = "Backend API"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev:server"
+waitForPort = 3001
+
+[workflows.workflow.metadata]
+outputType = "console"

@@ -192,3 +192,20 @@
   padding: 0.6rem 1rem;
   background: white;
 }
+
+/* ─── Mobile GreenBot ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  .greenbot-container, .chat-container, .greenbot {
+    height: calc(100vh - 140px);
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .chat-input-row, .greenbot-input {
+    padding: 0.75rem;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  }
+  .chat-send-btn { min-width: 48px; min-height: 48px; }
+  .chat-input { font-size: 16px; min-height: 44px; }
+  .message-bubble { max-width: 88%; }
+  .greenbot-input .form-input { font-size: 16px !important; min-height: 44px; }
+}

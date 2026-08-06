@@ -22,6 +22,7 @@ import Contact from './pages/public/Contact';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
+const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
 
 // Admin (lazy-loaded for code splitting)
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
@@ -30,6 +31,7 @@ const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'));
 const AdminListings = lazy(() => import('./pages/admin/AdminListings'));
 const AdminBlog = lazy(() => import('./pages/admin/AdminBlog'));
 const AdminConsulting = lazy(() => import('./pages/admin/AdminConsulting'));
+const AdminGallery = lazy(() => import('./pages/admin/AdminGallery'));
 
 // Dashboard (lazy-loaded for code splitting)
 const DashboardLayout = lazy(() => import('./pages/dashboard/DashboardLayout'));
@@ -52,9 +54,23 @@ const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
 const AdminProjects = lazy(() => import('./pages/admin/AdminProjects'));
 const AdminActivity = lazy(() => import('./pages/admin/AdminActivity'));
 const AdminTeamChat = lazy(() => import('./pages/admin/AdminTeamChat'));
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
 
-// Auth bypass for testing — re-enable before production
 function ProtectedRoute({ children }) {
+  const { isAuthenticated } = useAuthStore();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const session = (() => {
+    try { return JSON.parse(localStorage.getItem('greenfco_admin_session')); } catch { return null; }
+  })();
+  if (!session?.verified) {
+    return <Navigate to="/admin/login" replace />;
+  }
   return children;
 }
 
@@ -111,6 +127,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword type="user" />} />
+          <Route path="/admin/reset-password" element={<ResetPassword type="admin" />} />
 
           {/* Dashboard (Protected) */}
           <Route path="/dashboard" element={
@@ -128,7 +146,6 @@ export default function App() {
             <Route path="soil-advisor" element={<SoilAdvisor />} />
             <Route path="koob-assist" element={<KoobAssist />} />
             <Route path="map" element={<ComingSoon title="Farm Map" icon="🗺️" />} />
-            <Route path="business-plan" element={<ComingSoon title="Business Plan" icon="📋" />} />
           </Route>
 
           {/* Marketplace (buy/sell listings) */}
@@ -167,12 +184,14 @@ export default function App() {
           </Route>
 
           {/* Admin */}
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="listings" element={<AdminListings />} />
             <Route path="blog" element={<AdminBlog />} />
             <Route path="consulting" element={<AdminConsulting />} />
+            <Route path="gallery" element={<AdminGallery />} />
             <Route path="transactions" element={<AdminTransactions />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="projects" element={<AdminProjects />} />

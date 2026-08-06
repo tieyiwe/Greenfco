@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import api from '../../api/client';
@@ -12,12 +12,19 @@ const CATEGORIES_FR = {
 export default function FinanceManager() {
   const { i18n } = useTranslation();
   const lang = i18n.language?.startsWith('fr') ? 'fr' : 'en';
-  const [entries, setEntries] = useState([
+  const DEMO_ENTRIES = [
     { id: 1, type: 'income', category: 'Vente récolte', amount: 250000, currency: 'FCFA', date: '2024-06-01', notes: 'Oignons 500kg' },
     { id: 2, type: 'expense', category: 'Semences', amount: 15000, currency: 'FCFA', date: '2024-05-10', notes: 'Semences maïs' },
     { id: 3, type: 'expense', category: 'Engrais/intrants', amount: 35000, currency: 'FCFA', date: '2024-05-15', notes: 'Urée 25kg' },
     { id: 4, type: 'income', category: 'Vente récolte', amount: 180000, currency: 'FCFA', date: '2024-06-10', notes: 'Pommes de terre 1t' },
-  ]);
+  ];
+  const [entries, setEntries] = useState(DEMO_ENTRIES);
+
+  useEffect(() => {
+    api.get('/finance')
+      .then(res => { if (res.data?.length > 0) setEntries(res.data); })
+      .catch(() => {});
+  }, []);
   const [showForm, setShowForm] = useState(false);
   const [activeType, setActiveType] = useState('all');
   const [form, setForm] = useState({ type: 'income', category: '', amount: '', currency: 'FCFA', date: new Date().toISOString().slice(0, 10), notes: '' });
@@ -36,11 +43,15 @@ export default function FinanceManager() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const entry = { id: Date.now(), ...form, amount: Number(form.amount) };
-    setEntries(prev => [entry, ...prev]);
+    const entryData = { ...form, amount: Number(form.amount) };
     setShowForm(false);
     setForm({ type: 'income', category: '', amount: '', currency: 'FCFA', date: new Date().toISOString().slice(0, 10), notes: '' });
-    try { await api.post('/finance', entry); } catch {}
+    try {
+      const res = await api.post('/finance', entryData);
+      setEntries(prev => [res.data, ...prev]);
+    } catch {
+      setEntries(prev => [{ id: Date.now(), ...entryData }, ...prev]);
+    }
   }
 
   const fmt = (n) => n.toLocaleString('fr-FR');

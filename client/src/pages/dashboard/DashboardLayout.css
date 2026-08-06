@@ -83,7 +83,7 @@
   .dashboard-content {
     margin-left: 0 !important;
     padding-bottom: 80px; /* space for bottom nav */
-    overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100vw;
   }
 

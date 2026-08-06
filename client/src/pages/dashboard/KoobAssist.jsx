@@ -36,14 +36,6 @@ const OBJECTIVES = [
   { value: 'certify', fr: 'Me certifier / Me former', en: 'Get certified / Trained' },
 ];
 
-const TRACKER_TYPES = [
-  { value: 'Revenu', fr: 'Revenu', en: 'Income', icon: '💰', color: '#52B788' },
-  { value: 'Dépense', fr: 'Dépense', en: 'Expense', icon: '💸', color: '#EF4444' },
-  { value: 'Plantation', fr: 'Plantation', en: 'Planting', icon: '🌱', color: '#2D6A4F' },
-  { value: 'Récolte', fr: 'Récolte', en: 'Harvest', icon: '🌾', color: '#F59E0B' },
-  { value: 'Irrigation', fr: 'Irrigation', en: 'Irrigation', icon: '💧', color: '#3B82F6' },
-  { value: 'Traitement', fr: 'Traitement', en: 'Treatment', icon: '💊', color: '#8B5CF6' },
-];
 
 const FALLBACK_PLAN_FR = `## 🎯 Actions Immédiates (0-2 semaines)
 - Dresser l'inventaire complet de vos ressources actuelles (terres, équipements, semences)
@@ -215,215 +207,6 @@ function PlantAnalysisResult({ analysis, lang, onReset }) {
   );
 }
 
-// ─── TrackerTab component ──────────────────────────────────────────────────────
-function TrackerTab({ lang }) {
-  const [trackerEntries, setTrackerEntries] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('greenfco_koob_tracker')) || []; } catch { return []; }
-  });
-  const [trackerForm, setTrackerForm] = useState({
-    date: new Date().toISOString().split('T')[0],
-    type: 'Revenu',
-    description: '',
-    amount: '',
-    quantity: '',
-    unit: 'kg',
-  });
-  const [showTrackerForm, setShowTrackerForm] = useState(false);
-
-  function handleTrackerAdd(e) {
-    e.preventDefault();
-    const entry = { ...trackerForm, id: Date.now() };
-    const updated = [entry, ...trackerEntries].slice(0, 20);
-    setTrackerEntries(updated);
-    localStorage.setItem('greenfco_koob_tracker', JSON.stringify(updated));
-    setTrackerForm({
-      date: new Date().toISOString().split('T')[0],
-      type: 'Revenu',
-      description: '',
-      amount: '',
-      quantity: '',
-      unit: 'kg',
-    });
-    setShowTrackerForm(false);
-  }
-
-  function handleTrackerDelete(id) {
-    const updated = trackerEntries.filter(e => e.id !== id);
-    setTrackerEntries(updated);
-    localStorage.setItem('greenfco_koob_tracker', JSON.stringify(updated));
-  }
-
-  const totalIncome = trackerEntries
-    .filter(e => e.type === 'Revenu' && e.amount)
-    .reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
-  const totalExpense = trackerEntries
-    .filter(e => e.type === 'Dépense' && e.amount)
-    .reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
-  const netMargin = totalIncome - totalExpense;
-
-  function fmt(n) {
-    return n.toLocaleString('fr-FR') + ' FCFA';
-  }
-
-  return (
-    <div className="tracker-tab">
-      {/* Stats */}
-      <div className="tracker-stats">
-        <div className="card tracker-stat-card">
-          <div className="stat-value" style={{ color: '#52B788' }}>{fmt(totalIncome)}</div>
-          <div className="stat-label">{lang === 'fr' ? 'Total Revenus' : 'Total Income'}</div>
-        </div>
-        <div className="card tracker-stat-card">
-          <div className="stat-value" style={{ color: '#EF4444' }}>{fmt(totalExpense)}</div>
-          <div className="stat-label">{lang === 'fr' ? 'Total Dépenses' : 'Total Expenses'}</div>
-        </div>
-        <div className="card tracker-stat-card">
-          <div className="stat-value" style={{ color: netMargin >= 0 ? '#52B788' : '#EF4444' }}>{fmt(netMargin)}</div>
-          <div className="stat-label">{lang === 'fr' ? 'Marge Nette' : 'Net Margin'}</div>
-        </div>
-      </div>
-
-      {/* Add button */}
-      <button
-        className="btn btn-primary tracker-add-btn"
-        onClick={() => setShowTrackerForm(v => !v)}
-      >
-        {showTrackerForm
-          ? (lang === 'fr' ? '✕ Annuler' : '✕ Cancel')
-          : (lang === 'fr' ? '+ Ajouter une activité' : '+ Add Activity')}
-      </button>
-
-      {/* Add form */}
-      {showTrackerForm && (
-        <form className="card tracker-form" onSubmit={handleTrackerAdd}>
-          <h4>{lang === 'fr' ? 'Nouvelle activité' : 'New Activity'}</h4>
-          <div className="tracker-form-grid">
-            <div className="form-group">
-              <label className="form-label">{lang === 'fr' ? 'Date' : 'Date'}</label>
-              <input
-                type="date"
-                className="form-input"
-                value={trackerForm.date}
-                onChange={e => setTrackerForm(p => ({ ...p, date: e.target.value }))}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">{lang === 'fr' ? 'Type' : 'Type'}</label>
-              <select
-                className="form-select"
-                value={trackerForm.type}
-                onChange={e => setTrackerForm(p => ({ ...p, type: e.target.value }))}
-              >
-                {TRACKER_TYPES.map(t => (
-                  <option key={t.value} value={t.value}>
-                    {t.icon} {lang === 'fr' ? t.fr : t.en}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-              <label className="form-label">{lang === 'fr' ? 'Description' : 'Description'}</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder={lang === 'fr' ? 'Ex: Vente oignons marché Dori' : 'E.g. Onion sale at Dori market'}
-                value={trackerForm.description}
-                onChange={e => setTrackerForm(p => ({ ...p, description: e.target.value }))}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">{lang === 'fr' ? 'Montant (FCFA)' : 'Amount (FCFA)'}</label>
-              <input
-                type="number"
-                className="form-input"
-                placeholder="0"
-                value={trackerForm.amount}
-                min="0"
-                onChange={e => setTrackerForm(p => ({ ...p, amount: e.target.value }))}
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">{lang === 'fr' ? 'Quantité' : 'Quantity'}</label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <input
-                  type="number"
-                  className="form-input"
-                  placeholder="0"
-                  value={trackerForm.quantity}
-                  min="0"
-                  onChange={e => setTrackerForm(p => ({ ...p, quantity: e.target.value }))}
-                  style={{ flex: 1 }}
-                />
-                <select
-                  className="form-select"
-                  value={trackerForm.unit}
-                  onChange={e => setTrackerForm(p => ({ ...p, unit: e.target.value }))}
-                  style={{ width: '80px' }}
-                >
-                  <option value="kg">kg</option>
-                  <option value="t">t</option>
-                  <option value="sac">sac</option>
-                  <option value="l">l</option>
-                  <option value="ha">ha</option>
-                  <option value="unité">unité</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
-            {lang === 'fr' ? '✓ Enregistrer' : '✓ Save'}
-          </button>
-        </form>
-      )}
-
-      {/* Timeline */}
-      <div className="tracker-timeline">
-        {trackerEntries.length === 0 ? (
-          <div className="card tracker-empty">
-            <p>📋 {lang === 'fr' ? 'Aucune activité enregistrée. Commencez à suivre vos opérations !' : 'No activities recorded yet. Start tracking your operations!'}</p>
-          </div>
-        ) : (
-          trackerEntries.map(entry => {
-            const typeObj = TRACKER_TYPES.find(t => t.value === entry.type) || TRACKER_TYPES[0];
-            return (
-              <div key={entry.id} className="tracker-entry card">
-                <div className="tracker-entry-icon" style={{ background: typeObj.color + '22', color: typeObj.color }}>
-                  {typeObj.icon}
-                </div>
-                <div className="tracker-entry-body">
-                  <div className="tracker-entry-title">{entry.description}</div>
-                  <div className="tracker-entry-meta">
-                    {entry.date} · {lang === 'fr' ? typeObj.fr : typeObj.en}
-                    {entry.quantity && ` · ${entry.quantity} ${entry.unit}`}
-                  </div>
-                </div>
-                {entry.amount && (
-                  <span
-                    className="tracker-entry-amount"
-                    style={{ color: entry.type === 'Revenu' ? '#52B788' : entry.type === 'Dépense' ? '#EF4444' : '#6B7280' }}
-                  >
-                    {entry.type === 'Revenu' ? '+' : entry.type === 'Dépense' ? '-' : ''}{parseFloat(entry.amount).toLocaleString('fr-FR')} F
-                  </span>
-                )}
-                <button
-                  type="button"
-                  style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: '1rem', padding: '0 0.25rem' }}
-                  onClick={() => handleTrackerDelete(entry.id)}
-                  title={lang === 'fr' ? 'Supprimer' : 'Delete'}
-                >
-                  ×
-                </button>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ─── Main KoobAssist component ─────────────────────────────────────────────────
 export default function KoobAssist() {
   const { i18n } = useTranslation();
@@ -537,9 +320,6 @@ export default function KoobAssist() {
         </button>
         <button className={`koob-tab ${tab === 'plant' ? 'active' : ''}`} onClick={() => setTab('plant')}>
           🔬 {lang === 'fr' ? 'Analyse Plante' : 'Plant Analysis'}
-        </button>
-        <button className={`koob-tab ${tab === 'tracker' ? 'active' : ''}`} onClick={() => setTab('tracker')}>
-          📊 {lang === 'fr' ? 'Suivi' : 'Tracker'}
         </button>
         </div>
       </div>
@@ -777,7 +557,7 @@ export default function KoobAssist() {
                   <div className="pa-thumbnails">
                     {plantImages.map((img, i) => (
                       <div key={i} className="pa-thumb">
-                        <img src={img.preview} alt={`plant-${i}`} />
+                        <img src={img.preview} alt={`plant-${i}`} loading="lazy" decoding="async" />
                         <button
                           type="button"
                           className="pa-thumb-remove"
@@ -842,8 +622,6 @@ export default function KoobAssist() {
         </div>
       )}
 
-      {/* ── Tracker tab ── */}
-      {tab === 'tracker' && <TrackerTab lang={lang} />}
     </div>
   );
 }

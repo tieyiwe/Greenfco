@@ -1,9 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import './Gallery.css';
 
 const CATEGORIES_FR = ['Tout', 'Terrain', 'Formations', 'Événements', 'Ferme-École'];
 const CATEGORIES_EN = ['All', 'Field', 'Training', 'Events', 'Farm School'];
+
+const CATEGORY_MAP = {
+  terrain: 'Terrain',
+  formations: 'Formations',
+  formation: 'Formations',
+  evenements: 'Événements',
+  evenement: 'Événements',
+  'événements': 'Événements',
+  'événement': 'Événements',
+  events: 'Événements',
+  'ferme-ecole': 'Ferme-École',
+  'ferme-école': 'Ferme-École',
+  'farm-school': 'Ferme-École',
+  general: 'Terrain',
+};
 
 const PLACEHOLDERS = [
   { id: 1, cat: 'Terrain', w: 600, h: 400, label_fr: 'Visite terrain — Burkina Faso', label_en: 'Field visit — Burkina Faso' },
@@ -22,12 +37,31 @@ export default function Gallery() {
   const lang = i18n.language?.startsWith('fr') ? 'fr' : 'en';
   const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState(null);
+  const [apiItems, setApiItems] = useState([]);
+
+  useEffect(() => {
+    fetch('/api/gallery')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setApiItems(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
 
   const cats = lang === 'fr' ? CATEGORIES_FR : CATEGORIES_EN;
 
+  const apiMapped = apiItems.map(item => ({
+    id: `api-${item.id}`,
+    cat: item.category ? (CATEGORY_MAP[item.category.toLowerCase()] || 'Terrain') : 'Terrain',
+    w: 600, h: 400,
+    label_fr: item.title_fr || item.title,
+    label_en: item.title,
+    image_url: item.image_url,
+  }));
+
+  const allItems = [...apiMapped, ...PLACEHOLDERS];
+
   const filtered = active === 0
-    ? PLACEHOLDERS
-    : PLACEHOLDERS.filter(p => p.cat === CATEGORIES_FR[active]);
+    ? allItems
+    : allItems.filter(p => p.cat === CATEGORIES_FR[active]);
 
   return (
     <main className="gallery-page">
@@ -66,14 +100,24 @@ export default function Gallery() {
                 style={{ animationDelay: `${i * 0.05}s` }}
                 onClick={() => setLightbox(item)}
               >
-                <div
-                  className="img-placeholder gallery-img"
-                  style={{ paddingBottom: `${(item.h / item.w) * 100}%` }}
-                >
-                  <span className="gallery-label">
-                    {lang === 'fr' ? item.label_fr : item.label_en}
-                  </span>
-                </div>
+                {item.image_url ? (
+                  <img
+                    src={item.image_url}
+                    alt={lang === 'fr' ? item.label_fr : item.label_en}
+                    className="gallery-img gallery-real-img"
+                    style={{ width: '100%', display: 'block', borderRadius: 'inherit' }}
+                    loading="lazy"
+                  />
+                ) : (
+                  <div
+                    className="img-placeholder gallery-img"
+                    style={{ paddingBottom: `${(item.h / item.w) * 100}%` }}
+                  >
+                    <span className="gallery-label">
+                      {lang === 'fr' ? item.label_fr : item.label_en}
+                    </span>
+                  </div>
+                )}
                 <div className="gallery-overlay">
                   <span className="gallery-zoom">🔍</span>
                   <p>{lang === 'fr' ? item.label_fr : item.label_en}</p>
@@ -107,9 +151,13 @@ export default function Gallery() {
         <div className="lightbox" onClick={() => setLightbox(null)}>
           <div className="lightbox-content" onClick={e => e.stopPropagation()}>
             <button className="lightbox-close" onClick={() => setLightbox(null)}>✕</button>
-            <div className="img-placeholder" style={{ width: '100%', height: '400px' }}>
-              <span>{lang === 'fr' ? lightbox.label_fr : lightbox.label_en}</span>
-            </div>
+            {lightbox.image_url ? (
+              <img src={lightbox.image_url} alt={lang === 'fr' ? lightbox.label_fr : lightbox.label_en} style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: '8px', display: 'block' }} />
+            ) : (
+              <div className="img-placeholder" style={{ width: '100%', height: '400px' }}>
+                <span>{lang === 'fr' ? lightbox.label_fr : lightbox.label_en}</span>
+              </div>
+            )}
             <p className="lightbox-caption">{lang === 'fr' ? lightbox.label_fr : lightbox.label_en}</p>
           </div>
         </div>
